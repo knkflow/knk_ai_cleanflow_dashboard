@@ -43,6 +43,7 @@ export function Landing() {
     )}&body=${encodeURIComponent(body)}`;
 
     window.location.href = mailto;
+    // Optional: Modal schließen nach Trigger
     setIsContactOpen(false);
   };
 
@@ -51,21 +52,14 @@ export function Landing() {
       {/* Header */}
       <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-          {/* Logo + Backlight */}
-          <div className="relative flex items-center gap-3">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -inset-3 rounded-full
-                         bg-[radial-gradient(60%_60%_at_35%_40%,rgba(255,255,255,0.22),rgba(255,255,255,0.08)_45%,transparent_70%)]
-                         blur-xl"
-            />
+          <div className="flex items-center gap-3">
             <img
               src="/brand/logo.png"
               alt="CleanFlow"
-              className="relative z-10 h-12 md:h-14 w-auto object-contain"
+              className="h-12 md:h-14 w-auto object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.15)]"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
-            <span className="relative z-10 text-sm md:text-base tracking-widest uppercase text-white/85">
+            <span className="text-sm md:text-base tracking-widest uppercase text-white/80">
               CleanFlow
             </span>
           </div>
@@ -97,17 +91,9 @@ export function Landing() {
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden">
-          {/* Spotlight + Light-Streak statt Kreis */}
-          <div className="absolute inset-0 -z-10 pointer-events-none">
-            {/* weicher „Bühnen-Spot“ von oben */}
-            <div className="absolute inset-0
-                            bg-[radial-gradient(120%_80%_at_50%_0%,rgba(255,255,255,0.09),transparent_60%)]" />
-            {/* diagonaler Light-Streak */}
-            <div className="absolute left-1/2 top-[-8%] h-[130%] w-[85%] -translate-x-1/2 -rotate-8
-                            bg-gradient-to-r from-white/12 via-transparent to-white/12 opacity-60 blur-2xl" />
-            {/* sanfte Vignette nach unten */}
-            <div className="absolute inset-0
-                            bg-[linear-gradient(to_bottom,rgba(0,0,0,0)_0%,rgba(0,0,0,0.18)_55%,rgba(0,0,0,0.55)_100%)]" />
+          <div className="absolute inset-0 pointer-events-none">
+            {/* sehr dezenter radialer Glanz */}
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full bg-white/5 blur-3xl" />
           </div>
 
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
@@ -143,7 +129,7 @@ export function Landing() {
           </div>
         </section>
 
-        {/* SECTION – „Was ist CleanFlow?“ (hell, klare Kacheln, schwarze Linien) */}
+        {/* SECTION – „Was ist CleanFlow?“ (hell, klare Kacheln) */}
         <section ref={cleanflowRef} className="py-24 bg-white text-black">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
@@ -197,22 +183,22 @@ export function Landing() {
           </div>
         </section>
 
-        {/* SECTION – „Funktionen, die überzeugen“ (jetzt hell: weißer BG, schwarze Überschrift/Linie/Text) */}
-        <section ref={featuresRef} className="py-24 bg-white text-black border-t border-neutral-200">
+        {/* SECTION – „Funktionen, die überzeugen“ (Lösungen) */}
+        <section ref={featuresRef} className="py-24 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
-              {/* Überschrift in Schwarz (kein Gold) */}
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-black">
-                Funktionen, die überzeugen
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
+                  Funktionen, die überzeugen
+                </span>
               </h2>
-              {/* feine schwarze Linie */}
-              <div className="w-24 h-[2px] bg-gradient-to-r from-black via-neutral-800 to-black mx-auto mt-6 mb-6 rounded-full" />
-              <p className="text-black/80 max-w-3xl mx-auto">
+              <div className="w-24 h-px bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mx-auto mt-6 mb-6 opacity-80" />
+              <p className="text-white/70 max-w-3xl mx-auto">
                 Alles, was Sie für professionelles Reinigungsmanagement brauchen.
               </p>
             </div>
 
-            <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 {
                   emoji: '✅',
@@ -241,15 +227,14 @@ export function Landing() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-3xl border-2 border-black bg-white p-8 hover:bg-neutral-50 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(0,0,0,0.12)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  className="rounded-2xl border border-white/10 bg-white/[0.035] p-7 hover:border-amber-400/30 transition-colors"
                 >
-                  {/* Badge kann (wenn gewünscht) gold bleiben – hier neutral schwarz */}
-                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-black mb-4">
+                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-amber-300/90 mb-4">
                     <span className="text-base">{item.emoji}</span>
                     <span>Highlight</span>
                   </div>
-                  <h3 className="text-2xl font-semibold text-black">{item.title}</h3>
-                  <p className="mt-3 text-black/90 leading-relaxed">{item.text}</p>
+                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+                  <p className="mt-3 text-white/70 leading-relaxed">{item.text}</p>
                 </div>
               ))}
             </div>
@@ -257,7 +242,7 @@ export function Landing() {
         </section>
 
         {/* CTA */}
-        <section className="py-28 bg-black text-white border-t border-white/10">
+        <section className="py-28 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-3xl text-center">
             <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-100 via-white to-neutral-100">
