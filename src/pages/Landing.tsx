@@ -12,7 +12,7 @@ export function Landing() {
             <img
               src="/brand/logo.png"
               alt="KNK-AI"
-              className="h-30 w-auto object-contain"
+              className="h-29 w-auto object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
