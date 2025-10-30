@@ -72,20 +72,6 @@ export function Landing() {
           </div>
         </section>
 
-       {/* SECTION – „Was ist CleanFlow?“ (invertiert: weißer Hintergrund, schwarzer Text) */}
-<section className="py-24 bg-white text-black">
-  <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
-    <div className="text-center">
-      {/* Titel – dunkler Verlauf für edlen Effekt */}
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-800 via-neutral-900 to-black">
-          Was ist CleanFlow
-        </span>
-      </h2>
-
-      {/* feine graue Linie darunter */}
-      <div className="w-24 h-px bg-neutral-300 mx-auto mt-6 mb-6" />
-
      {/* SECTION – „Was ist CleanFlow?“ (weißer Premium-Look mit schwebenden Cards) */}
 <section className="py-24 bg-white text-black">
   <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
