@@ -99,10 +99,22 @@ export function Landing() {
 
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
             {/* Unterzeile mit eigenem, schmalem Glow */}
-        <div className="relative inline-block">
+       <div className="relative inline-flex items-center justify-center px-6 py-2 rounded-full border border-white/30 bg-white/5 backdrop-blur-[2px]
+                shadow-[0_4px_20px_rgba(255,255,255,0.1),inset_0_0_12px_rgba(255,255,255,0.08)]
+                before:content-[''] before:absolute before:inset-0 before:rounded-full before:border before:border-white/50 before:opacity-30
+                hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
+                transition-all duration-500 ease-out">
+  
+  {/* feiner Glow-Hintergrund */}
+  <span
+    aria-hidden
+    className="absolute -inset-x-6 -inset-y-3 rounded-full 
+               bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.6),transparent_80%)]
+               blur-[24px] opacity-70"
+  />
 
   {/* Text */}
-  <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white">
+  <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]">
     Short-Term Rental · Operations
   </p>
 </div>
