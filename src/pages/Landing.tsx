@@ -118,7 +118,7 @@ export function Landing() {
 <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]">
   Short-Term Rental · Operations
 </p>
-
+</div>
 
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
