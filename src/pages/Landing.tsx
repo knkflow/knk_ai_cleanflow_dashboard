@@ -5,177 +5,220 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
+      {/* Top Bar – minimal, präzise */}
       <header className="border-b border-white/10">
-        <div className="container mx-auto px-4 py-6 flex items-center justify-between">
+        <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
               src="/brand/logo.png"
               alt="CleanFlow"
-              className="h-28 w-auto object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
+              className="h-10 w-auto object-contain"
+              onError={(e) => (e.currentTarget.style.display = 'none')}
             />
-            <span className="text-xl font-semibold">CleanFlow</span>
+            <span className="text-sm tracking-widest uppercase text-white/70">CleanFlow</span>
           </div>
+          <nav className="hidden md:flex items-center gap-8">
+            <button className="text-sm text-white/70 hover:text-white transition-colors">Produkte</button>
+            <button className="text-sm text-white/70 hover:text-white transition-colors">Lösungen</button>
+            <button className="text-sm text-white/70 hover:text-white transition-colors">Preise</button>
+            <button className="text-sm text-white/70 hover:text-white transition-colors">Kontakt</button>
+          </nav>
           <button
             onClick={() => navigate('/login')}
-            className="px-6 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
+            className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors"
           >
             Login
           </button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="container mx-auto px-4">
-        {/* Hero Section */}
-        <section className="py-24 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Simplify your cleaning coordination
-          </h1>
-          <p className="text-xl text-white/70 max-w-2xl mx-auto mb-12">
-            Manage apartments, coordinate cleaners, and schedule tasks with precision.
-            Built for hosts who demand efficiency.
-          </p>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-8 py-4 bg-white text-black hover:bg-white/90 transition-colors text-lg font-semibold"
-          >
-            Get Started
-          </button>
+      <main>
+        {/* HERO – große Bühne, klare Typo, minimaler Schimmer */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            {/* sehr dezenter radialer Glanz */}
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full bg-white/5 blur-3xl" />
+          </div>
+
+          <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
+            <p className="text-xs tracking-[0.35em] uppercase text-white/60">Short-Term Rental · Operations</p>
+            <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+              <span className="text-white">Effortless</span>{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
+                Cleaning Coordination
+              </span>
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
+              Manage apartments, coordinate cleaners, and schedule tasks with precision. Built for hosts who demand
+              efficiency.
+            </p>
+
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 transition-colors"
+              >
+                Get Started
+              </button>
+              <button
+                className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors"
+              >
+                Learn More
+              </button>
+            </div>
+
+            {/* dünner Divider */}
+            <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
+          </div>
         </section>
 
-        {/* ---- CleanFlow Features Section ---- */}
-        <section className="w-full bg-black text-white border-t border-white/10 py-20">
-          <div className="container mx-auto max-w-6xl px-4">
-            <div className="text-center mb-12">
-              {/* Titel mit Goldverlauf */}
-<h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-  <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
-    Was ist CleanFlow
-  </span>
-</h2>
-
-
-              {/* Beschreibung */}
-              <p className="mt-4 text-base sm:text-lg text-white/60 max-w-3xl mx-auto">
+        {/* SECTION – „Was ist CleanFlow?“ (monochrom, sehr clean) */}
+        <section className="py-24">
+          <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-100 via-white to-neutral-100">
+                  Was ist CleanFlow
+                </span>
+              </h2>
+              <div className="w-24 h-px bg-white/15 mx-auto mt-6 mb-6" />
+              <p className="text-white/70 max-w-3xl mx-auto">
                 CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.
                 Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
               </p>
             </div>
 
-            {/* Drei Hauptfunktionen */}
-            <div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Drei Kerneigenschaften – nüchterne Karten, feine Linien */}
+            <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 {
                   emoji: '💬',
                   title: 'WhatsApp Integration',
-                  text: 'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.',
+                  text:
+                    'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
                 },
                 {
                   emoji: '🗓️',
                   title: 'Intelligente Planung',
-                  text: 'Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
+                  text:
+                    'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
                 },
                 {
                   emoji: '👥',
                   title: 'Team-Management',
-                  text: 'Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken Sie Fortschritte und behalten Sie alles im Blick.',
+                  text:
+                    'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
                 },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-7 hover:ring-amber-400/20 hover:shadow-[0_0_20px_rgba(251,191,36,0.1)] transition duration-300"
+                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 hover:bg-white/[0.05] transition-colors"
                 >
-                  <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30 mb-4">
+                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-white/60 mb-4">
                     <span className="text-base">{item.emoji}</span>
                     <span>Feature</span>
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                  <p className="text-white/70 leading-relaxed">{item.text}</p>
+                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+                  <p className="mt-3 text-white/70 leading-relaxed">{item.text}</p>
                 </div>
               ))}
             </div>
           </div>
+        </section>
 
-          {/* Section 2 – Funktionen, die überzeugen */}
-          <div className="relative py-24">
-            <div className="container mx-auto max-w-6xl px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-  <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
-    Funktionen, die überzeugen
-  </span>
-</h2>
+        {/* SECTION – „Funktionen, die überzeugen“ (stärkerer Kontrast, dezente Goldkante) */}
+        <section className="py-24 border-t border-white/10">
+          <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
+                  Funktionen, die überzeugen
+                </span>
+              </h2>
+              <div className="w-24 h-px bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mx-auto mt-6 mb-6 opacity-80" />
+              <p className="text-white/70 max-w-3xl mx-auto">
+                Alles, was Sie für professionelles Reinigungsmanagement brauchen.
+              </p>
+            </div>
 
-                <p className="mt-4 text-base sm:text-lg text-white/70 max-w-3xl mx-auto">
-                  Alles, was Sie für professionelles Reinigungsmanagement brauchen
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                {[
-                  {
-                    emoji: '✅',
-                    title: 'Personalisierte Kommunikation',
-                    text: 'Wählen Sie für jede Reinigungskraft den bevorzugten Kommunikationskanal – WhatsApp, SMS, E-Mail oder In-App-Benachrichtigungen.',
-                  },
-                  {
-                    emoji: '🕒',
-                    title: 'Echtzeit-Updates',
-                    text: 'Erhalten Sie sofortige Benachrichtigungen, wenn Reinigungen gestartet, abgeschlossen oder verzögert werden.',
-                  },
-                  {
-                    emoji: '🛡️',
-                    title: 'Sichere Datenverwaltung',
-                    text: 'Alle Daten werden verschlüsselt und DSGVO-konform gespeichert. Ihre Privatsphäre hat oberste Priorität.',
-                  },
-                  {
-                    emoji: '📊',
-                    title: 'Automatische Berichte',
-                    text: 'Generieren Sie automatisch detaillierte Berichte über Reinigungen, Arbeitszeiten und Kosten.',
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.title}
-                    className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-7 hover:ring-amber-400/20 transition"
-                  >
-                    <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30 mb-4">
-                      <span className="text-base">{item.emoji}</span>
-                      <span>Highlight</span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                    <p className="text-white/70 leading-relaxed">{item.text}</p>
+            <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  emoji: '✅',
+                  title: 'Personalisierte Kommunikation',
+                  text:
+                    'WhatsApp, SMS, E-Mail oder In-App: für jede Reinigungskraft der passende Kanal – klar und nachvollziehbar.',
+                },
+                {
+                  emoji: '🕒',
+                  title: 'Echtzeit-Updates',
+                  text:
+                    'Benachrichtigungen bei Start, Abschluss oder Verzögerung – Sie behalten stets die Kontrolle.',
+                },
+                {
+                  emoji: '🛡️',
+                  title: 'Sichere Daten',
+                  text:
+                    'Verschlüsselt und DSGVO-konform. Privatsphäre und Integrität stehen an erster Stelle.',
+                },
+                {
+                  emoji: '📊',
+                  title: 'Automatische Berichte',
+                  text:
+                    'Detaillierte Reports zu Reinigungen, Zeiten und Kosten – fundierte Entscheidungen auf einen Blick.',
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-white/10 bg-white/[0.035] p-7 hover:border-amber-400/30 transition-colors"
+                >
+                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-amber-300/90 mb-4">
+                    <span className="text-base">{item.emoji}</span>
+                    <span>Highlight</span>
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+                  <p className="mt-3 text-white/70 leading-relaxed">{item.text}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-24 border-t border-white/10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6">Ready to optimize your operations?</h2>
-            <p className="text-xl text-white/70 mb-8">
+        {/* CTA – präzise, ruhig, hochwertig */}
+        <section className="py-28 border-t border-white/10">
+          <div className="container mx-auto px-6 lg:px-8 max-w-3xl text-center">
+            <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-100 via-white to-neutral-100">
+                Ready to optimize your operations?
+              </span>
+            </h3>
+            <p className="mt-4 text-white/70">
               Join hosts who trust CleanFlow to keep their properties pristine.
             </p>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-8 py-4 bg-white text-black hover:bg-white/90 transition-colors text-lg font-semibold"
-            >
-              Start Now
-            </button>
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 transition-colors"
+              >
+                Start Now
+              </button>
+              <button className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors">
+                Talk to Sales
+              </button>
+            </div>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-8">
-        <div className="container mx-auto px-4 text-center text-white/50">
-          <p>&copy; 2025 CleanFlow. All rights reserved.</p>
+      {/* Footer – sehr reduziert */}
+      <footer className="border-t border-white/10">
+        <div className="container mx-auto px-6 lg:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-3">
+          <p className="text-white/50 text-sm">© {new Date().getFullYear()} CleanFlow. All rights reserved.</p>
+          <div className="flex items-center gap-6 text-sm">
+            <button className="text-white/50 hover:text-white transition-colors">Datenschutz</button>
+            <button className="text-white/50 hover:text-white transition-colors">Impressum</button>
+            <button className="text-white/50 hover:text-white transition-colors">AGB</button>
+          </div>
         </div>
       </footer>
     </div>
