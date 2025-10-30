@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
 import { getTasks, createTask, updateTask, deleteTask, getApartments, getCleaners } from '../../lib/api';
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
@@ -46,7 +46,6 @@ export function Tasks() {
     date.setHours(0, 0, 0, 0);
     return date;
   }
-
   function endOfWeek(d = new Date()) {
     const s = startOfWeek(d);
     const e = new Date(s);
@@ -55,53 +54,23 @@ export function Tasks() {
     return e;
   }
 
-  function toDdMmYyyyLocal(date: Date) {
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const yyyy = date.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-  }
-
-  // ---- Daten laden (mit minimalem Datumsfenster, je nach Quick-Filter) ----
+  // ---- Daten laden: immer ALLE Tasks holen, Filter clientseitig ----
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.id, quickFilters]); // Suche & Checkbox sind clientseitig; müssen kein Reload triggern
+    // nur beim User-Wechsel neu laden; Filter sind clientseitig
+  }, [user.id]);
 
   async function loadData() {
     setLoading(true);
     try {
-      const today = new Date();
-      const tomorrow = new Date();
-      tomorrow.setDate(today.getDate() + 1);
-      const eow = endOfWeek(today);
-
-      const hasAll = quickFilters.includes('ALL');
-      const hasToday = quickFilters.includes('TODAY');
-      const hasTomorrow = quickFilters.includes('TOMORROW');
-      const hasThisWeek = quickFilters.includes('THIS_WEEK');
-
-      let dateFrom: string | undefined;
-      let dateTo: string | undefined;
-
-      if (!hasAll && (hasToday || hasTomorrow || hasThisWeek) && quickFilters.length > 0) {
-        const latest = hasThisWeek ? eow : hasTomorrow ? tomorrow : today;
-        dateFrom = toDdMmYyyyLocal(today);
-        dateTo = toDdMmYyyyLocal(latest);
-      } else {
-        dateFrom = undefined;
-        dateTo = undefined;
-      }
-
       const [tasksRes, apartmentsRes, cleanersRes] = await Promise.allSettled([
-        getTasks(user.id, { dateFrom, dateTo }),
+        getTasks(user.id),            // <-- kein serverseitiger Filter mehr
         getApartments(user.id),
         getCleaners(user.id),
       ]);
 
       if (apartmentsRes.status === 'fulfilled') setApartments(apartmentsRes.value);
       if (cleanersRes.status === 'fulfilled') setCleaners(cleanersRes.value);
-
       if (tasksRes.status === 'fulfilled') {
         setTasks(tasksRes.value);
       } else {
@@ -116,16 +85,9 @@ export function Tasks() {
   // ---- Modal öffnen/schließen ----
   function openCreateModal() {
     setEditingId(null);
-    setFormData({
-      listing_id: '',
-      cleaner_id: '',
-      date: '',
-      deadline: '',
-      note: '',
-    });
+    setFormData({ listing_id: '', cleaner_id: '', date: '', deadline: '', note: '' });
     setIsModalOpen(true);
   }
-
   function openEditModal(task: CleaningTaskWithDetails) {
     setEditingId(task.id);
     setFormData({
@@ -149,12 +111,8 @@ export function Tasks() {
         deadline: formData.deadline || null,
         note: formData.note || null,
       };
-
-      if (editingId) {
-        await updateTask(editingId, data);
-      } else {
-        await createTask(data);
-      }
+      if (editingId) await updateTask(editingId, data);
+      else await createTask(data);
       setIsModalOpen(false);
       loadData();
     } catch (error: any) {
@@ -179,16 +137,16 @@ export function Tasks() {
     return task.cleaner.availability.includes(task.date);
   }
 
-  // ---- Clientseitige Filterung ----
+  // ---- Quick-Filter Logik (clientseitig) ----
   const today = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
+  const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
   const sow = startOfWeek(today);
   const eow = endOfWeek(today);
 
   function isInQuickRanges(dateStr: string) {
-    if (!isValidDateString(dateStr)) return false;
+    // Ohne Filter ODER 'ALL' => alles anzeigen
     if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
+    if (!isValidDateString(dateStr)) return false;
 
     const [dd, mm, yyyy] = dateStr.split('-').map(Number);
     const d = new Date(yyyy!, (mm ?? 1) - 1, dd ?? 1);
@@ -196,13 +154,11 @@ export function Tasks() {
 
     const checks: boolean[] = [];
     if (quickFilters.includes('TODAY')) {
-      const t = new Date(today);
-      t.setHours(0, 0, 0, 0);
+      const t = new Date(today); t.setHours(0, 0, 0, 0);
       checks.push(d.getTime() === t.getTime());
     }
     if (quickFilters.includes('TOMORROW')) {
-      const tm = new Date(tomorrow);
-      tm.setHours(0, 0, 0, 0);
+      const tm = new Date(tomorrow); tm.setHours(0, 0, 0, 0);
       checks.push(d.getTime() === tm.getTime());
     }
     if (quickFilters.includes('THIS_WEEK')) {
@@ -211,11 +167,10 @@ export function Tasks() {
     return checks.some(Boolean);
   }
 
+  // ---- Clientseitige Filterung (Alle Bedingungen) ----
   const filteredTasks = tasks.filter((t) => {
-    // Quick date
     if (!isInQuickRanges(t.date)) return false;
 
-    // Apartment query (Name/Adresse)
     if (apartmentQuery.trim()) {
       const q = apartmentQuery.toLowerCase();
       const name = (t.apartment?.name || '').toLowerCase();
@@ -223,18 +178,33 @@ export function Tasks() {
       if (!name.includes(q) && !addr.includes(q)) return false;
     }
 
-    // Cleaner query (Name)
     if (cleanerQuery.trim()) {
       const cq = cleanerQuery.toLowerCase();
       const cn = (t.cleaner?.name || '').toLowerCase();
       if (!cn.includes(cq)) return false;
     }
 
-    // Deadline only
     if (withDeadlineOnly && !t.deadline) return false;
 
     return true;
   });
+
+  // ---- Handlers ----
+  function toggleQuickFilter(id: string) {
+    setQuickFilters((prev) => {
+      if (id === 'ALL') return prev.includes('ALL') ? [] : ['ALL'];
+      // wenn ALL aktiv, raus damit
+      const base = prev.filter((x) => x !== 'ALL');
+      return base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
+    });
+  }
+
+  function resetFilters() {
+    setQuickFilters([]);
+    setApartmentQuery('');
+    setCleanerQuery('');
+    setWithDeadlineOnly(false);
+  }
 
   if (loading) {
     return <div className="text-white">Loading...</div>;
@@ -256,7 +226,7 @@ export function Tasks() {
 
       {/* Filterleiste */}
       <div className="mb-6 flex flex-col gap-4">
-        {/* Quick-Buttons */}
+        {/* Quick-Buttons + Reset */}
         <div className="flex flex-wrap items-center gap-3">
           {[
             { id: 'TODAY', label: 'Heute' },
@@ -268,13 +238,7 @@ export function Tasks() {
             return (
               <button
                 key={btn.id}
-                onClick={() => {
-                  setQuickFilters((prev) => {
-                    if (btn.id === 'ALL') return prev.includes('ALL') ? [] : ['ALL'];
-                    const next = prev.filter((x) => x !== 'ALL');
-                    return next.includes(btn.id) ? next.filter((x) => x !== btn.id) : [...next, btn.id];
-                  });
-                }}
+                onClick={() => toggleQuickFilter(btn.id)}
                 className={`px-4 py-2 rounded-full text-sm transition-all duration-300
                   border ${selected ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_14px_rgba(59,130,246,0.45)]' : 'border-white/20'}
                   hover:border-white hover:shadow-[0_0_12px_rgba(255,255,255,0.35)]
@@ -284,6 +248,17 @@ export function Tasks() {
               </button>
             );
           })}
+
+          {/* Filter zurücksetzen */}
+          <button
+            onClick={resetFilters}
+            className="ml-1 px-4 py-2 rounded-full text-sm transition-all duration-300 border border-white/20
+                       hover:border-white hover:shadow-[0_0_12px_rgba(255,255,255,0.35)] flex items-center gap-2"
+            title="Filter zurücksetzen"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Zurücksetzen
+          </button>
         </div>
 
         {/* Suchen & Checkbox */}
