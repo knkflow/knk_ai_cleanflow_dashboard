@@ -190,6 +190,8 @@ export async function createTask(task: Omit<CleaningTask, 'id' | 'created_at'>):
     }
   }
 
+  console.log(taskData);
+
   const { data, error } = await supabase
     .from('cleaning_tasks')
     .insert([taskData])
