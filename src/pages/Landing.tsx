@@ -52,7 +52,6 @@ export function Landing() {
       {/* Header */}
       <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-         <div className="relative group flex items-center gap-3">
  <div className="relative group flex items-center gap-3 -ml-3 sm:-ml-4 md:-ml-6">
   {/* Haupt-Backlight (größer & heller, strahlt auch den Text an) */}
   <span
@@ -85,8 +84,6 @@ export function Landing() {
     CleanFlow
   </span>
 </div>
-
-
           <nav className="flex items-center gap-6 md:gap-8">
             {/* Produkte & Preise entfernt */}
             <button
