@@ -52,11 +52,12 @@ Coordinate your cleaning staff via WhatsApp or personalized communication channe
   <div className="container mx-auto max-w-6xl px-4">
     <div className="text-center mb-12">
       {/* Titel mit edlem Smaragd-Grünverlauf */}
-    <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-  <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-200 via-emerald-300 to-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">
-    Was ist CleanFlow 
+    <<h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+  <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 drop-shadow-[0_0_10px_rgba(251,191,36,0.4)]">
+    Was ist CleanFlow?
   </span>
 </h2>
+
 
 
       {/* feine grün-goldene Linie zur Abgrenzung */}
