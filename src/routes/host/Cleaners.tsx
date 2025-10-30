@@ -16,6 +16,9 @@ export function Cleaners() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedCleaner, setSelectedCleaner] = useState<Cleaner | null>(null);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,6 +26,7 @@ export function Cleaners() {
     hourly_rate: '',
   });
 
+  // Lade Daten beim Mount
   useEffect(() => {
     loadData();
   }, [user.id]);
@@ -38,12 +42,7 @@ export function Cleaners() {
 
   function openCreateModal() {
     setEditingId(null);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      hourly_rate: '',
-    });
+    setFormData({ name: '', email: '', phone: '', hourly_rate: '' });
     setIsModalOpen(true);
   }
 
@@ -85,10 +84,16 @@ export function Cleaners() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this cleaner?')) return;
+  function handleDelete(cleaner: Cleaner) {
+    setSelectedCleaner(cleaner);
+    setIsConfirmOpen(true);
+  }
+
+  async function handleDeleteConfirmed() {
+    if (!selectedCleaner) return;
     try {
-      await deleteCleaner(id);
+      await deleteCleaner(selectedCleaner.id);
+      setIsConfirmOpen(false);
       loadData();
     } catch (error: any) {
       alert(error.message);
@@ -101,6 +106,7 @@ export function Cleaners() {
 
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Cleaners</h2>
         <button
@@ -112,44 +118,42 @@ export function Cleaners() {
         </button>
       </div>
 
-      <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm">
+      {/* Info Box */}
+      <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
         <p className="font-medium mb-2">How Cleaner Invitations Work:</p>
         <ol className="list-decimal list-inside space-y-1">
           <li>Add a cleaner with their email address</li>
           <li>The cleaner signs up using that same email</li>
-          <li>Their account is automatically linked (no admin intervention needed)</li>
-          <li>They can then access their assignments and manage availability</li>
+          <li>Their account is automatically linked</li>
+          <li>They can access assignments and manage availability</li>
         </ol>
       </div>
 
+      {/* Cleaner Cards */}
       <div className="grid gap-4">
         {cleaners.map((cleaner) => (
           <div
             key={cleaner.id}
-            className="bg-white/5 border border-white/10 p-6"
+            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500
+                       hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold text-white">
-                    {cleaner.name}
-                  </h3>
+                  <h3 className="text-xl font-semibold text-white">{cleaner.name}</h3>
                   {cleaner.user_id ? (
-                    <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium">
+                    <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-md">
                       REGISTERED
                     </span>
                   ) : (
-                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium">
+                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-md">
                       PENDING
                     </span>
                   )}
                 </div>
-                {cleaner.email && (
-                  <p className="text-white/70 text-sm mb-1">{cleaner.email}</p>
-                )}
-                {cleaner.phone && (
-                  <p className="text-white/60 text-sm mb-1">{cleaner.phone}</p>
-                )}
+
+                {cleaner.email && <p className="text-white/70 text-sm mb-1">{cleaner.email}</p>}
+                {cleaner.phone && <p className="text-white/60 text-sm mb-1">{cleaner.phone}</p>}
                 {cleaner.hourly_rate && (
                   <p className="text-white/50 text-sm">
                     Rate: €{cleaner.hourly_rate.toFixed(2)}/hour
@@ -159,17 +163,18 @@ export function Cleaners() {
                   Unavailable days: {cleaner.availability.length}
                 </p>
               </div>
+
               <div className="flex gap-2">
                 <button
                   onClick={() => openEditModal(cleaner)}
-                  className="p-2 hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-md hover:bg-white/10 transition-colors"
                   title="Edit"
                 >
                   <Edit className="w-5 h-5 text-white" />
                 </button>
                 <button
-                  onClick={() => handleDelete(cleaner.id)}
-                  className="p-2 hover:bg-red-500/20 transition-colors"
+                  onClick={() => handleDelete(cleaner)}
+                  className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
                   title="Delete"
                 >
                   <Trash2 className="w-5 h-5 text-red-500" />
@@ -186,6 +191,7 @@ export function Cleaners() {
         )}
       </div>
 
+      {/* Create/Edit Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -243,6 +249,35 @@ export function Cleaners() {
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirm Popup */}
+      {isConfirmOpen && selectedCleaner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-xl font-semibold mb-3">Wirklich entfernen?</h3>
+            <p className="text-white/70 mb-6">
+              Möchten Sie den Cleaner{' '}
+              <span className="text-white font-semibold">{selectedCleaner.name}</span>{' '}
+              wirklich dauerhaft löschen?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsConfirmOpen(false)}
+                className="px-4 py-2 border border-white/30 text-white hover:border-white/60 transition-colors rounded-md"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleDeleteConfirmed}
+                className="px-5 py-2 bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors rounded-md"
+              >
+                Löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
