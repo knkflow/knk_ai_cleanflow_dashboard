@@ -38,8 +38,9 @@ export function Tasks() {
   }, [user.id, filters]);
 
   async function loadData() {
+    setLoading(true);
     try {
-      const [tasksData, apartmentsData, cleanersData] = await Promise.all([
+      const [tasksRes, apartmentsRes, cleanersRes] = await Promise.allSettled([
         getTasks(user.id, {
           dateFrom: filters.dateFrom || undefined,
           dateTo: filters.dateTo || undefined,
@@ -48,9 +49,26 @@ export function Tasks() {
         getApartments(user.id),
         getCleaners(user.id),
       ]);
-      setTasks(tasksData);
-      setApartments(apartmentsData);
-      setCleaners(cleanersData);
+  
+      if (apartmentsRes.status === 'fulfilled') {
+        setApartments(apartmentsRes.value);
+      } else {
+        console.error('getApartments failed:', apartmentsRes.reason);
+      }
+  
+      if (cleanersRes.status === 'fulfilled') {
+        setCleaners(cleanersRes.value);
+      } else {
+        console.error('getCleaners failed:', cleanersRes.reason);
+      }
+  
+      if (tasksRes.status === 'fulfilled') {
+        setTasks(tasksRes.value);
+      } else {
+        console.error('getTasks failed:', tasksRes.reason);
+        // Optional: setTasks([]) explizit, oder alten Zustand behalten
+        setTasks([]);
+      }
     } finally {
       setLoading(false);
     }
