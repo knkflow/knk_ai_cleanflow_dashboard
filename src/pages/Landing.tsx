@@ -58,9 +58,6 @@ export function Landing() {
                 </span>
               </h2>
 
-              {/* Goldene Linie */}
-              <div className="w-24 h-[2px] bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mx-auto mt-4 mb-6 rounded-full opacity-80"></div>
-
               {/* Beschreibung */}
               <p className="mt-4 text-base sm:text-lg text-white/60 max-w-3xl mx-auto">
                 CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.
