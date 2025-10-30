@@ -52,17 +52,35 @@ export function Landing() {
       {/* Header */}
       <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src="/brand/logo.png"
-              alt="CleanFlow"
-              className="h-12 md:h-14 w-auto object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.15)]"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
-            <span className="text-sm md:text-base tracking-widest uppercase text-white/80">
-              CleanFlow
-            </span>
-          </div>
+         <div className="relative group flex items-center gap-3">
+  {/* Haupt-Backlight (hell, zentriert) */}
+  <span
+    aria-hidden
+    className="pointer-events-none absolute -inset-3 -z-10 rounded-full
+               bg-[radial-gradient(75%_75%_at_50%_50%,rgba(255,255,255,0.45),rgba(255,255,255,0.18)_45%,transparent_70%)]
+               blur-2xl opacity-90 transition-all duration-300
+               group-hover:opacity-100 group-hover:blur-xl"
+  />
+  {/* zarter Lichtkranz für Tiefe */}
+  <span
+    aria-hidden
+    className="pointer-events-none absolute -inset-6 -z-20 rounded-full
+               bg-[conic-gradient(from_180deg_at_50%_50%,rgba(255,255,255,0.18),transparent_35%,transparent_65%,rgba(255,255,255,0.18))]
+               blur-3xl opacity-70 transition-opacity duration-300
+               group-hover:opacity-90"
+  />
+  <img
+    src="/brand/logo.png"
+    alt="CleanFlow"
+    className="relative h-12 md:h-14 w-auto object-contain
+               drop-shadow-[0_0_22px_rgba(255,255,255,0.18)]
+               transition duration-300 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.35)] group-hover:scale-[1.01]"
+    onError={(e) => (e.currentTarget.style.display = 'none')}
+  />
+  <span className="relative text-sm md:text-base tracking-widest uppercase text-white/90 group-hover:text-white">
+    CleanFlow
+  </span>
+</div>
 
           <nav className="flex items-center gap-6 md:gap-8">
             {/* Produkte & Preise entfernt */}
