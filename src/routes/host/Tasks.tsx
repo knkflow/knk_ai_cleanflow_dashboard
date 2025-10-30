@@ -247,12 +247,12 @@ const filteredTasks = tasks.filter((t) => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Geplante Reinigungen</h2>
         <button
-          onClick={openCreateModal}
-          className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Task
-        </button>
+  onClick={() => openDeleteModal(task)}
+  className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+  title="Delete"
+>
+  <Trash2 className="w-5 h-5 text-red-500" />
+</button>
       </div>
 
       {/* Filterleiste */}
