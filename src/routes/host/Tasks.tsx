@@ -5,7 +5,7 @@ import { getTasks, createTask, updateTask, deleteTask, getApartments, getCleaner
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import { Select } from '../../components/forms/Select';
-import { toDdMmYyyy, fromDdMmYyyy, isValidDateString } from '../../lib/dates';
+import { isValidDateString } from '../../lib/dates';
 import type { User, CleaningTaskWithDetails, ApartmentWithCleaner, Cleaner } from '../../types/db';
 
 interface ContextType {
@@ -18,13 +18,18 @@ export function Tasks() {
   const [apartments, setApartments] = useState<ApartmentWithCleaner[]>([]);
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    cleanerId: '',
-  });
+
+  // Quick-Filter, Suche, Checkbox
+  const [quickFilters, setQuickFilters] = useState<string[]>([]); // 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'ALL'
+  const [apartmentQuery, setApartmentQuery] = useState('');
+  const [cleanerQuery, setCleanerQuery] = useState('');
+  const [withDeadlineOnly, setWithDeadlineOnly] = useState(false);
+
+  // Formular
   const [formData, setFormData] = useState({
     listing_id: '',
     cleaner_id: '',
@@ -33,40 +38,74 @@ export function Tasks() {
     note: '',
   });
 
+  // ---- Utils (Datum) ----
+  function startOfWeek(d = new Date()) {
+    const date = new Date(d);
+    const day = (date.getDay() + 6) % 7; // Montag = 0
+    date.setDate(date.getDate() - day);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  function endOfWeek(d = new Date()) {
+    const s = startOfWeek(d);
+    const e = new Date(s);
+    e.setDate(s.getDate() + 6);
+    e.setHours(23, 59, 59, 999);
+    return e;
+  }
+
+  function toDdMmYyyyLocal(date: Date) {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+
+  // ---- Daten laden (mit minimalem Datumsfenster, je nach Quick-Filter) ----
   useEffect(() => {
     loadData();
-  }, [user.id, filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id, quickFilters]); // Suche & Checkbox sind clientseitig; müssen kein Reload triggern
 
   async function loadData() {
     setLoading(true);
     try {
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+      const eow = endOfWeek(today);
+
+      const hasAll = quickFilters.includes('ALL');
+      const hasToday = quickFilters.includes('TODAY');
+      const hasTomorrow = quickFilters.includes('TOMORROW');
+      const hasThisWeek = quickFilters.includes('THIS_WEEK');
+
+      let dateFrom: string | undefined;
+      let dateTo: string | undefined;
+
+      if (!hasAll && (hasToday || hasTomorrow || hasThisWeek) && quickFilters.length > 0) {
+        const latest = hasThisWeek ? eow : hasTomorrow ? tomorrow : today;
+        dateFrom = toDdMmYyyyLocal(today);
+        dateTo = toDdMmYyyyLocal(latest);
+      } else {
+        dateFrom = undefined;
+        dateTo = undefined;
+      }
+
       const [tasksRes, apartmentsRes, cleanersRes] = await Promise.allSettled([
-        getTasks(user.id, {
-          dateFrom: filters.dateFrom || undefined,
-          dateTo: filters.dateTo || undefined,
-          cleanerId: filters.cleanerId || undefined,
-        }),
+        getTasks(user.id, { dateFrom, dateTo }),
         getApartments(user.id),
         getCleaners(user.id),
       ]);
-  
-      if (apartmentsRes.status === 'fulfilled') {
-        setApartments(apartmentsRes.value);
-      } else {
-        console.error('getApartments failed:', apartmentsRes.reason);
-      }
-  
-      if (cleanersRes.status === 'fulfilled') {
-        setCleaners(cleanersRes.value);
-      } else {
-        console.error('getCleaners failed:', cleanersRes.reason);
-      }
-  
+
+      if (apartmentsRes.status === 'fulfilled') setApartments(apartmentsRes.value);
+      if (cleanersRes.status === 'fulfilled') setCleaners(cleanersRes.value);
+
       if (tasksRes.status === 'fulfilled') {
         setTasks(tasksRes.value);
       } else {
         console.error('getTasks failed:', tasksRes.reason);
-        // Optional: setTasks([]) explizit, oder alten Zustand behalten
         setTasks([]);
       }
     } finally {
@@ -74,6 +113,7 @@ export function Tasks() {
     }
   }
 
+  // ---- Modal öffnen/schließen ----
   function openCreateModal() {
     setEditingId(null);
     setFormData({
@@ -98,6 +138,7 @@ export function Tasks() {
     setIsModalOpen(true);
   }
 
+  // ---- Submit ----
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     try {
@@ -121,6 +162,7 @@ export function Tasks() {
     }
   }
 
+  // ---- Delete ----
   async function handleDelete(id: string) {
     if (!confirm('Delete this task?')) return;
     try {
@@ -131,10 +173,68 @@ export function Tasks() {
     }
   }
 
+  // ---- Verfügbarkeit ----
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner || !isValidDateString(task.date)) return false;
     return task.cleaner.availability.includes(task.date);
   }
+
+  // ---- Clientseitige Filterung ----
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const sow = startOfWeek(today);
+  const eow = endOfWeek(today);
+
+  function isInQuickRanges(dateStr: string) {
+    if (!isValidDateString(dateStr)) return false;
+    if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
+
+    const [dd, mm, yyyy] = dateStr.split('-').map(Number);
+    const d = new Date(yyyy!, (mm ?? 1) - 1, dd ?? 1);
+    d.setHours(0, 0, 0, 0);
+
+    const checks: boolean[] = [];
+    if (quickFilters.includes('TODAY')) {
+      const t = new Date(today);
+      t.setHours(0, 0, 0, 0);
+      checks.push(d.getTime() === t.getTime());
+    }
+    if (quickFilters.includes('TOMORROW')) {
+      const tm = new Date(tomorrow);
+      tm.setHours(0, 0, 0, 0);
+      checks.push(d.getTime() === tm.getTime());
+    }
+    if (quickFilters.includes('THIS_WEEK')) {
+      checks.push(d >= sow && d <= eow);
+    }
+    return checks.some(Boolean);
+  }
+
+  const filteredTasks = tasks.filter((t) => {
+    // Quick date
+    if (!isInQuickRanges(t.date)) return false;
+
+    // Apartment query (Name/Adresse)
+    if (apartmentQuery.trim()) {
+      const q = apartmentQuery.toLowerCase();
+      const name = (t.apartment?.name || '').toLowerCase();
+      const addr = (t.apartment?.address || '').toLowerCase();
+      if (!name.includes(q) && !addr.includes(q)) return false;
+    }
+
+    // Cleaner query (Name)
+    if (cleanerQuery.trim()) {
+      const cq = cleanerQuery.toLowerCase();
+      const cn = (t.cleaner?.name || '').toLowerCase();
+      if (!cn.includes(cq)) return false;
+    }
+
+    // Deadline only
+    if (withDeadlineOnly && !t.deadline) return false;
+
+    return true;
+  });
 
   if (loading) {
     return <div className="text-white">Loading...</div>;
@@ -142,6 +242,7 @@ export function Tasks() {
 
   return (
     <div>
+      {/* Kopfzeile */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Geplante Reinigungen</h2>
         <button
@@ -153,125 +254,136 @@ export function Tasks() {
         </button>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white/5 border border-white/10">
-        <div>
-          <label className="block text-sm text-white/70 mb-2">From Date</label>
+      {/* Filterleiste */}
+      <div className="mb-6 flex flex-col gap-4">
+        {/* Quick-Buttons */}
+        <div className="flex flex-wrap items-center gap-3">
+          {[
+            { id: 'TODAY', label: 'Heute' },
+            { id: 'TOMORROW', label: 'Morgen' },
+            { id: 'THIS_WEEK', label: 'Diese Woche' },
+            { id: 'ALL', label: 'Alle' },
+          ].map((btn) => {
+            const selected = quickFilters.includes(btn.id);
+            return (
+              <button
+                key={btn.id}
+                onClick={() => {
+                  setQuickFilters((prev) => {
+                    if (btn.id === 'ALL') return prev.includes('ALL') ? [] : ['ALL'];
+                    const next = prev.filter((x) => x !== 'ALL');
+                    return next.includes(btn.id) ? next.filter((x) => x !== btn.id) : [...next, btn.id];
+                  });
+                }}
+                className={`px-4 py-2 rounded-full text-sm transition-all duration-300
+                  border ${selected ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_14px_rgba(59,130,246,0.45)]' : 'border-white/20'}
+                  hover:border-white hover:shadow-[0_0_12px_rgba(255,255,255,0.35)]
+                `}
+              >
+                {btn.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Suchen & Checkbox */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             type="text"
-            placeholder="dd-MM-yyyy"
-            value={filters.dateFrom}
-            onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm"
+            value={apartmentQuery}
+            onChange={(e) => setApartmentQuery(e.target.value)}
+            placeholder="Name/Adresse des Apartments"
+            className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm rounded-md
+                       placeholder-white/50 focus:outline-none focus:border-white"
           />
-        </div>
-        <div>
-          <label className="block text-sm text-white/70 mb-2">To Date</label>
           <input
             type="text"
-            placeholder="dd-MM-yyyy"
-            value={filters.dateTo}
-            onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm"
+            value={cleanerQuery}
+            onChange={(e) => setCleanerQuery(e.target.value)}
+            placeholder="Cleaner suchen"
+            className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm rounded-md
+                       placeholder-white/50 focus:outline-none focus:border-white"
           />
-        </div>
-        <div>
-          <label className="block text-sm text-white/70 mb-2">Cleaner</label>
-          <select
-            value={filters.cleanerId}
-            onChange={(e) => setFilters({ ...filters, cleanerId: e.target.value })}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm"
-          >
-            <option value="">All</option>
-            {cleaners.map((c) => (
-              <option key={c.id} value={c.id} className="bg-neutral-900">
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <label className="inline-flex items-center gap-2 text-sm text-white/80 select-none">
+            <input
+              type="checkbox"
+              checked={withDeadlineOnly}
+              onChange={(e) => setWithDeadlineOnly(e.target.checked)}
+              className="h-4 w-4 rounded border-white/30 bg-transparent text-white focus:ring-0"
+            />
+            Nur mit Deadline
+          </label>
         </div>
       </div>
 
+      {/* Liste */}
       <div className="grid gap-4">
-{tasks.map((task) => {
-  const unavailable = isCleanerUnavailable(task);
-  return (
-    <div
-      key={task.id}
-      className={`p-6 rounded-2xl transition-all duration-500 ${
-        unavailable
-          ? 'border-2 border-red-500 bg-white/5 hover:shadow-[0_0_18px_2px_rgba(255,0,0,0.4)]'
-          : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
-      }`}
-    >
-      {unavailable && (
-        <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
-          <AlertCircle className="w-4 h-4" />
-          <span>Cleaner unavailable on this date</span>
-        </div>
-      )}
+        {filteredTasks.map((task) => {
+          const unavailable = isCleanerUnavailable(task);
+          return (
+            <div
+              key={task.id}
+              className={`p-6 rounded-2xl transition-all duration-500 ${
+                unavailable
+                  ? 'border-2 border-red-500 bg-white/5 hover:shadow-[0_0_18px_2px_rgba(255,0,0,0.4)]'
+                  : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
+              }`}
+            >
+              {unavailable && (
+                <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Cleaner unavailable on this date</span>
+                </div>
+              )}
 
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-white mb-2">
-            {task.apartment?.name || 'Unknown Apartment'}
-          </h3>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    {task.apartment?.name || 'Unknown Apartment'}
+                  </h3>
 
-          <p className="text-white/70 text-sm mb-1">
-            Date: {task.date}
-          </p>
+                  <p className="text-white/70 text-sm mb-1">Date: {task.date}</p>
 
-          {task.deadline && (
-            <p className="text-white/60 text-sm mb-1">
-              Deadline: {task.deadline}
-            </p>
-          )}
+                  {task.deadline && (
+                    <p className="text-white/60 text-sm mb-1">Deadline: {task.deadline}</p>
+                  )}
 
-          {task.cleaner && (
-            <p className="text-white/70 text-sm mb-1">
-              Cleaner: {task.cleaner.name}
-            </p>
-          )}
+                  {task.cleaner && (
+                    <p className="text-white/70 text-sm mb-1">Cleaner: {task.cleaner.name}</p>
+                  )}
 
-          {task.note && (
-            <p className="text-white/50 text-sm mt-2">{task.note}</p>
-          )}
-        </div>
+                  {task.note && <p className="text-white/50 text-sm mt-2">{task.note}</p>}
+                </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => openEditModal(task)}
-            className="p-2 rounded-md hover:bg-white/10 transition-colors"
-            title="Edit"
-          >
-            <Edit className="w-5 h-5 text-white" />
-          </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openEditModal(task)}
+                    className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                    title="Edit"
+                  >
+                    <Edit className="w-5 h-5 text-white" />
+                  </button>
 
-          <button
-            onClick={() => handleDelete(task.id)}
-            className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
-            title="Delete"
-          >
-            <Trash2 className="w-5 h-5 text-red-500" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-})}
+                  <button
+                    onClick={() => handleDelete(task.id)}
+                    className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-500" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
 
-
-        {tasks.length === 0 && (
-          <div className="text-center py-12 text-white/50">
-            No tasks found. Add a task to get started.
-          </div>
+        {filteredTasks.length === 0 && (
+          <div className="text-center py-12 text-white/50">Keine Reinigungen gefunden.</div>
         )}
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingId ? 'Edit Task' : 'Add Task'}
-      >
+      {/* Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? 'Edit Task' : 'Add Task'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Select
             label="Apartment"
@@ -288,10 +400,7 @@ export function Tasks() {
             label="Cleaner (optional - uses default if empty)"
             value={formData.cleaner_id}
             onChange={(e) => setFormData({ ...formData, cleaner_id: e.target.value })}
-            options={[
-              { value: '', label: 'Use default cleaner' },
-              ...cleaners.map((c) => ({ value: c.id, label: c.name })),
-            ]}
+            options={[{ value: '', label: 'Use default cleaner' }, ...cleaners.map((c) => ({ value: c.id, label: c.name }))]}
           />
 
           <Input
@@ -310,9 +419,7 @@ export function Tasks() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              Note
-            </label>
+            <label className="block text-sm font-medium text-white mb-2">Note</label>
             <textarea
               value={formData.note}
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
@@ -323,17 +430,10 @@ export function Tasks() {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
-            >
+            <button type="submit" className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium">
               {editingId ? 'Update' : 'Create'}
             </button>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
-            >
+            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors">
               Cancel
             </button>
           </div>
