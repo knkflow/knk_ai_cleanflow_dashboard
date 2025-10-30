@@ -54,7 +54,7 @@ export function Landing() {
               {/* Titel mit Goldverlauf */}
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 drop-shadow-[0_0_10px_rgba(251,191,36,0.4)]">
-                  Was ist CleanFlow?
+                  Was ist CleanFlow
                 </span>
               </h2>
 
