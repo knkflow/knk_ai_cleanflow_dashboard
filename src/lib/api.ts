@@ -182,7 +182,7 @@ export async function createTask(task: Omit<CleaningTask, 'id' | 'created_at'>):
     const { data: apartment } = await supabase
       .from('apartments')
       .select('default_cleaner_id')
-      .eq('id', taskData.listing_id)
+      .eq('name', taskData.listing_id)
       .maybeSingle();
 
     if (apartment?.default_cleaner_id) {
@@ -190,7 +190,7 @@ export async function createTask(task: Omit<CleaningTask, 'id' | 'created_at'>):
     }
   }
 
-  console.log(taskData);
+  
 
   const { data, error } = await supabase
     .from('cleaning_tasks')
