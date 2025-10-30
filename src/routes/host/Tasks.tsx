@@ -137,57 +137,66 @@ export function Tasks() {
     return task.cleaner.availability.includes(task.date);
   }
 
-  // ---- Quick-Filter Logik (clientseitig) ----
-  const today = new Date();
-  const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-  const sow = startOfWeek(today);
-  const eow = endOfWeek(today);
+ // === FILTER-PRÜFUNG ===
 
-  function isInQuickRanges(dateStr: string) {
-    // Ohne Filter ODER 'ALL' => alles anzeigen
-    if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
-    if (!isValidDateString(dateStr)) return false;
+// Hilfsfunktionen
+const today = new Date();
+const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+const sow = startOfWeek(today);
+const eow = endOfWeek(today);
 
-    const [dd, mm, yyyy] = dateStr.split('-').map(Number);
-    const d = new Date(yyyy!, (mm ?? 1) - 1, dd ?? 1);
-    d.setHours(0, 0, 0, 0);
+function isInQuickRanges(dateStr: string) {
+  // Wenn kein Filter oder 'ALL' gewählt → alle anzeigen
+  if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
+  if (!isValidDateString(dateStr)) return false;
 
-    const checks: boolean[] = [];
-    if (quickFilters.includes('TODAY')) {
-      const t = new Date(today); t.setHours(0, 0, 0, 0);
-      checks.push(d.getTime() === t.getTime());
-    }
-    if (quickFilters.includes('TOMORROW')) {
-      const tm = new Date(tomorrow); tm.setHours(0, 0, 0, 0);
-      checks.push(d.getTime() === tm.getTime());
-    }
-    if (quickFilters.includes('THIS_WEEK')) {
-      checks.push(d >= sow && d <= eow);
-    }
-    return checks.some(Boolean);
+  const [dd, mm, yyyy] = dateStr.split('-').map(Number);
+  const d = new Date(yyyy!, (mm ?? 1) - 1, dd ?? 1);
+  d.setHours(0, 0, 0, 0);
+
+  const checks: boolean[] = [];
+  if (quickFilters.includes('TODAY')) {
+    const t = new Date(today);
+    t.setHours(0, 0, 0, 0);
+    checks.push(d.getTime() === t.getTime());
+  }
+  if (quickFilters.includes('TOMORROW')) {
+    const tm = new Date(tomorrow);
+    tm.setHours(0, 0, 0, 0);
+    checks.push(d.getTime() === tm.getTime());
+  }
+  if (quickFilters.includes('THIS_WEEK')) {
+    checks.push(d >= sow && d <= eow);
   }
 
-  // ---- Clientseitige Filterung (Alle Bedingungen) ----
-  const filteredTasks = tasks.filter((t) => {
-    if (!isInQuickRanges(t.date)) return false;
+  return checks.some(Boolean); // OR-Verknüpfung
+}
 
-    if (apartmentQuery.trim()) {
-      const q = apartmentQuery.toLowerCase();
-      const name = (t.apartment?.name || '').toLowerCase();
-      const addr = (t.apartment?.address || '').toLowerCase();
-      if (!name.includes(q) && !addr.includes(q)) return false;
-    }
+// Hauptfilter
+const filteredTasks = tasks.filter((t) => {
+  // 1️⃣ Datum (Quick-Buttons)
+  if (!isInQuickRanges(t.date)) return false;
 
-    if (cleanerQuery.trim()) {
-      const cq = cleanerQuery.toLowerCase();
-      const cn = (t.cleaner?.name || '').toLowerCase();
-      if (!cn.includes(cq)) return false;
-    }
+  // 2️⃣ Apartment-Suche (Name/Adresse)
+  if (apartmentQuery.trim()) {
+    const q = apartmentQuery.toLowerCase();
+    const name = (t.apartment?.name || '').toLowerCase();
+    const addr = (t.apartment?.address || '').toLowerCase();
+    if (!name.includes(q) && !addr.includes(q)) return false;
+  }
 
-    if (withDeadlineOnly && !t.deadline) return false;
+  // 3️⃣ Cleaner-Suche
+  if (cleanerQuery.trim()) {
+    const cq = cleanerQuery.toLowerCase();
+    const cn = (t.cleaner?.name || '').toLowerCase();
+    if (!cn.includes(cq)) return false;
+  }
 
-    return true;
-  });
+  // 4️⃣ Nur mit Deadline
+  if (withDeadlineOnly && !t.deadline) return false;
+
+  return true;
+});
 
   // ---- Handlers ----
   function toggleQuickFilter(id: string) {
