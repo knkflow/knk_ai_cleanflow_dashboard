@@ -255,16 +255,7 @@ const filteredTasks = tasks.filter((t) => {
 </button>
         {taskToDelete && (
   <div
-    aria-modal="true"
-    role="dialog"
-    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-  >
-    {/* Hintergrund-Overlay */}
-    <div
-      className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-      onClick={() => setTaskToDelete(null)}
-    />
-      </div>
+
 
       {/* Filterleiste */}
       <div className="mb-6 flex flex-col gap-4">
