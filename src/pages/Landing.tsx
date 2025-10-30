@@ -38,32 +38,31 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+      {/* Header (Glow geclippt) */}
+      <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur overflow-hidden">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
           {/* Logo + Backlight */}
           <div className="relative group flex items-center gap-3 -ml-3 sm:-ml-4 md:-ml-6">
-            {/* Haupt-Backlight */}
+            {/* Haupt-Backlight – unten gekappt, strahlt Logo & Text an */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -left-10 -right-6 -top-6 -bottom-6 -z-10 rounded-full
+              className="pointer-events-none absolute -left-10 -right-6 -top-6 bottom-0 -z-10 rounded-full
                          bg-[radial-gradient(90%_90%_at_40%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.25)_45%,transparent_80%)]
                          blur-[70px] opacity-95 transition-all duration-500
                          group-hover:opacity-100 group-hover:blur-[90px]"
             />
-            {/* Lichtkranz */}
+            {/* Lichtkranz – ebenfalls unten begrenzt */}
             <span
               aria-hidden
-              className="pointer-events-none absolute -inset-10 -z-20 rounded-full
+              className="pointer-events-none absolute -inset-x-10 -top-8 bottom-1 -z-20 rounded-full
                          bg-[conic-gradient(from_180deg_at_40%_50%,rgba(255,255,255,0.18),transparent_35%,transparent_65%,rgba(255,255,255,0.18))]
-                         blur-[100px] opacity-80 transition-opacity duration-500
+                         blur-[90px] opacity-80 transition-opacity duration-500
                          group-hover:opacity-95"
             />
             <img
               src="/brand/logo.png"
               alt="CleanFlow"
-              className="relative h-12 md:h-14 w-auto object-contain
-                         drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]
+              className="relative h-12 md:h-14 w-auto object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]
                          transition duration-300 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.4)] group-hover:scale-[1.02]"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
@@ -93,18 +92,33 @@ export function Landing() {
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden">
+          {/* Präsentierende Stage-Fläche */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-[32px] bg-white/8 blur-[80px]" />
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[560px] w-[880px] rounded-[36px] bg-white/7 blur-[70px]" />
           </div>
 
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
-            <p className="text-xs tracking-[0.35em] uppercase text-white/60">Short-Term Rental · Operations</p>
+            {/* Unterzeile mit eigenem, schmalem Glow */}
+            <div className="relative inline-block">
+              {/* Glow-Pill direkt unter dem Text */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 -bottom-1 h-4 rounded-full
+                           bg-[radial-gradient(60%_100%_at_50%_100%,rgba(255,255,255,0.35),transparent)]
+                           blur-md opacity-80"
+              />
+              <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/70">
+                Short-Term Rental · Operations
+              </p>
+            </div>
+
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
                 Cleaning Coordination
               </span>
             </h1>
+
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
               Manage apartments, coordinate cleaners, and schedule tasks with precision. Built for hosts who demand efficiency.
             </p>
@@ -163,7 +177,9 @@ export function Landing() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="group relative rounded-3xl bg-white border-2 border-black shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.18)] hover:-translate-y-1 hover:bg-neutral-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  className="group relative rounded-3xl bg-white border-2 border-black shadow-[0_4px_12px_rgba(0,0,0,0.08)]
+                             hover:shadow-[0_10px_25px_rgba(0,0,0,0.18)] hover:-translate-y-1 hover:bg-neutral-50
+                             transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
                 >
                   <div className="relative p-8">
                     <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-black mb-4">
@@ -199,14 +215,12 @@ export function Landing() {
                 {
                   emoji: '✅',
                   title: 'Personalisierte Kommunikation',
-                  text:
-                    'WhatsApp, SMS, E-Mail oder In-App: für jede Reinigungskraft der passende Kanal – klar und nachvollziehbar.',
+                  text: 'WhatsApp, SMS, E-Mail oder In-App: für jede Reinigungskraft der passende Kanal – klar und nachvollziehbar.',
                 },
                 {
                   emoji: '🕒',
                   title: 'Echtzeit-Updates',
-                  text:
-                    'Benachrichtigungen bei Start, Abschluss oder Verzögerung – Sie behalten stets die Kontrolle.',
+                  text: 'Benachrichtigungen bei Start, Abschluss oder Verzögerung – Sie behalten stets die Kontrolle.',
                 },
                 {
                   emoji: '🛡️',
@@ -216,8 +230,7 @@ export function Landing() {
                 {
                   emoji: '📊',
                   title: 'Automatische Berichte',
-                  text:
-                    'Detaillierte Reports zu Reinigungen, Zeiten und Kosten – fundierte Entscheidungen auf einen Blick.',
+                  text: 'Detaillierte Reports zu Reinigungen, Zeiten und Kosten – fundierte Entscheidungen auf einen Blick.',
                 },
               ].map((item) => (
                 <div
