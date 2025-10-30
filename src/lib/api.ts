@@ -117,40 +117,25 @@ export async function deleteApartment(id: string): Promise<void> {
 
 export async function getTasks(
   ownerId: string,
-  filters?: {
-    dateFrom?: string;
-    dateTo?: string;
-    cleanerId?: string;
-  }
+  filters?: { dateFrom?: string; dateTo?: string; cleanerId?: string }
 ): Promise<CleaningTaskWithDetails[]> {
   let query = supabase
     .from('cleaning_tasks')
     .select(`
       *,
-      apartment:apartments!cleaning_tasks_listing_id_fkey(*),
+      apartment:apartments!inner(*),
       cleaner:cleaners(*)
     `)
-    .in('listing_id',
-      supabase
-        .from('apartments')
-        .select('listing_id')
-        .eq('owner_id', ownerId)
-    );
+    // filtere auf die verbundene Tabelle
+    .eq('apartments.owner_id', ownerId); // wichtig: Pfad ist der Tabellenname im Select
 
-  if (filters?.dateFrom) {
-    query = query.gte('date', filters.dateFrom);
-  }
-  if (filters?.dateTo) {
-    query = query.lte('date', filters.dateTo);
-  }
-  if (filters?.cleanerId) {
-    query = query.eq('cleaner_id', filters.cleanerId);
-  }
+  if (filters?.dateFrom) query = query.gte('date', filters.dateFrom);
+  if (filters?.dateTo)   query = query.lte('date', filters.dateTo);
+  if (filters?.cleanerId) query = query.eq('cleaner_id', filters.cleanerId);
 
   const { data, error } = await query.order('date');
-
   if (error) throw error;
-  return data || [];
+  return data ?? [];
 }
 
 export async function getTasksForCleaner(cleanerId: string, dateFrom?: string, dateTo?: string): Promise<CleaningTaskWithDetails[]> {
