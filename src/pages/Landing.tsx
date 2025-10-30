@@ -71,30 +71,23 @@ export function Landing() {
             <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
           </div>
         </section>
-
-   {/* SECTION – „Was ist CleanFlow?“ (weißer Hintergrund, subtiler Hover-Glow-Effekt) */}
+{/* SECTION – „Was ist CleanFlow?“ (weiß, klar, elegant, sichtbarer Hover-Effekt) */}
 <section className="py-24 bg-white text-black">
   <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+    {/* Titel */}
     <div className="text-center">
-      {/* Titel */}
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-800 via-neutral-900 to-black">
-          Was ist CleanFlow
-        </span>
+      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-neutral-900">
+        Was ist <span className="text-black/80">CleanFlow</span>
       </h2>
-
-      {/* feine Linie */}
-      <div className="w-24 h-px bg-neutral-300 mx-auto mt-6 mb-6" />
-
-      {/* Beschreibung */}
-      <p className="text-neutral-700 max-w-3xl mx-auto">
-        CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.
+      <div className="w-24 h-[2px] bg-gradient-to-r from-neutral-300 via-neutral-400 to-neutral-300 mx-auto mt-6 mb-6 rounded-full" />
+      <p className="text-neutral-600 max-w-3xl mx-auto text-lg">
+        CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.  
         Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
       </p>
     </div>
 
-    {/* Drei Kerneigenschaften – Hover Glow Effekt */}
-    <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    {/* Drei Kerneigenschaften */}
+    <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
       {[
         {
           emoji: '💬',
@@ -117,15 +110,19 @@ export function Landing() {
       ].map((item) => (
         <div
           key={item.title}
-          className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)] hover:border-neutral-300 hover:bg-neutral-50 transition-all duration-300"
+          className="group relative rounded-3xl bg-white border border-neutral-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
         >
-          <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-neutral-500 mb-4">
-            <span className="text-base">{item.emoji}</span>
-            <span>Feature</span>
-          </div>
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white to-neutral-100 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-          <h3 className="text-xl font-semibold text-neutral-900">{item.title}</h3>
-          <p className="mt-3 text-neutral-600 leading-relaxed">{item.text}</p>
+          <div className="relative p-8">
+            <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-neutral-500 mb-4">
+              <span className="text-base">{item.emoji}</span>
+              <span>Feature</span>
+            </div>
+
+            <h3 className="text-2xl font-semibold text-neutral-900 mb-2">{item.title}</h3>
+            <p className="text-neutral-600 leading-relaxed">{item.text}</p>
+          </div>
         </div>
       ))}
     </div>
