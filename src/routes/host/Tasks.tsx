@@ -19,12 +19,16 @@ export function Tasks() {
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal
+  // Modal (Create/Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Delete-Modal
+  const [taskToDelete, setTaskToDelete] = useState<CleaningTaskWithDetails | null>(null);
+
   // Quick-Filter, Suche, Checkbox
-  const [quickFilters, setQuickFilters] = useState<string[]>([]); // 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'ALL'
+  // gültige IDs: 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'ALL'
+  const [quickFilters, setQuickFilters] = useState<string[]>([]);
   const [apartmentQuery, setApartmentQuery] = useState('');
   const [cleanerQuery, setCleanerQuery] = useState('');
   const [withDeadlineOnly, setWithDeadlineOnly] = useState(false);
@@ -33,12 +37,22 @@ export function Tasks() {
   const [formData, setFormData] = useState({
     listing_id: '',
     cleaner_id: '',
-    date: '',
-    deadline: '',
+    date: '',     // yyyy-mm-dd
+    deadline: '', // yyyy-mm-dd
     note: '',
   });
 
   // ---- Utils (Datum) ----
+  // robustes Parsen von yyyy-mm-dd ohne Timezone-Überraschungen
+  function parseISODateYMD(dateStr: string): Date | null {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+    const [y, m, d] = dateStr.split('-').map((n) => parseInt(n, 10));
+    const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
+    // Validierung: JS korrigiert automatisch (z.B. 2025-02-31 -> März)
+    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+    return dt;
+  }
+
   function startOfWeek(d = new Date()) {
     const date = new Date(d);
     const day = (date.getDay() + 6) % 7; // Montag = 0
@@ -57,14 +71,13 @@ export function Tasks() {
   // ---- Daten laden: immer ALLE Tasks holen, Filter clientseitig ----
   useEffect(() => {
     loadData();
-    // nur beim User-Wechsel neu laden; Filter sind clientseitig
   }, [user.id]);
 
   async function loadData() {
     setLoading(true);
     try {
       const [tasksRes, apartmentsRes, cleanersRes] = await Promise.allSettled([
-        getTasks(user.id),            // <-- kein serverseitiger Filter mehr
+        getTasks(user.id),            // keine Server-Filter, alles lokal filtern
         getApartments(user.id),
         getCleaners(user.id),
       ]);
@@ -93,8 +106,8 @@ export function Tasks() {
     setFormData({
       listing_id: task.listing_id,
       cleaner_id: task.cleaner_id || '',
-      date: task.date,
-      deadline: task.deadline || '',
+      date: task.date,              // erwartet yyyy-mm-dd
+      deadline: task.deadline || '',// erwartet yyyy-mm-dd
       note: task.note || '',
     });
     setIsModalOpen(true);
@@ -107,8 +120,8 @@ export function Tasks() {
       const data = {
         listing_id: formData.listing_id,
         cleaner_id: formData.cleaner_id || null,
-        date: formData.date,
-        deadline: formData.deadline || null,
+        date: formData.date,                     // yyyy-mm-dd
+        deadline: formData.deadline || null,     // yyyy-mm-dd | null
         note: formData.note || null,
       };
       if (editingId) await updateTask(editingId, data);
@@ -116,32 +129,25 @@ export function Tasks() {
       setIsModalOpen(false);
       loadData();
     } catch (error: any) {
-      alert(error.message);
+      // optional: eigenes Error-Toast/Fenster
+      console.error(error);
     }
   }
 
   // ---- Delete ----
-// --- State für Delete-Modal ---
-// --- State für Delete-Modal ---
-const [taskToDelete, setTaskToDelete] = useState<CleaningTaskWithDetails | null>(null);
-
-// --- Öffnen des Modals ---
-function openDeleteModal(task: CleaningTaskWithDetails) {
-  setTaskToDelete(task);
-}
-
-// --- Bestätigung löschen ---
-async function confirmDelete() {
-  if (!taskToDelete) return;
-  try {
-    await deleteTask(taskToDelete.id);
-    setTaskToDelete(null);
-    loadData();
-  } catch (error: any) {
-    console.error(error);
-    // Optional: kleines Info-Fenster bei Fehler anzeigen
+  function openDeleteModal(task: CleaningTaskWithDetails) {
+    setTaskToDelete(task);
   }
-}
+  async function confirmDelete() {
+    if (!taskToDelete) return;
+    try {
+      await deleteTask(taskToDelete.id);
+      setTaskToDelete(null);
+      loadData();
+    } catch (error: any) {
+      console.error(error);
+    }
+  }
 
   // ---- Verfügbarkeit ----
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
@@ -149,82 +155,68 @@ async function confirmDelete() {
     return task.cleaner.availability.includes(task.date);
   }
 
- // === FILTER-PRÜFUNG ===
+  // === FILTER-PRÜFUNG ===
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const sow = startOfWeek(today);
+  const eow = endOfWeek(today);
 
-// === FILTER-PRÜFUNG (mit ISO-Format yyyy-mm-dd) ===
+  function isInQuickRanges(dateStr: string) {
+    // Kein Quick-Filter aktiv oder "ALL" aktiv → alles anzeigen
+    if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
 
-const today = new Date();
-const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-const sow = startOfWeek(today);
-const eow = endOfWeek(today);
+    const d = parseISODateYMD(dateStr);
+    if (!d) return false;
 
-function isInQuickRanges(dateStr: string) {
-  // Wenn kein Filter aktiv oder "ALL" gewählt → alle anzeigen
-  if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
+    const checks: boolean[] = [];
 
-  // Versuch, das Datum im Format yyyy-mm-dd zu parsen
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return false; // ungültiges Datum
-  
-  // Zeit normalisieren
-  d.setHours(0, 0, 0, 0);
+    if (quickFilters.includes('TODAY')) {
+      checks.push(d.getTime() === today.getTime());
+    }
+    if (quickFilters.includes('TOMORROW')) {
+      checks.push(d.getTime() === tomorrow.getTime());
+    }
+    if (quickFilters.includes('THIS_WEEK')) {
+      checks.push(d >= sow && d <= eow);
+    }
 
-  const checks: boolean[] = [];
-
-  // Heute
-  if (quickFilters.includes('TODAY')) {
-    const t = new Date(today);
-    t.setHours(0, 0, 0, 0);
-    checks.push(d.getTime() === t.getTime());
+    // OR-Verknüpfung der gewählten Bereiche
+    return checks.some(Boolean);
   }
 
-  // Morgen
-  if (quickFilters.includes('TOMORROW')) {
-    const tm = new Date(tomorrow);
-    tm.setHours(0, 0, 0, 0);
-    checks.push(d.getTime() === tm.getTime());
-  }
+  // === HAUPTFILTER ===
+  const filteredTasks = tasks.filter((t) => {
+    // 1) Datum (Quick-Filter)
+    if (!isInQuickRanges(t.date)) return false;
 
-  // Diese Woche
-  if (quickFilters.includes('THIS_WEEK')) {
-    checks.push(d >= sow && d <= eow);
-  }
+    // 2) Apartment-Suche (Name/Adresse)
+    if (apartmentQuery.trim()) {
+      const q = apartmentQuery.toLowerCase();
+      const name = (t.apartment?.name || '').toLowerCase();
+      const addr = (t.apartment?.address || '').toLowerCase();
+      if (!name.includes(q) && !addr.includes(q)) return false;
+    }
 
-  // Mindestens eine Bedingung erfüllt → anzeigen
-  return checks.some(Boolean);
-}
+    // 3) Cleaner-Suche
+    if (cleanerQuery.trim()) {
+      const cq = cleanerQuery.toLowerCase();
+      const cn = (t.cleaner?.name || '').toLowerCase();
+      if (!cn.includes(cq)) return false;
+    }
 
-// === HAUPTFILTER ===
-const filteredTasks = tasks.filter((t) => {
-  // 1️⃣ Datum (Quick-Filter)
-  if (!isInQuickRanges(t.date)) return false;
+    // 4) Nur mit Deadline
+    if (withDeadlineOnly && !t.deadline) return false;
 
-  // 2️⃣ Apartment-Suche (Name/Adresse)
-  if (apartmentQuery.trim()) {
-    const q = apartmentQuery.toLowerCase();
-    const name = (t.apartment?.name || '').toLowerCase();
-    const addr = (t.apartment?.address || '').toLowerCase();
-    if (!name.includes(q) && !addr.includes(q)) return false;
-  }
-
-  // 3️⃣ Cleaner-Suche
-  if (cleanerQuery.trim()) {
-    const cq = cleanerQuery.toLowerCase();
-    const cn = (t.cleaner?.name || '').toLowerCase();
-    if (!cn.includes(cq)) return false;
-  }
-
-  // 4️⃣ Nur mit Deadline
-  if (withDeadlineOnly && !t.deadline) return false;
-
-  return true;
-});
+    return true;
+  });
 
   // ---- Handlers ----
-  function toggleQuickFilter(id: string) {
+  function toggleQuickFilter(id: 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'ALL') {
     setQuickFilters((prev) => {
       if (id === 'ALL') return prev.includes('ALL') ? [] : ['ALL'];
-      // wenn ALL aktiv, raus damit
+      // Wenn ALL aktiv, zuerst entfernen
       const base = prev.filter((x) => x !== 'ALL');
       return base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
     });
@@ -247,15 +239,13 @@ const filteredTasks = tasks.filter((t) => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Geplante Reinigungen</h2>
         <button
-  onClick={() => openDeleteModal(task)}
-  className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
-  title="Delete"
->
-  <Trash2 className="w-5 h-5 text-red-500" />
-</button>
-        {taskToDelete && (
-  <div
-
+          onClick={openCreateModal}
+          className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md"
+        >
+          <Plus className="w-5 h-5" />
+          Add Task
+        </button>
+      </div>
 
       {/* Filterleiste */}
       <div className="mb-6 flex flex-col gap-4">
@@ -271,7 +261,7 @@ const filteredTasks = tasks.filter((t) => {
             return (
               <button
                 key={btn.id}
-                onClick={() => toggleQuickFilter(btn.id)}
+                onClick={() => toggleQuickFilter(btn.id as any)}
                 className={`px-4 py-2 rounded-full text-sm transition-all duration-300
                   border ${selected ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_14px_rgba(59,130,246,0.45)]' : 'border-white/20'}
                   hover:border-white hover:shadow-[0_0_12px_rgba(255,255,255,0.35)]
@@ -373,7 +363,7 @@ const filteredTasks = tasks.filter((t) => {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(task.id)}
+                    onClick={() => openDeleteModal(task)}
                     className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
                     title="Delete"
                   >
@@ -390,8 +380,12 @@ const filteredTasks = tasks.filter((t) => {
         )}
       </div>
 
-      {/* Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? 'Edit Task' : 'Add Task'}>
+      {/* Create/Edit Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingId ? 'Edit Task' : 'Add Task'}
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Select
             label="Apartment"
@@ -408,22 +402,26 @@ const filteredTasks = tasks.filter((t) => {
             label="Cleaner (optional - uses default if empty)"
             value={formData.cleaner_id}
             onChange={(e) => setFormData({ ...formData, cleaner_id: e.target.value })}
-            options={[{ value: '', label: 'Use default cleaner' }, ...cleaners.map((c) => ({ value: c.id, label: c.name }))]}
+            options={[
+              { value: '', label: 'Use default cleaner' },
+              ...cleaners.map((c) => ({ value: c.id, label: c.name })),
+            ]}
           />
 
+          {/* Hinweis: Backend erwartet yyyy-mm-dd */}
           <Input
-            label="Date (dd-MM-yyyy)"
+            label="Date (yyyy-mm-dd)"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             required
-            placeholder="31-12-2025"
+            placeholder="2025-12-31"
           />
 
           <Input
-            label="Deadline (dd-MM-yyyy)"
+            label="Deadline (yyyy-mm-dd)"
             value={formData.deadline}
             onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-            placeholder="31-12-2025"
+            placeholder="2025-12-31"
           />
 
           <div>
@@ -438,15 +436,68 @@ const filteredTasks = tasks.filter((t) => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button type="submit" className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium">
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
+            >
               {editingId ? 'Update' : 'Create'}
             </button>
-            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
               Cancel
             </button>
           </div>
         </form>
       </Modal>
+
+      {/* Delete-Modal */}
+      {taskToDelete && (
+        <div
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setTaskToDelete(null)}
+          />
+          {/* Dialog */}
+          <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4">Task löschen?</h3>
+
+            <p className="text-white/80 mb-6">
+              Möchten Sie die Reinigung für{' '}
+              <span className="font-semibold text-white">
+                {taskToDelete.apartment?.name || 'Unbekanntes Apartment'}
+              </span>{' '}
+              am{' '}
+              <span className="font-semibold text-white">
+                {taskToDelete.date || 'Unbekanntes Datum'}
+              </span>{' '}
+              wirklich entfernen?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
+              >
+                Löschen
+              </button>
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
