@@ -14,14 +14,8 @@ export function Landing() {
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
 
-  const handleLearnMore = () => {
-    cleanflowRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleGoToSolutions = () => {
-    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  const handleLearnMore = () => cleanflowRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleGoToSolutions = () => featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
   const openContact = () => setIsContactOpen(true);
   const closeContact = () => setIsContactOpen(false);
 
@@ -37,79 +31,53 @@ export function Landing() {
       contactMessage || '',
     ].filter(Boolean);
     const body = bodyLines.join('\n');
-
-    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
-
+    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
-    // Optional: Modal schließen nach Trigger
     setIsContactOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
-    <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
-  <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-    {/* EIN Wrapper reicht */}
-    <div className="relative group flex items-center gap-3 -ml-3 sm:-ml-4 md:-ml-6">
-      {/* Haupt-Backlight (größer & heller, strahlt auch den Text an) */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -left-10 -right-6 -top-6 -bottom-6 -z-10 rounded-full
-                   bg-[radial-gradient(90%_90%_at_40%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.25)_45%,transparent_80%)]
-                   blur-[70px] opacity-95 transition-all duration-500
-                   group-hover:opacity-100 group-hover:blur-[90px]"
-      />
-      {/* zarter Lichtkranz */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -inset-10 -z-20 rounded-full
-                   bg-[conic-gradient(from_180deg_at_40%_50%,rgba(255,255,255,0.18),transparent_35%,transparent_65%,rgba(255,255,255,0.18))]
-                   blur-[100px] opacity-80 transition-opacity duration-500
-                   group-hover:opacity-95"
-      />
-      <img
-        src="/brand/logo.png"
-        alt="CleanFlow"
-        className="relative h-12 md:h-14 w-auto object-contain
-                   drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]
-                   transition duration-300 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.4)] group-hover:scale-[1.02]"
-        onError={(e) => (e.currentTarget.style.display = 'none')}
-      />
-      <span className="relative text-sm md:text-base tracking-widest uppercase text-white/90 group-hover:text-white transition">
-        CleanFlow
-      </span>
-    </div>
+      {/* Header */}
+      <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+        <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
+          {/* Logo + Backlight */}
+          <div className="relative group flex items-center gap-3 -ml-3 sm:-ml-4 md:-ml-6">
+            {/* Haupt-Backlight */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -left-10 -right-6 -top-6 -bottom-6 -z-10 rounded-full
+                         bg-[radial-gradient(90%_90%_at_40%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.25)_45%,transparent_80%)]
+                         blur-[70px] opacity-95 transition-all duration-500
+                         group-hover:opacity-100 group-hover:blur-[90px]"
+            />
+            {/* Lichtkranz */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -inset-10 -z-20 rounded-full
+                         bg-[conic-gradient(from_180deg_at_40%_50%,rgba(255,255,255,0.18),transparent_35%,transparent_65%,rgba(255,255,255,0.18))]
+                         blur-[100px] opacity-80 transition-opacity duration-500
+                         group-hover:opacity-95"
+            />
+            <img
+              src="/brand/logo.png"
+              alt="CleanFlow"
+              className="relative h-12 md:h-14 w-auto object-contain
+                         drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]
+                         transition duration-300 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.4)] group-hover:scale-[1.02]"
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+            />
+            <span className="relative text-sm md:text-base tracking-widest uppercase text-white/90 group-hover:text-white transition">
+              CleanFlow
+            </span>
+          </div>
 
-    <nav className="flex items-center gap-6 md:gap-8">
-      <button onClick={handleGoToSolutions} className="text-sm text-white/70 hover:text-white transition-colors">
-        Lösungen
-      </button>
-      <button onClick={openContact} className="text-sm text-white/70 hover:text-white transition-colors">
-        Kontakt
-      </button>
-      <button
-        onClick={() => navigate('/login')}
-        className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors"
-      >
-        Login
-      </button>
-    </nav>
-  </div>
-
+          {/* Nav */}
           <nav className="flex items-center gap-6 md:gap-8">
-            {/* Produkte & Preise entfernt */}
-            <button
-              onClick={handleGoToSolutions}
-              className="text-sm text-white/70 hover:text-white transition-colors"
-            >
+            <button onClick={handleGoToSolutions} className="text-sm text-white/70 hover:text-white transition-colors">
               Lösungen
             </button>
-            <button
-              onClick={openContact}
-              className="text-sm text-white/70 hover:text-white transition-colors"
-            >
+            <button onClick={openContact} className="text-sm text-white/70 hover:text-white transition-colors">
               Kontakt
             </button>
             <button
@@ -126,8 +94,7 @@ export function Landing() {
         {/* HERO */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            {/* sehr dezenter radialer Glanz */}
-            <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full bg-white/5 blur-3xl" />
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-[32px] bg-white/8 blur-[80px]" />
           </div>
 
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
@@ -139,8 +106,7 @@ export function Landing() {
               </span>
             </h1>
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
-              Manage apartments, coordinate cleaners, and schedule tasks with precision. Built for hosts who demand
-              efficiency.
+              Manage apartments, coordinate cleaners, and schedule tasks with precision. Built for hosts who demand efficiency.
             </p>
 
             <div className="mt-10 flex items-center justify-center gap-4">
@@ -158,12 +124,11 @@ export function Landing() {
               </button>
             </div>
 
-            {/* dünner Divider */}
             <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
           </div>
         </section>
 
-        {/* SECTION – „Was ist CleanFlow?“ (hell, klare Kacheln) */}
+        {/* SECTION – Was ist CleanFlow? */}
         <section ref={cleanflowRef} className="py-24 bg-white text-black">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
@@ -172,7 +137,7 @@ export function Landing() {
               </h2>
               <div className="w-24 h-[2px] bg-gradient-to-r from-black via-neutral-800 to-black mx-auto mt-6 mb-6 rounded-full" />
               <p className="text-black max-w-3xl mx-auto text-lg leading-relaxed">
-                CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.  
+                CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.
                 Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
               </p>
             </div>
@@ -183,20 +148,17 @@ export function Landing() {
                 {
                   emoji: '💬',
                   title: 'WhatsApp Integration',
-                  text:
-                    'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
+                  text: 'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
                 },
                 {
                   emoji: '🗓️',
                   title: 'Intelligente Planung',
-                  text:
-                    'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
+                  text: 'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
                 },
                 {
                   emoji: '👥',
                   title: 'Team-Management',
-                  text:
-                    'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
+                  text: 'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
                 },
               ].map((item) => (
                 <div
@@ -217,7 +179,7 @@ export function Landing() {
           </div>
         </section>
 
-        {/* SECTION – „Funktionen, die überzeugen“ (Lösungen) */}
+        {/* SECTION – Funktionen, die überzeugen */}
         <section ref={featuresRef} className="py-24 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
@@ -249,8 +211,7 @@ export function Landing() {
                 {
                   emoji: '🛡️',
                   title: 'Sichere Daten',
-                  text:
-                    'Verschlüsselt und DSGVO-konform. Privatsphäre und Integrität stehen an erster Stelle.',
+                  text: 'Verschlüsselt und DSGVO-konform. Privatsphäre und Integrität stehen an erster Stelle.',
                 },
                 {
                   emoji: '📊',
@@ -283,9 +244,7 @@ export function Landing() {
                 Ready to optimize your operations?
               </span>
             </h3>
-            <p className="mt-4 text-white/70">
-              Join hosts who trust CleanFlow to keep their properties pristine.
-            </p>
+            <p className="mt-4 text-white/70">Join hosts who trust CleanFlow to keep their properties pristine.</p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <button
                 onClick={() => navigate('/login')}
@@ -318,25 +277,14 @@ export function Landing() {
 
       {/* Kontakt-Modal */}
       {isContactOpen && (
-        <div
-          aria-modal="true"
-          role="dialog"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
+        <div aria-modal="true" role="dialog" className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={closeContact}
-          />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeContact} />
           {/* Dialog */}
           <div className="relative w-full max-w-2xl bg-black text-white border border-white/10 shadow-2xl">
             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
               <h4 className="text-xl font-semibold">Kontakt</h4>
-              <button
-                onClick={closeContact}
-                className="text-white/60 hover:text-white"
-                aria-label="Close"
-              >
+              <button onClick={closeContact} className="text-white/60 hover:text-white" aria-label="Close">
                 ✕
               </button>
             </div>
@@ -346,28 +294,19 @@ export function Landing() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm uppercase tracking-widest text-white/60">E-Mail</p>
-                  <a
-                    href="mailto:knk.flow@web.de"
-                    className="text-white hover:underline break-all"
-                  >
+                  <a href="mailto:knk.flow@web.de" className="text-white hover:underline break-all">
                     knk.flow@web.de
                   </a>
                 </div>
                 <div>
                   <p className="text-sm uppercase tracking-widest text-white/60">Telefon</p>
-                  <a
-                    href="tel:+4917660733953"
-                    className="text-white hover:underline"
-                  >
+                  <a href="tel:+4917660733953" className="text-white hover:underline">
                     +49 176 60733953
                   </a>
                 </div>
 
                 <div className="h-px bg-white/10 my-2" />
-
-                <p className="text-white/70 text-sm">
-                  Schreiben Sie uns eine Nachricht – wir melden uns zeitnah.
-                </p>
+                <p className="text-white/70 text-sm">Schreiben Sie uns eine Nachricht – wir melden uns zeitnah.</p>
               </div>
 
               {/* Nachricht senden */}
@@ -412,10 +351,7 @@ export function Landing() {
                   >
                     Abbrechen
                   </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-white text-black font-semibold hover:bg-white/90 transition-colors"
-                  >
+                  <button type="submit" className="px-5 py-2 bg-white text-black font-semibold hover:bg-white/90 transition-colors">
                     Nachricht senden
                   </button>
                 </div>
