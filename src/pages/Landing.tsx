@@ -53,34 +53,39 @@ export function Landing() {
       <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
          <div className="relative group flex items-center gap-3">
-  {/* Haupt-Backlight (hell, zentriert) */}
+ <div className="relative group flex items-center gap-3 -ml-3 sm:-ml-4 md:-ml-6">
+  {/* Haupt-Backlight (größer & heller, strahlt auch den Text an) */}
   <span
     aria-hidden
-    className="pointer-events-none absolute -inset-3 -z-10 rounded-full
-               bg-[radial-gradient(75%_75%_at_50%_50%,rgba(255,255,255,0.45),rgba(255,255,255,0.18)_45%,transparent_70%)]
-               blur-2xl opacity-90 transition-all duration-300
-               group-hover:opacity-100 group-hover:blur-xl"
+    className="pointer-events-none absolute -left-10 -right-6 -top-6 -bottom-6 -z-10 rounded-full
+               bg-[radial-gradient(90%_90%_at_40%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.25)_45%,transparent_80%)]
+               blur-[70px] opacity-95 transition-all duration-500
+               group-hover:opacity-100 group-hover:blur-[90px]"
   />
+
   {/* zarter Lichtkranz für Tiefe */}
   <span
     aria-hidden
-    className="pointer-events-none absolute -inset-6 -z-20 rounded-full
-               bg-[conic-gradient(from_180deg_at_50%_50%,rgba(255,255,255,0.18),transparent_35%,transparent_65%,rgba(255,255,255,0.18))]
-               blur-3xl opacity-70 transition-opacity duration-300
-               group-hover:opacity-90"
+    className="pointer-events-none absolute -inset-10 -z-20 rounded-full
+               bg-[conic-gradient(from_180deg_at_40%_50%,rgba(255,255,255,0.18),transparent_35%,transparent_65%,rgba(255,255,255,0.18))]
+               blur-[100px] opacity-80 transition-opacity duration-500
+               group-hover:opacity-95"
   />
+
   <img
     src="/brand/logo.png"
     alt="CleanFlow"
     className="relative h-12 md:h-14 w-auto object-contain
-               drop-shadow-[0_0_22px_rgba(255,255,255,0.18)]
-               transition duration-300 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.35)] group-hover:scale-[1.01]"
+               drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]
+               transition duration-300 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.4)] group-hover:scale-[1.02]"
     onError={(e) => (e.currentTarget.style.display = 'none')}
   />
-  <span className="relative text-sm md:text-base tracking-widest uppercase text-white/90 group-hover:text-white">
+
+  <span className="relative text-sm md:text-base tracking-widest uppercase text-white/90 group-hover:text-white transition">
     CleanFlow
   </span>
 </div>
+
 
           <nav className="flex items-center gap-6 md:gap-8">
             {/* Produkte & Preise entfernt */}
