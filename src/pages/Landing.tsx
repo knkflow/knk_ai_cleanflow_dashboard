@@ -38,38 +38,49 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header (Glow geclippt) */}
-      <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur overflow-hidden">
-        <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-          {/* Logo + Backlight */}
-          <div className="relative group flex items-center gap-3 -ml-3 sm:-ml-4 md:-ml-6">
-            {/* Haupt-Backlight – unten gekappt, strahlt Logo & Text an */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -left-10 -right-6 -top-6 bottom-0 -z-10 rounded-full
-                         bg-[radial-gradient(90%_90%_at_40%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.25)_45%,transparent_80%)]
-                         blur-[70px] opacity-95 transition-all duration-500
-                         group-hover:opacity-100 group-hover:blur-[90px]"
-            />
-            {/* Lichtkranz – ebenfalls unten begrenzt */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -inset-x-10 -top-8 bottom-1 -z-20 rounded-full
-                         bg-[conic-gradient(from_180deg_at_40%_50%,rgba(255,255,255,0.18),transparent_35%,transparent_65%,rgba(255,255,255,0.18))]
-                         blur-[90px] opacity-80 transition-opacity duration-500
-                         group-hover:opacity-95"
-            />
-            <img
-              src="/brand/logo.png"
-              alt="CleanFlow"
-              className="relative h-12 md:h-14 w-auto object-contain drop-shadow-[0_0_22px_rgba(255,255,255,0.2)]
-                         transition duration-300 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.4)] group-hover:scale-[1.02]"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
-            <span className="relative text-sm md:text-base tracking-widest uppercase text-white/90 group-hover:text-white transition">
-              CleanFlow
-            </span>
-          </div>
+     {/* Header */}
+<header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+  <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
+    
+    {/* Linke Seite – CleanFlow Text */}
+    <span className="text-sm md:text-base tracking-widest uppercase text-white font-semibold">
+      CleanFlow
+    </span>
+
+    {/* Mittig – Logo */}
+    <div className="absolute left-1/2 -translate-x-1/2">
+      <img
+        src="/brand/logo.png"
+        alt="CleanFlow Logo"
+        className="h-12 md:h-14 w-auto object-contain select-none"
+        onError={(e) => (e.currentTarget.style.display = 'none')}
+      />
+    </div>
+
+    {/* Navigation rechts */}
+    <nav className="flex items-center gap-6 md:gap-8">
+      <button
+        onClick={handleGoToSolutions}
+        className="text-sm text-white/70 hover:text-white transition-colors"
+      >
+        Lösungen
+      </button>
+      <button
+        onClick={openContact}
+        className="text-sm text-white/70 hover:text-white transition-colors"
+      >
+        Kontakt
+      </button>
+      <button
+        onClick={() => navigate('/login')}
+        className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors"
+      >
+        Login
+      </button>
+    </nav>
+  </div>
+</header>
+
 
           {/* Nav */}
           <nav className="flex items-center gap-6 md:gap-8">
