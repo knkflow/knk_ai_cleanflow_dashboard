@@ -58,11 +58,6 @@ Coordinate your cleaning staff via WhatsApp or personalized communication channe
   </span>
 </h2>
 
-
-
-      {/* feine grün-goldene Linie zur Abgrenzung */}
-      <div className="w-24 h-[2px] bg-gradient-to-r from-emerald-400 via-amber-400 to-amber-500 mx-auto mt-4 mb-6 rounded-full opacity-80"></div>
-
       {/* Beschreibung bleibt neutral für Kontrast */}
       <p className="mt-4 text-base sm:text-lg text-white/60 max-w-3xl mx-auto">
         Eine intelligente Plattform, die Ihnen hilft, Reinigungen zu planen, zu koordinieren
