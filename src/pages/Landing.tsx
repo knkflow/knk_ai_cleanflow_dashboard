@@ -97,7 +97,6 @@ export function Landing() {
       </button>
     </nav>
   </div>
-</header>
 
           <nav className="flex items-center gap-6 md:gap-8">
             {/* Produkte & Preise entfernt */}
