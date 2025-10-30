@@ -57,10 +57,11 @@ export function Landing() {
     src="/brand/logo.png"
     alt="CleanFlow Logo"
     className="h-16 md:h-20 w-auto object-contain select-none 
-               rounded-full border-2 border-white/60 shadow-[0_0_12px_rgba(255,255,255,0.4)]"
+               border-2 border-white/70 shadow-[0_0_15px_rgba(255,255,255,0.35)]"
     onError={(e) => (e.currentTarget.style.display = 'none')}
   />
 </div>
+
 
 
 
