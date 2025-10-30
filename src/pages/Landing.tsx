@@ -119,13 +119,7 @@ export function Landing() {
     Short-Term Rental · Operations
   </p>
 </div>
-        
-
-
-
-
-
-
+      
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
