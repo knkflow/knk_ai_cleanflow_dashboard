@@ -270,7 +270,7 @@ export function Tasks() {
             required
             options={[
               { value: '', label: 'Select apartment' },
-              ...apartments.map((a) => ({ value: String(a.id), label: a.name })),
+              ...apartments.map((a) => ({ value: String(a.id), label: a.id })),
             ]}
           />
 
@@ -280,7 +280,7 @@ export function Tasks() {
             onChange={(e) => setFormData({ ...formData, cleaner_id: e.target.value })}
             options={[
               { value: '', label: 'Use default cleaner' },
-              ...cleaners.map((c) => ({ value: c.id, label: c.id })),
+              ...cleaners.map((c) => ({ value: c.id, label: c.name })),
             ]}
           />
 
