@@ -128,7 +128,7 @@ export function Landing() {
             </h1>
 
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
-              Manage apartments, coordinate cleaners, and schedule tasks with precision. Built for hosts who demand efficiency.
+             Verwalten Sie Apartments, koordinieren Sie Reinigungskräfte und planen Sie Aufgaben mit Präzision. Entwickelt für Gastgeber, die Wert auf Effizienz legen.
             </p>
 
             <div className="mt-10 flex items-center justify-center gap-4">
