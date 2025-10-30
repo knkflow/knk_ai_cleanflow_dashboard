@@ -72,7 +72,7 @@ export function Landing() {
           </div>
         </section>
 
-     {/* SECTION – „Was ist CleanFlow?“ (weißer Premium-Look mit schwebenden Cards) */}
+   {/* SECTION – „Was ist CleanFlow?“ (weißer Hintergrund, subtiler Hover-Glow-Effekt) */}
 <section className="py-24 bg-white text-black">
   <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
     <div className="text-center">
@@ -83,7 +83,7 @@ export function Landing() {
         </span>
       </h2>
 
-      {/* feine graue Linie */}
+      {/* feine Linie */}
       <div className="w-24 h-px bg-neutral-300 mx-auto mt-6 mb-6" />
 
       {/* Beschreibung */}
@@ -93,7 +93,7 @@ export function Landing() {
       </p>
     </div>
 
-    {/* Drei Kerneigenschaften – leicht angehoben, edle Tiefe */}
+    {/* Drei Kerneigenschaften – Hover Glow Effekt */}
     <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {[
         {
@@ -117,11 +117,8 @@ export function Landing() {
       ].map((item) => (
         <div
           key={item.title}
-          className="relative rounded-2xl border border-neutral-200 bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)] transition-all duration-300"
+          className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)] hover:border-neutral-300 hover:bg-neutral-50 transition-all duration-300"
         >
-          {/* feine 3D-Kante oben */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-neutral-100 via-neutral-200 to-neutral-100 rounded-t-2xl" />
-
           <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-neutral-500 mb-4">
             <span className="text-base">{item.emoji}</span>
             <span>Feature</span>
