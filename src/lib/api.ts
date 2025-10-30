@@ -110,7 +110,7 @@ export async function deleteApartment(id: string): Promise<void> {
   const { error } = await supabase
     .from('apartments')
     .delete()
-    .eq('id', id);
+    .eq('listing_id', id);
 
   if (error) throw error;
 }
