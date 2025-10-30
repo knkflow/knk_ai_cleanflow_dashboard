@@ -62,7 +62,7 @@ export function Apartments() {
 
   function openEditModal(apartment: ApartmentWithCleaner) {
     // WICHTIG: editingId ist die echte DB-ID, nicht listing_id
-    setEditingId(apartment.id);
+    setEditingId(apartment.listing_id);
     setFormData({
       listing_id: apartment.listing_id,
       name: apartment.name,
@@ -133,7 +133,7 @@ export function Apartments() {
       <div className="grid gap-4">
         {apartments.map((apartment) => (
           <div
-            key={apartment.id ?? apartment.listing_id}
+            key={apartment.listing_id}
             className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500
                        hover:border-2 hover:border-white
                        hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
