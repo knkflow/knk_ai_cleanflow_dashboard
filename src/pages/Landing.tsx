@@ -86,15 +86,29 @@ export function Landing() {
       {/* feine graue Linie darunter */}
       <div className="w-24 h-px bg-neutral-300 mx-auto mt-6 mb-6" />
 
-      {/* Beschreibung – dezenter Grauton für weiches Lesen */}
+     {/* SECTION – „Was ist CleanFlow?“ (weißer Premium-Look mit schwebenden Cards) */}
+<section className="py-24 bg-white text-black">
+  <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+    <div className="text-center">
+      {/* Titel */}
+      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-800 via-neutral-900 to-black">
+          Was ist CleanFlow
+        </span>
+      </h2>
+
+      {/* feine graue Linie */}
+      <div className="w-24 h-px bg-neutral-300 mx-auto mt-6 mb-6" />
+
+      {/* Beschreibung */}
       <p className="text-neutral-700 max-w-3xl mx-auto">
         CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.
         Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
       </p>
     </div>
 
-    {/* Drei Kerneigenschaften – weiße Karten leicht abgesetzt */}
-    <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {/* Drei Kerneigenschaften – leicht angehoben, edle Tiefe */}
+    <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {[
         {
           emoji: '💬',
@@ -117,12 +131,16 @@ export function Landing() {
       ].map((item) => (
         <div
           key={item.title}
-          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-7 hover:bg-neutral-100 transition-colors"
+          className="relative rounded-2xl border border-neutral-200 bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)] transition-all duration-300"
         >
+          {/* feine 3D-Kante oben */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-neutral-100 via-neutral-200 to-neutral-100 rounded-t-2xl" />
+
           <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-neutral-500 mb-4">
             <span className="text-base">{item.emoji}</span>
             <span>Feature</span>
           </div>
+
           <h3 className="text-xl font-semibold text-neutral-900">{item.title}</h3>
           <p className="mt-3 text-neutral-600 leading-relaxed">{item.text}</p>
         </div>
@@ -130,6 +148,7 @@ export function Landing() {
     </div>
   </div>
 </section>
+
 
         {/* SECTION – „Funktionen, die überzeugen“ (stärkerer Kontrast, dezente Goldkante) */}
         <section className="py-24 border-t border-white/10">
