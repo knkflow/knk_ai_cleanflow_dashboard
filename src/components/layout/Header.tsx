@@ -28,7 +28,7 @@ export function Header({ user }: HeaderProps) {
             }}
           />
           <div>
-            <h1 className="text-xl font-semibold text-white">KNK-AI Cleaning</h1>
+            <h1 className="text-xl font-semibold text-white">Cleanflow</h1>
             <p className="text-sm text-white/50">{user.role}</p>
           </div>
         </div>
