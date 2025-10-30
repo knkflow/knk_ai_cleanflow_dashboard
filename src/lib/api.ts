@@ -133,7 +133,7 @@ export async function getTasks(
     .in('listing_id',
       supabase
         .from('apartments')
-        .select('id')
+        .select('listing_id')
         .eq('owner_id', ownerId)
     );
 
