@@ -10,7 +10,7 @@ export function Landing() {
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/brand/logo.jpg"
+              src="/brand/logo.png"
               alt="KNK-AI"
               className="h-10 w-auto"
               onError={(e) => {
