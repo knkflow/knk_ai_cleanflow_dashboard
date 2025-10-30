@@ -66,39 +66,39 @@ Coordinate your cleaning staff via WhatsApp or personalized communication channe
     </div>
 
 
-            {/* Drei Hauptfunktionen */}
-            <div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                {
-                  emoji: '💬',
-                  title: 'WhatsApp Integration',
-                  text: 'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.',
-                },
-                {
-                  emoji: '🗓️',
-                  title: 'Intelligente Planung',
-                  text: 'Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
-                },
-                {
-                  emoji: '👥',
-                  title: 'Team-Management',
-                  text: 'Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken Sie Fortschritte und behalten Sie alles im Blick.',
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 transition-all duration-300 hover:bg-white/[0.07]"
-                >
-                  <div className="inline-flex items-center justify-center rounded-xl px-3 py-1.5 bg-white/10 mb-4">
-                    <span className="text-lg mr-2">{item.emoji}</span>
-                    <span className="text-sm text-white/80">Feature</span>
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{item.title}</h3>
-                  <p className="text-white/70 leading-relaxed">{item.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+           {/* Drei Hauptfunktionen */}
+<div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+  {[
+    {
+      emoji: '💬',
+      title: 'WhatsApp Integration',
+      text: 'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.',
+    },
+    {
+      emoji: '🗓️',
+      title: 'Intelligente Planung',
+      text: 'Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
+    },
+    {
+      emoji: '👥',
+      title: 'Team-Management',
+      text: 'Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken Sie Fortschritte und behalten Sie alles im Blick.',
+    },
+  ].map((item) => (
+    <div
+      key={item.title}
+      className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-7 hover:ring-amber-400/20 hover:shadow-[0_0_20px_rgba(251,191,36,0.1)] transition duration-300"
+    >
+      <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30 mb-4">
+        <span className="text-base">{item.emoji}</span>
+        <span>Feature</span>
+      </div>
+      <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+      <p className="text-white/70 leading-relaxed">{item.text}</p>
+    </div>
+  ))}
+</div>
+
 
           {/* Section 2 – Funktionen, die überzeugen (Gold) */}
           <div className="relative py-24">
