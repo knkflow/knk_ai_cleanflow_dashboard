@@ -14,8 +14,11 @@ export function Landing() {
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
 
-  const handleLearnMore = () => cleanflowRef.current?.scrollIntoView({ behavior: 'smooth' });
-  const handleGoToSolutions = () => featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleLearnMore = () =>
+    cleanflowRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleGoToSolutions = () =>
+    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
+
   const openContact = () => setIsContactOpen(true);
   const closeContact = () => setIsContactOpen(false);
 
@@ -31,63 +34,45 @@ export function Landing() {
       contactMessage || '',
     ].filter(Boolean);
     const body = bodyLines.join('\n');
-    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
     setIsContactOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
-     {/* Header */}
-<header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
-  <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-    
-    {/* Linke Seite – CleanFlow Text */}
-    <span className="text-sm md:text-base tracking-widest uppercase text-white font-semibold">
-      CleanFlow
-    </span>
+      {/* Header */}
+      <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+        <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between relative">
+          {/* Linke Seite – CleanFlow Text */}
+          <span className="text-sm md:text-base tracking-widest uppercase text-white font-semibold">
+            CleanFlow
+          </span>
 
-    {/* Mittig – Logo */}
-    <div className="absolute left-1/2 -translate-x-1/2">
-      <img
-        src="/brand/logo.png"
-        alt="CleanFlow Logo"
-        className="h-12 md:h-14 w-auto object-contain select-none"
-        onError={(e) => (e.currentTarget.style.display = 'none')}
-      />
-    </div>
+          {/* Mittig – Logo */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <img
+              src="/brand/logo.png"
+              alt="CleanFlow Logo"
+              className="h-12 md:h-14 w-auto object-contain select-none"
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+            />
+          </div>
 
-    {/* Navigation rechts */}
-    <nav className="flex items-center gap-6 md:gap-8">
-      <button
-        onClick={handleGoToSolutions}
-        className="text-sm text-white/70 hover:text-white transition-colors"
-      >
-        Lösungen
-      </button>
-      <button
-        onClick={openContact}
-        className="text-sm text-white/70 hover:text-white transition-colors"
-      >
-        Kontakt
-      </button>
-      <button
-        onClick={() => navigate('/login')}
-        className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors"
-      >
-        Login
-      </button>
-    </nav>
-  </div>
-</header>
-
-
-          {/* Nav */}
+          {/* Navigation rechts */}
           <nav className="flex items-center gap-6 md:gap-8">
-            <button onClick={handleGoToSolutions} className="text-sm text-white/70 hover:text-white transition-colors">
+            <button
+              onClick={handleGoToSolutions}
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
               Lösungen
             </button>
-            <button onClick={openContact} className="text-sm text-white/70 hover:text-white transition-colors">
+            <button
+              onClick={openContact}
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
               Kontakt
             </button>
             <button
@@ -105,32 +90,31 @@ export function Landing() {
         <section className="relative overflow-hidden">
           {/* Präsentierende Stage-Fläche */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[560px] w-[880px] rounded-[36px] bg-white/7 blur-[70px]" />
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[560px] w-[880px] rounded-[36px] bg-[rgba(255,255,255,0.07)] blur-[70px]" />
           </div>
 
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
-            {/* Unterzeile mit eigenem, schmalem Glow */}
-       <div className="relative inline-flex items-center justify-center px-6 py-2 rounded-full border border-white/30 bg-white/5 backdrop-blur-[2px]
-                shadow-[0_4px_20px_rgba(255,255,255,0.1),inset_0_0_12px_rgba(255,255,255,0.08)]
-                before:content-[''] before:absolute before:inset-0 before:rounded-full before:border before:border-white/50 before:opacity-30
-                hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
-                transition-all duration-500 ease-out">
-      
-  
-  {/* feiner Glow-Hintergrund */}
-  <span
-    aria-hidden
-    className="absolute -inset-x-6 -inset-y-3 rounded-full 
-               bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.6),transparent_80%)]
-               blur-[24px] opacity-70"
-  />
+            {/* Unterzeile mit ovaler Fassung + Glow */}
+            <div
+              className="relative inline-flex items-center justify-center px-6 py-2 rounded-full
+                         border border-white/25 bg-white/[0.06] backdrop-blur-[2px]
+                         shadow-[0_4px_20px_rgba(255,255,255,0.1),inset_0_0_12px_rgba(255,255,255,0.08)]
+                         before:content-[''] before:absolute before:inset-0 before:rounded-full before:border before:border-white/40 before:opacity-30
+                         hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
+                         transition-all duration-500 ease-out"
+            >
+              {/* weicher Glow */}
+              <span
+                aria-hidden
+                className="absolute -inset-x-8 -inset-y-3 rounded-full
+                           bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.55),transparent_80%)]
+                           blur-[26px] opacity-80"
+              />
+              <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/85">
+                Short-Term Rental · Operations
+              </p>
+            </div>
 
-  {/* Text */}
-  <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]">
-    Short-Term Rental · Operations
-  </p>
-</div>
-      
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
@@ -181,24 +165,25 @@ export function Landing() {
                 {
                   emoji: '💬',
                   title: 'WhatsApp Integration',
-                  text: 'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
+                  text:
+                    'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
                 },
                 {
                   emoji: '🗓️',
                   title: 'Intelligente Planung',
-                  text: 'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
+                  text:
+                    'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
                 },
                 {
                   emoji: '👥',
                   title: 'Team-Management',
-                  text: 'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
+                  text:
+                    'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
                 },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="group relative rounded-3xl bg-white border-2 border-black shadow-[0_4px_12px_rgba(0,0,0,0.08)]
-                             hover:shadow-[0_10px_25px_rgba(0,0,0,0.18)] hover:-translate-y-1 hover:bg-neutral-50
-                             transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  className="group relative rounded-3xl bg-white border-2 border-black shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.18)] hover:-translate-y-1 hover:bg-neutral-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
                 >
                   <div className="relative p-8">
                     <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-black mb-4">
@@ -234,22 +219,26 @@ export function Landing() {
                 {
                   emoji: '✅',
                   title: 'Personalisierte Kommunikation',
-                  text: 'WhatsApp, SMS, E-Mail oder In-App: für jede Reinigungskraft der passende Kanal – klar und nachvollziehbar.',
+                  text:
+                    'WhatsApp, SMS, E-Mail oder In-App: für jede Reinigungskraft der passende Kanal – klar und nachvollziehbar.',
                 },
                 {
                   emoji: '🕒',
                   title: 'Echtzeit-Updates',
-                  text: 'Benachrichtigungen bei Start, Abschluss oder Verzögerung – Sie behalten stets die Kontrolle.',
+                  text:
+                    'Benachrichtigungen bei Start, Abschluss oder Verzögerung – Sie behalten stets die Kontrolle.',
                 },
                 {
                   emoji: '🛡️',
                   title: 'Sichere Daten',
-                  text: 'Verschlüsselt und DSGVO-konform. Privatsphäre und Integrität stehen an erster Stelle.',
+                  text:
+                    'Verschlüsselt und DSGVO-konform. Privatsphäre und Integrität stehen an erster Stelle.',
                 },
                 {
                   emoji: '📊',
                   title: 'Automatische Berichte',
-                  text: 'Detaillierte Reports zu Reinigungen, Zeiten und Kosten – fundierte Entscheidungen auf einen Blick.',
+                  text:
+                    'Detaillierte Reports zu Reinigungen, Zeiten und Kosten – fundierte Entscheidungen auf einen Blick.',
                 },
               ].map((item) => (
                 <div
@@ -276,7 +265,9 @@ export function Landing() {
                 Ready to optimize your operations?
               </span>
             </h3>
-            <p className="mt-4 text-white/70">Join hosts who trust CleanFlow to keep their properties pristine.</p>
+            <p className="mt-4 text-white/70">
+              Join hosts who trust CleanFlow to keep their properties pristine.
+            </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <button
                 onClick={() => navigate('/login')}
@@ -309,14 +300,25 @@ export function Landing() {
 
       {/* Kontakt-Modal */}
       {isContactOpen && (
-        <div aria-modal="true" role="dialog" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeContact} />
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={closeContact}
+          />
           {/* Dialog */}
           <div className="relative w-full max-w-2xl bg-black text-white border border-white/10 shadow-2xl">
             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
               <h4 className="text-xl font-semibold">Kontakt</h4>
-              <button onClick={closeContact} className="text-white/60 hover:text-white" aria-label="Close">
+              <button
+                onClick={closeContact}
+                className="text-white/60 hover:text-white"
+                aria-label="Close"
+              >
                 ✕
               </button>
             </div>
@@ -326,19 +328,27 @@ export function Landing() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm uppercase tracking-widest text-white/60">E-Mail</p>
-                  <a href="mailto:knk.flow@web.de" className="text-white hover:underline break-all">
+                  <a
+                    href="mailto:knk.flow@web.de"
+                    className="text-white hover:underline break-all"
+                  >
                     knk.flow@web.de
                   </a>
                 </div>
                 <div>
                   <p className="text-sm uppercase tracking-widest text-white/60">Telefon</p>
-                  <a href="tel:+4917660733953" className="text-white hover:underline">
+                  <a
+                    href="tel:+4917660733953"
+                    className="text-white hover:underline"
+                  >
                     +49 176 60733953
                   </a>
                 </div>
 
                 <div className="h-px bg-white/10 my-2" />
-                <p className="text-white/70 text-sm">Schreiben Sie uns eine Nachricht – wir melden uns zeitnah.</p>
+                <p className="text-white/70 text-sm">
+                  Schreiben Sie uns eine Nachricht – wir melden uns zeitnah.
+                </p>
               </div>
 
               {/* Nachricht senden */}
@@ -383,7 +393,10 @@ export function Landing() {
                   >
                     Abbrechen
                   </button>
-                  <button type="submit" className="px-5 py-2 bg-white text-black font-semibold hover:bg-white/90 transition-colors">
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-white text-black font-semibold hover:bg-white/90 transition-colors"
+                  >
                     Nachricht senden
                   </button>
                 </div>
