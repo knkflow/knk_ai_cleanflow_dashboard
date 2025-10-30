@@ -16,8 +16,14 @@ export function Apartments() {
   const [apartments, setApartments] = useState<ApartmentWithCleaner[]>([]);
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Create/Edit Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Delete Modal
+  const [apartmentToDelete, setApartmentToDelete] = useState<ApartmentWithCleaner | null>(null);
+
   const [formData, setFormData] = useState({
     listing_id: '',
     name: '',
@@ -30,6 +36,7 @@ export function Apartments() {
   }, [user.id]);
 
   async function loadData() {
+    setLoading(true);
     try {
       const [apartmentsData, cleanersData] = await Promise.all([
         getApartments(user.id),
@@ -54,7 +61,8 @@ export function Apartments() {
   }
 
   function openEditModal(apartment: ApartmentWithCleaner) {
-    setEditingId(apartment.listing_id);
+    // WICHTIG: editingId ist die echte DB-ID, nicht listing_id
+    setEditingId(apartment.id);
     setFormData({
       listing_id: apartment.listing_id,
       name: apartment.name,
@@ -89,13 +97,19 @@ export function Apartments() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this apartment? All related tasks will also be deleted.')) return;
+  // ----- Delete-Flow -----
+  function openDeleteModal(apartment: ApartmentWithCleaner) {
+    setApartmentToDelete(apartment);
+  }
+
+  async function confirmDeleteApartment() {
+    if (!apartmentToDelete) return;
     try {
-      await deleteApartment(id);
+      await deleteApartment(apartmentToDelete.id);
+      setApartmentToDelete(null);
       loadData();
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -117,56 +131,53 @@ export function Apartments() {
       </div>
 
       <div className="grid gap-4">
-{apartments.map((apartment) => (
-  <div
-    key={apartment.listing_id}
-    className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500
-               hover:border-2 hover:border-white
-               hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
-  >
-    <div className="flex items-start justify-between">
-      <div className="flex-1">
-        <h3 className="text-xl font-semibold text-white mb-2">
-          {apartment.name}
-        </h3>
-        <p className="text-white/70 text-sm mb-2">
-          Listing ID: {apartment.listing_id}
-        </p>
+        {apartments.map((apartment) => (
+          <div
+            key={apartment.id ?? apartment.listing_id}
+            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500
+                       hover:border-2 hover:border-white
+                       hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {apartment.name}
+                </h3>
+                <p className="text-white/70 text-sm mb-2">
+                  Listing ID: {apartment.listing_id}
+                </p>
 
-        {apartment.address && (
-          <p className="text-white/60 text-sm mb-2">{apartment.address}</p>
-        )}
+                {apartment.address && (
+                  <p className="text-white/60 text-sm mb-2">{apartment.address}</p>
+                )}
 
-        {apartment.default_cleaner && (
-          <p className="text-white/50 text-sm">
-            Default Cleaner: {apartment.default_cleaner.name}
-          </p>
-        )}
-      </div>
+                {apartment.default_cleaner && (
+                  <p className="text-white/50 text-sm">
+                    Default Cleaner: {apartment.default_cleaner.name}
+                  </p>
+                )}
+              </div>
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => openEditModal(apartment)}
-          className="p-2 rounded-md hover:bg-white/10 transition-colors"
-          title="Edit"
-        >
-          <Edit className="w-5 h-5 text-white" />
-        </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openEditModal(apartment)}
+                  className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                  title="Edit"
+                >
+                  <Edit className="w-5 h-5 text-white" />
+                </button>
 
-        <button
-          onClick={() => handleDelete(apartment.listing_id)}
-          className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
-          title="Delete"
-        >
-          <Trash2 className="w-5 h-5 text-red-500" />
-        </button>
-      </div>
-    </div>
-  </div>
-))}
-
-
-
+                <button
+                  onClick={() => openDeleteModal(apartment)}
+                  className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
 
         {apartments.length === 0 && (
           <div className="text-center py-12 text-white/50">
@@ -175,6 +186,7 @@ export function Apartments() {
         )}
       </div>
 
+      {/* Create/Edit Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -232,6 +244,58 @@ export function Apartments() {
           </div>
         </form>
       </Modal>
+
+      {/* Delete Modal */}
+      {apartmentToDelete && (
+        <div
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setApartmentToDelete(null)}
+          />
+          {/* Dialog */}
+          <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4">Apartment löschen?</h3>
+
+            <div className="space-y-2 text-white/85 mb-6">
+              <p>
+                Möchten Sie das Apartment{' '}
+                <span className="font-semibold text-white">
+                  {apartmentToDelete.name}
+                </span>{' '}
+                wirklich entfernen?
+              </p>
+              {apartmentToDelete.address && (
+                <p className="text-white/70">
+                  Adresse: <span className="text-white">{apartmentToDelete.address}</span>
+                </p>
+              )}
+              <p className="text-red-400 text-sm mt-2">
+                Hinweis: Alle zugehörigen Reinigungsaufträge werden ebenfalls gelöscht.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDeleteApartment}
+                className="flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
+              >
+                Löschen
+              </button>
+              <button
+                onClick={() => setApartmentToDelete(null)}
+                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
