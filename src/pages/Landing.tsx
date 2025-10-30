@@ -100,13 +100,6 @@ export function Landing() {
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
             {/* Unterzeile mit eigenem, schmalem Glow */}
         <div className="relative inline-block">
-  {/* Neutralweißer Glow um den gesamten Text */}
-  <span
-    aria-hidden
-    className="pointer-events-none absolute -inset-x-8 -inset-y-4 rounded-full
-               bg-[radial-gradient(90%_130%_at_50%_50%,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0.25)_45%,transparent_85%)]
-               mix-blend-screen blur-[36px] opacity-90"
-  />
 
   {/* Text */}
   <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white">
