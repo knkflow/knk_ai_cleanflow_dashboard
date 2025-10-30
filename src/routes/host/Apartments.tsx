@@ -105,7 +105,7 @@ export function Apartments() {
   async function confirmDeleteApartment() {
     if (!apartmentToDelete) return;
     try {
-      await deleteApartment(apartmentToDelete.id);
+      await deleteApartment(apartmentToDelete.listing_id);
       setApartmentToDelete(null);
       loadData();
     } catch (error) {
