@@ -280,7 +280,7 @@ export function Tasks() {
             onChange={(e) => setFormData({ ...formData, cleaner_id: e.target.value })}
             options={[
               { value: '', label: 'Use default cleaner' },
-              ...cleaners.map((c) => ({ value: c.id, label: c.name })),
+              ...cleaners.map((c) => ({ value: c.id, label: c.id })),
             ]}
           />
 
