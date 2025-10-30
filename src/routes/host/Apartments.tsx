@@ -54,7 +54,7 @@ export function Apartments() {
   }
 
   function openEditModal(apartment: ApartmentWithCleaner) {
-    setEditingId(apartment.id);
+    setEditingId(apartment.listing_id);
     setFormData({
       listing_id: apartment.listing_id,
       name: apartment.name,
