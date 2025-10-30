@@ -45,90 +45,101 @@ export function Landing() {
           </button>
         </section>
 
-        import React from "react";
+       {/* ---- 👇 CleanFlow Features Block ---- */}
+<section className="w-full bg-black text-white">
+  {/* Section 1 – Was ist CleanFlow? */}
+  <div className="relative py-20">
+    <div className="container mx-auto max-w-6xl px-4">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+          Was ist <span className="text-white">CleanFlow?</span>
+        </h2>
+        <p className="mt-4 text-base sm:text-lg text-white/70 max-w-3xl mx-auto">
+          Eine intelligente Plattform, die Ihnen hilft, Reinigungen zu planen, zu koordinieren
+          und zu verwalten – alles an einem Ort.
+        </p>
+      </div>
 
+      <div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6">
+          <div className="inline-flex items-center justify-center rounded-xl px-3 py-1.5 bg-white/10 mb-4">
+            <span className="text-lg mr-2">💬</span>Feature
+          </div>
+          <h3 className="text-lg sm:text-xl font-semibold mb-2">WhatsApp Integration</h3>
+          <p className="text-white/70 leading-relaxed">
+            Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie
+            Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.
+          </p>
+        </div>
 
-// CleanFlow – Feature Sections (Dark mode: black background, white text, gold accents)
-// Emojis remain colored; all text is white; backgrounds are near-black; the previous blue accents are now gold.
+        <div className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6">
+          <div className="inline-flex items-center justify-center rounded-xl px-3 py-1.5 bg-white/10 mb-4">
+            <span className="text-lg mr-2">🗓️</span>Feature
+          </div>
+          <h3 className="text-lg sm:text-xl font-semibold mb-2">Intelligente Planung</h3>
+          <p className="text-white/70 leading-relaxed">
+            Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen,
+            Zeiten und Ressourcen für maximale Effizienz.
+          </p>
+        </div>
 
+        <div className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6">
+          <div className="inline-flex items-center justify-center rounded-xl px-3 py-1.5 bg-white/10 mb-4">
+            <span className="text-lg mr-2">👥</span>Feature
+          </div>
+          <h3 className="text-lg sm:text-xl font-semibold mb-2">Team-Management</h3>
+          <p className="text-white/70 leading-relaxed">
+            Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken
+            Sie Fortschritte und behalten Sie alles im Blick.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-export default function CleanFlowFeatures() {
-const overview = [
-{
-emoji: "💬",
-title: "WhatsApp Integration",
-text:
-"Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.",
-badge: "bg-white/5 text-white ring-1 ring-white/10",
-},
-{
-emoji: "🗓️",
-title: "Intelligente Planung",
-text:
-"Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.",
-badge: "bg-white/5 text-white ring-1 ring-white/10",
-},
-{
-emoji: "👥",
-title: "Team-Management",
-text:
-"Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken Sie Fortschritte und behalten Sie alles im Blick.",
-badge: "bg-white/5 text-white ring-1 ring-white/10",
-},
-{
-emoji: "📝",
-title: "Aufgabenverwaltung",
-text:
-"Erstellen und verwalten Sie Reinigungsaufgaben mit allen Details. Status-Updates in Echtzeit und automatische Benachrichtigungen.",
-badge: "bg-white/5 text-white ring-1 ring-white/10",
-},
-{
-emoji: "💵",
-title: "Rechnungsverwaltung",
-text:
-"Erstellen, verwalten und versenden Sie Rechnungen direkt aus der Plattform. Vollständige Übersicht über alle Zahlungen und Abrechnungen.",
-badge: "bg-white/5 text-white ring-1 ring-white/10",
-},
-{
-emoji: "📅",
-title: "Verfügbarkeitsverwaltung",
-text:
-"Verwalten Sie Arbeitszeiten und Verfügbarkeiten Ihrer Reinigungskräfte. Gruppierte Zeiträume für wiederkehrende Schichten.",
-badge: "bg-white/5 text-white ring-1 ring-white/10",
-},
-];
+  {/* Section 2 – Funktionen, die überzeugen (Gold accents) */}
+  <div className="relative py-24">
+    <div className="container mx-auto max-w-6xl px-4">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
+            Funktionen, die überzeugen
+          </span>
+        </h2>
+        <p className="mt-4 text-base sm:text-lg text-white/70 max-w-3xl mx-auto">
+          Alles, was Sie für professionelles Reinigungsmanagement brauchen
+        </p>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-7 hover:ring-amber-400/20 transition">
+          <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30 mb-4">
+            <span className="text-base">✅</span>
+            <span>Highlight</span>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Personalisierte Kommunikation</h3>
+          <p className="text-white/70">
+            Wählen Sie für jede Reinigungskraft den bevorzugten Kommunikationskanal – WhatsApp,
+            SMS, E-Mail oder In-App-Benachrichtigungen.
+          </p>
+        </div>
 
-const highlights = [
-{
-emoji: "✅",
-title: "Personalisierte Kommunikation",
-text:
-"Wählen Sie für jede Reinigungskraft den bevorzugten Kommunikationskanal – WhatsApp, SMS, E‑Mail oder In‑App‑Benachrichtigungen.",
-badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
-},
-{
-emoji: "🕒",
-title: "Echtzeit‑Updates",
-text:
-"Erhalten Sie sofortige Benachrichtigungen, wenn Reinigungen gestartet, abgeschlossen oder verzögert werden.",
-badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
-},
-{
-emoji: "🛡️",
-title: "Sichere Datenverwaltung",
-text:
-"Alle Daten werden verschlüsselt und DSGVO‑konform gespeichert. Ihre Privatsphäre hat oberste Priorität.",
-badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
-},
-{
-emoji: "📊",
-title: "Automatische Berichte",
-text:
-"Generieren Sie automatisch detaillierte Berichte über Reinigungen, Arbeitszeiten und Kosten.",
-badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
-},
-];
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-7 hover:ring-amber-400/20 transition">
+          <div className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30 mb-4">
+            <span className="text-base">🕒</span>
+            <span>Highlight</span>
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Echtzeit-Updates</h3>
+          <p className="text-white/70">
+            Erhalten Sie sofortige Benachrichtigungen, wenn Reinigungen gestartet, abgeschlossen
+            oder verzögert werden.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{/* ---- 👆 Ende CleanFlow Features Block ---- */}
 
 
 return (
