@@ -67,7 +67,7 @@ export function Landing() {
         und zu verwalten – alles an einem Ort.
       </p>
     </div>
-  </div>
+
 </section>
 
             {/* Drei Hauptfunktionen */}
