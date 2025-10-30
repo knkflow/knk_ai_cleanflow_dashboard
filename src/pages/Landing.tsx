@@ -51,15 +51,16 @@ export function Landing() {
             CleanFlow
           </span>
 
-          {/* Mittig – Logo */}
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <img
-              src="/brand/logo.png"
-              alt="CleanFlow Logo"
-              className="h-12 md:h-12"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
-          </div>
+         {/* Mittig – Logo */}
+<div className="absolute left-1/2 -translate-x-1/2">
+  <img
+    src="/brand/logo.png"
+    alt="CleanFlow Logo"
+    className="h-14 md:h-16 w-auto object-contain select-none"
+    onError={(e) => (e.currentTarget.style.display = 'none')}
+  />
+</div>
+
 
           {/* Navigation rechts */}
           <nav className="flex items-center gap-6 md:gap-8">
