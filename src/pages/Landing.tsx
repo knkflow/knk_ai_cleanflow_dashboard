@@ -71,16 +71,16 @@ export function Landing() {
             <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
           </div>
         </section>
-{/* SECTION – „Was ist CleanFlow?“ (weißer Hintergrund, schwarze Linien, subtile Tiefe) */}
+{/* SECTION – „Was ist CleanFlow?“ (klarer Weiß-Schwarz-Stil mit sichtbaren Linien) */}
 <section className="py-24 bg-white text-black">
   <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
     {/* Titel */}
     <div className="text-center">
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-neutral-900">
-        Was ist <span className="text-black/80">CleanFlow</span>
+      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-black">
+        Was ist <span className="text-black">CleanFlow</span>
       </h2>
-      <div className="w-24 h-[2px] bg-gradient-to-r from-neutral-400 via-neutral-700 to-neutral-400 mx-auto mt-6 mb-6 rounded-full" />
-      <p className="text-neutral-700 max-w-3xl mx-auto text-lg">
+      <div className="w-24 h-[2px] bg-gradient-to-r from-black via-neutral-800 to-black mx-auto mt-6 mb-6 rounded-full" />
+      <p className="text-black max-w-3xl mx-auto text-lg leading-relaxed">
         CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.  
         Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
       </p>
@@ -110,23 +110,22 @@ export function Landing() {
       ].map((item) => (
         <div
           key={item.title}
-          className="group relative rounded-3xl bg-white border border-black/20 shadow-[0_2px_6px_rgba(0,0,0,0.05)] hover:border-black/40 hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:bg-neutral-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+          className="group relative rounded-3xl bg-white border-2 border-black shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.18)] hover:-translate-y-1 hover:bg-neutral-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
         >
           <div className="relative p-8">
-            <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-neutral-600 mb-4">
+            <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-black mb-4">
               <span className="text-base">{item.emoji}</span>
               <span>Feature</span>
             </div>
 
-            <h3 className="text-2xl font-semibold text-neutral-900 mb-2">{item.title}</h3>
-            <p className="text-neutral-700 leading-relaxed">{item.text}</p>
+            <h3 className="text-2xl font-semibold text-black mb-2">{item.title}</h3>
+            <p className="text-black leading-relaxed">{item.text}</p>
           </div>
         </div>
       ))}
     </div>
   </div>
 </section>
-
 
         {/* SECTION – „Funktionen, die überzeugen“ (stärkerer Kontrast, dezente Goldkante) */}
         <section className="py-24 border-t border-white/10">
