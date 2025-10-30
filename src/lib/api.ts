@@ -98,7 +98,7 @@ export async function updateApartment(id: string, updates: Partial<Apartment>): 
   const { data, error } = await supabase
     .from('apartments')
     .update(updates)
-    .eq('id', id)
+    .eq('listing_id', id)
     .select()
     .single();
 
