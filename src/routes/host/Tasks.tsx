@@ -53,7 +53,6 @@ export function Tasks() {
       setCleaners(cleanersData);
     } finally {
       setLoading(false);
-      console.log(apartments.length);
     }
   }
 
