@@ -152,14 +152,7 @@ export function Login() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-white/70 hover:text-white transition-colors"
-          >
-            {isSignUp ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
-          </button>
-        </div>
+
 
         <div className="mt-8 text-center">
           <button
