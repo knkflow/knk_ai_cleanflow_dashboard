@@ -103,17 +103,19 @@ export function Landing() {
                          hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
                          transition-all duration-500 ease-out"
             >
-              {/* weicher Glow */}
-              <span
-                aria-hidden
-                className="absolute -inset-x-8 -inset-y-3 rounded-full
-                           bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.55),transparent_80%)]
-                           blur-[26px] opacity-80"
-              />
-              <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/85">
-                Short-Term Rental · Operations
-              </p>
-            </div>
+             {/* feiner Glow-Hintergrund */}
+  <span
+    aria-hidden
+    className="absolute -inset-x-6 -inset-y-3 rounded-full 
+               bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.6),transparent_80%)]
+               blur-[24px] opacity-70"
+  />
+
+  {/* Text */}
+  <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]">
+    Short-Term Rental · Operations
+  </p>
+</div>
 
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
