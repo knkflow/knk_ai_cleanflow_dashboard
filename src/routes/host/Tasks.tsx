@@ -253,6 +253,52 @@ const filteredTasks = tasks.filter((t) => {
 >
   <Trash2 className="w-5 h-5 text-red-500" />
 </button>
+        {taskToDelete && (
+  <div
+    aria-modal="true"
+    role="dialog"
+    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+  >
+    {/* Hintergrund-Overlay */}
+    <div
+      className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+      onClick={() => setTaskToDelete(null)}
+    />
+
+    {/* Fenster */}
+    <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
+      <h3 className="text-lg font-semibold mb-4">Task löschen?</h3>
+
+      <p className="text-white/80 mb-6">
+        Möchten Sie die Reinigung für{' '}
+        <span className="font-semibold text-white">
+          {taskToDelete.apartment?.name || 'Unbekanntes Apartment'}
+        </span>{' '}
+        am{' '}
+        <span className="font-semibold text-white">
+          {taskToDelete.date || 'Unbekanntes Datum'}
+        </span>{' '}
+        wirklich entfernen?
+      </p>
+
+      <div className="flex gap-3">
+        <button
+          onClick={confirmDelete}
+          className="flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
+        >
+          Löschen
+        </button>
+        <button
+          onClick={() => setTaskToDelete(null)}
+          className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+        >
+          Abbrechen
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
 
       {/* Filterleiste */}
