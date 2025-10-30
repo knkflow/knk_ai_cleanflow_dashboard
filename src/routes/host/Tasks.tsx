@@ -270,7 +270,7 @@ export function Tasks() {
             required
             options={[
               { value: '', label: 'Select apartment' },
-              ...apartments.map((a) => ({ value: String(a.listing_id), label: a.listing_id })),
+              ...apartments.map((a) => ({ value: String(a.listing_id), label: a.name })),
             ]}
           />
 
