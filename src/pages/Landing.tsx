@@ -57,14 +57,10 @@ export function Landing() {
     src="/brand/logo.png"
     alt="CleanFlow Logo"
     className="h-12 md:h-14 w-auto object-contain select-none 
-               border-2 border-white/70 shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+               rounded-full border-2 border-white/70 shadow-[0_0_10px_rgba(255,255,255,0.3)]"
     onError={(e) => (e.currentTarget.style.display = 'none')}
   />
 </div>
-
-
-
-
           {/* Navigation rechts */}
           <nav className="flex items-center gap-6 md:gap-8">
             <button
