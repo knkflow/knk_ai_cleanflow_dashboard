@@ -1,46 +1,90 @@
 import { useNavigate } from 'react-router-dom';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 export function Landing() {
   const navigate = useNavigate();
 
-  // Referenz zur "Was ist CleanFlow?" Sektion
+  // Refs für Smooth Scroll
   const cleanflowRef = useRef<HTMLDivElement | null>(null);
+  const featuresRef = useRef<HTMLDivElement | null>(null);
+
+  // Kontakt-Modal State
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
 
   const handleLearnMore = () => {
     cleanflowRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleTalkToSales = () => {
-    window.location.href = 'mailto:knk.flow@web.de';
+  const handleGoToSolutions = () => {
+    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const openContact = () => setIsContactOpen(true);
+  const closeContact = () => setIsContactOpen(false);
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const to = 'knk.flow@web.de';
+    const subject = `Kontaktanfrage von ${contactName || 'CleanFlow Website'}`;
+    const bodyLines = [
+      contactName ? `Name: ${contactName}` : '',
+      contactEmail ? `E-Mail: ${contactEmail}` : '',
+      '',
+      'Nachricht:',
+      contactMessage || '',
+    ].filter(Boolean);
+    const body = bodyLines.join('\n');
+
+    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+
+    window.location.href = mailto;
+    // Optional: Modal schließen nach Trigger
+    setIsContactOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="border-b border-white/10">
+      <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
               src="/brand/logo.png"
               alt="CleanFlow"
-              className="h-10 w-auto object-contain"
+              className="h-12 md:h-14 w-auto object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.15)]"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
-            <span className="text-sm tracking-widest uppercase text-white/70">CleanFlow</span>
+            <span className="text-sm md:text-base tracking-widest uppercase text-white/80">
+              CleanFlow
+            </span>
           </div>
-          <nav className="hidden md:flex items-center gap-8">
-            <button className="text-sm text-white/70 hover:text-white transition-colors">Produkte</button>
-            <button className="text-sm text-white/70 hover:text-white transition-colors">Lösungen</button>
-            <button className="text-sm text-white/70 hover:text-white transition-colors">Preise</button>
-            <button className="text-sm text-white/70 hover:text-white transition-colors">Kontakt</button>
+
+          <nav className="flex items-center gap-6 md:gap-8">
+            {/* Produkte & Preise entfernt */}
+            <button
+              onClick={handleGoToSolutions}
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Lösungen
+            </button>
+            <button
+              onClick={openContact}
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Kontakt
+            </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors"
+            >
+              Login
+            </button>
           </nav>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors"
-          >
-            Login
-          </button>
         </div>
       </header>
 
@@ -48,6 +92,7 @@ export function Landing() {
         {/* HERO */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
+            {/* sehr dezenter radialer Glanz */}
             <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full bg-white/5 blur-3xl" />
           </div>
 
@@ -79,11 +124,12 @@ export function Landing() {
               </button>
             </div>
 
+            {/* dünner Divider */}
             <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
           </div>
         </section>
 
-        {/* SECTION – „Was ist CleanFlow?“ */}
+        {/* SECTION – „Was ist CleanFlow?“ (hell, klare Kacheln) */}
         <section ref={cleanflowRef} className="py-24 bg-white text-black">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
@@ -97,6 +143,7 @@ export function Landing() {
               </p>
             </div>
 
+            {/* Drei Kerneigenschaften */}
             <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
               {[
                 {
@@ -136,8 +183,8 @@ export function Landing() {
           </div>
         </section>
 
-        {/* SECTION – Funktionen */}
-        <section className="py-24 border-t border-white/10">
+        {/* SECTION – „Funktionen, die überzeugen“ (Lösungen) */}
+        <section ref={featuresRef} className="py-24 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
@@ -213,7 +260,7 @@ export function Landing() {
                 Start Now
               </button>
               <button
-                onClick={handleTalkToSales}
+                onClick={openContact}
                 className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors"
               >
                 Talk to Sales
@@ -234,6 +281,115 @@ export function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Kontakt-Modal */}
+      {isContactOpen && (
+        <div
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={closeContact}
+          />
+          {/* Dialog */}
+          <div className="relative w-full max-w-2xl bg-black text-white border border-white/10 shadow-2xl">
+            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
+              <h4 className="text-xl font-semibold">Kontakt</h4>
+              <button
+                onClick={closeContact}
+                className="text-white/60 hover:text-white"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 grid md:grid-cols-2 gap-6">
+              {/* Kontaktinfo */}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm uppercase tracking-widest text-white/60">E-Mail</p>
+                  <a
+                    href="mailto:knk.flow@web.de"
+                    className="text-white hover:underline break-all"
+                  >
+                    knk.flow@web.de
+                  </a>
+                </div>
+                <div>
+                  <p className="text-sm uppercase tracking-widest text-white/60">Telefon</p>
+                  <a
+                    href="tel:+4917660733953"
+                    className="text-white hover:underline"
+                  >
+                    +49 176 60733953
+                  </a>
+                </div>
+
+                <div className="h-px bg-white/10 my-2" />
+
+                <p className="text-white/70 text-sm">
+                  Schreiben Sie uns eine Nachricht – wir melden uns zeitnah.
+                </p>
+              </div>
+
+              {/* Nachricht senden */}
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Ihr Name</label>
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                    placeholder="Max Mustermann"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Ihre E-Mail</label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                    placeholder="max@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">Nachricht</label>
+                  <textarea
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
+                    rows={5}
+                    className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                    placeholder="Worum geht es?"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={closeContact}
+                    className="px-4 py-2 border border-white/15 text-white hover:border-white/40 transition-colors"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-white text-black font-semibold hover:bg-white/90 transition-colors"
+                  >
+                    Nachricht senden
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
