@@ -72,59 +72,64 @@ export function Landing() {
           </div>
         </section>
 
-        {/* SECTION – „Was ist CleanFlow?“ (monochrom, sehr clean) */}
-        <section className="py-24">
-          <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
-            <div className="text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-100 via-white to-neutral-100">
-                  Was ist CleanFlow
-                </span>
-              </h2>
-              <div className="w-24 h-px bg-white/15 mx-auto mt-6 mb-6" />
-              <p className="text-white/70 max-w-3xl mx-auto">
-                CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.
-                Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
-              </p>
-            </div>
+       {/* SECTION – „Was ist CleanFlow?“ (invertiert: weißer Hintergrund, schwarzer Text) */}
+<section className="py-24 bg-white text-black">
+  <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+    <div className="text-center">
+      {/* Titel – dunkler Verlauf für edlen Effekt */}
+      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-800 via-neutral-900 to-black">
+          Was ist CleanFlow
+        </span>
+      </h2>
 
-            {/* Drei Kerneigenschaften – nüchterne Karten, feine Linien */}
-            <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  emoji: '💬',
-                  title: 'WhatsApp Integration',
-                  text:
-                    'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
-                },
-                {
-                  emoji: '🗓️',
-                  title: 'Intelligente Planung',
-                  text:
-                    'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
-                },
-                {
-                  emoji: '👥',
-                  title: 'Team-Management',
-                  text:
-                    'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 hover:bg-white/[0.05] transition-colors"
-                >
-                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-white/60 mb-4">
-                    <span className="text-base">{item.emoji}</span>
-                    <span>Feature</span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
-                  <p className="mt-3 text-white/70 leading-relaxed">{item.text}</p>
-                </div>
-              ))}
-            </div>
+      {/* feine graue Linie darunter */}
+      <div className="w-24 h-px bg-neutral-300 mx-auto mt-6 mb-6" />
+
+      {/* Beschreibung – dezenter Grauton für weiches Lesen */}
+      <p className="text-neutral-700 max-w-3xl mx-auto">
+        CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.
+        Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
+      </p>
+    </div>
+
+    {/* Drei Kerneigenschaften – weiße Karten leicht abgesetzt */}
+    <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[
+        {
+          emoji: '💬',
+          title: 'WhatsApp Integration',
+          text:
+            'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
+        },
+        {
+          emoji: '🗓️',
+          title: 'Intelligente Planung',
+          text:
+            'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
+        },
+        {
+          emoji: '👥',
+          title: 'Team-Management',
+          text:
+            'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
+        },
+      ].map((item) => (
+        <div
+          key={item.title}
+          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-7 hover:bg-neutral-100 transition-colors"
+        >
+          <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-neutral-500 mb-4">
+            <span className="text-base">{item.emoji}</span>
+            <span>Feature</span>
           </div>
-        </section>
+          <h3 className="text-xl font-semibold text-neutral-900">{item.title}</h3>
+          <p className="mt-3 text-neutral-600 leading-relaxed">{item.text}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
 
         {/* SECTION – „Funktionen, die überzeugen“ (stärkerer Kontrast, dezente Goldkante) */}
         <section className="py-24 border-t border-white/10">
