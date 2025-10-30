@@ -192,63 +192,73 @@ export function Tasks() {
       </div>
 
       <div className="grid gap-4">
-        {tasks.map((task) => {
-          const unavailable = isCleanerUnavailable(task);
-          return (
-            <div
-              key={task.id}
-              className={`bg-white/5 p-6 ${
-                unavailable ? 'border-2 border-red-500' : 'border border-white/10'
-              }`}
-            >
-              {unavailable && (
-                <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>Cleaner unavailable on this date</span>
-                </div>
-              )}
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    {task.apartment?.name || 'Unknown Apartment'}
-                  </h3>
-                  <p className="text-white/70 text-sm mb-1">
-                    Date: {task.date}
-                  </p>
-                  {task.deadline && (
-                    <p className="text-white/60 text-sm mb-1">
-                      Deadline: {task.deadline}
-                    </p>
-                  )}
-                  {task.cleaner && (
-                    <p className="text-white/70 text-sm mb-1">
-                      Cleaner: {task.cleaner.name}
-                    </p>
-                  )}
-                  {task.note && (
-                    <p className="text-white/50 text-sm mt-2">{task.note}</p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openEditModal(task)}
-                    className="p-2 hover:bg-white/10 transition-colors"
-                    title="Edit"
-                  >
-                    <Edit className="w-5 h-5 text-white" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(task.id)}
-                    className="p-2 hover:bg-red-500/20 transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-5 h-5 text-red-500" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+{tasks.map((task) => {
+  const unavailable = isCleanerUnavailable(task);
+  return (
+    <div
+      key={task.id}
+      className={`p-6 rounded-2xl transition-all duration-500 ${
+        unavailable
+          ? 'border-2 border-red-500 bg-white/5 hover:shadow-[0_0_18px_2px_rgba(255,0,0,0.4)]'
+          : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
+      }`}
+    >
+      {unavailable && (
+        <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
+          <AlertCircle className="w-4 h-4" />
+          <span>Cleaner unavailable on this date</span>
+        </div>
+      )}
+
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-white mb-2">
+            {task.apartment?.name || 'Unknown Apartment'}
+          </h3>
+
+          <p className="text-white/70 text-sm mb-1">
+            Date: {task.date}
+          </p>
+
+          {task.deadline && (
+            <p className="text-white/60 text-sm mb-1">
+              Deadline: {task.deadline}
+            </p>
+          )}
+
+          {task.cleaner && (
+            <p className="text-white/70 text-sm mb-1">
+              Cleaner: {task.cleaner.name}
+            </p>
+          )}
+
+          {task.note && (
+            <p className="text-white/50 text-sm mt-2">{task.note}</p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => openEditModal(task)}
+            className="p-2 rounded-md hover:bg-white/10 transition-colors"
+            title="Edit"
+          >
+            <Edit className="w-5 h-5 text-white" />
+          </button>
+
+          <button
+            onClick={() => handleDelete(task.id)}
+            className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-5 h-5 text-red-500" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+})}
+
 
         {tasks.length === 0 && (
           <div className="text-center py-12 text-white/50">
