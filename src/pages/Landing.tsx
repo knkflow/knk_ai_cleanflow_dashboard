@@ -105,10 +105,11 @@ export function Landing() {
             <div className="container mx-auto max-w-6xl px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 drop-shadow-[0_0_10px_rgba(251,191,36,0.4)]">
-                    Funktionen, die überzeugen
-                  </span>
-                </h2>
+  <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
+    Funktionen, die überzeugen
+  </span>
+</h2>
+
                 <p className="mt-4 text-base sm:text-lg text-white/70 max-w-3xl mx-auto">
                   Alles, was Sie für professionelles Reinigungsmanagement brauchen
                 </p>
