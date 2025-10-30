@@ -52,11 +52,12 @@ export function Landing() {
   <div className="container mx-auto max-w-6xl px-4">
     <div className="text-center mb-12">
       {/* Titel mit edlem Smaragd-Grünverlauf */}
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500">
-          Was ist CleanFlow?
-        </span>
-      </h2>
+    <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+  <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-200 via-emerald-300 to-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">
+    Was ist CleanFlow?
+  </span>
+</h2>
+
 
       {/* feine grün-goldene Linie zur Abgrenzung */}
       <div className="w-24 h-[2px] bg-gradient-to-r from-emerald-400 via-amber-400 to-amber-500 mx-auto mt-4 mb-6 rounded-full opacity-80"></div>
