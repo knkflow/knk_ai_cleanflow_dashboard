@@ -52,7 +52,7 @@ export function Landing() {
   <div className="container mx-auto max-w-6xl px-4">
     <div className="text-center mb-12">
       {/* Titel mit edlem Smaragd-Grünverlauf */}
-      <h2 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight">
+      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500">
           Was ist CleanFlow?
         </span>
