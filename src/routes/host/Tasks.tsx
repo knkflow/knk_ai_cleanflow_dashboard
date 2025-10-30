@@ -53,9 +53,8 @@ export function Tasks() {
       setCleaners(cleanersData);
     } finally {
       setLoading(false);
+      console.log(apartments.length);
     }
-
-    console.log(apartments.length);
   }
 
   function openCreateModal() {
