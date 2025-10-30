@@ -56,7 +56,7 @@ export function Landing() {
             <img
               src="/brand/logo.png"
               alt="CleanFlow Logo"
-              className="h-13 md:h13 w-auto object-contain select-none"
+              className="h-10 md:h10 w-auto object-contain select-none"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
           </div>
