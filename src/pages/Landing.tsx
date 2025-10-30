@@ -32,7 +32,8 @@ export function Landing() {
         {/* Hero */}
         <section className="py-24 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Streamline Your Short-Term Rental Cleaning
+            Reinigungskoordination
+einfach gemacht
           </h1>
           <p className="text-xl text-white/70 max-w-2xl mx-auto mb-12">
             Manage apartments, coordinate cleaners, and schedule tasks with precision.
