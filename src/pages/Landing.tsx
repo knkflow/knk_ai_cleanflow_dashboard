@@ -6,6 +6,7 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Header */}
       <header className="border-b border-white/10">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -28,11 +29,12 @@ export function Landing() {
         </div>
       </header>
 
+      {/* Main */}
       <main className="container mx-auto px-4">
-        {/* Hero */}
+        {/* Hero Section */}
         <section className="py-24 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
-           Simplify your cleaning coordination
+            Simplify your cleaning coordination
           </h1>
           <p className="text-xl text-white/70 max-w-2xl mx-auto mb-12">
             Manage apartments, coordinate cleaners, and schedule tasks with precision.
@@ -46,68 +48,60 @@ export function Landing() {
           </button>
         </section>
 
-          {/* ---- CleanFlow Features Section ---- */}
-       <section className="w-full bg-black text-white border-t border-white/10 py-20">
-  <div className="container mx-auto max-w-6xl px-4">
-    <div className="text-center mb-12">
-      {/* Titel mit hellem Goldverlauf */}
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400">
-          Was ist CleanFlow?
-        </span>
-      </h2>
+        {/* ---- CleanFlow Features Section ---- */}
+        <section className="w-full bg-black text-white border-t border-white/10 py-20">
+          <div className="container mx-auto max-w-6xl px-4">
+            {/* Titelbereich */}
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400">
+                  Was ist CleanFlow?
+                </span>
+              </h2>
 
-      {/* feine goldene Linie zur Abgrenzung */}
-      <div className="w-24 h-[2px] bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mx-auto mt-4 mb-6 rounded-full opacity-80"></div>
+              <div className="w-24 h-[2px] bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mx-auto mt-4 mb-6 rounded-full opacity-80"></div>
 
-      {/* Beschreibung etwas dunkler */}
-      <p className="mt-4 text-base sm:text-lg text-white/60 max-w-3xl mx-auto">
-        Eine intelligente Plattform, die Ihnen hilft, Reinigungen zu planen, zu koordinieren
-        und zu verwalten – alles an einem Ort.
-      </p>
-    </div>
-  </div>
-</section>
+              <p className="mt-4 text-base sm:text-lg text-white/60 max-w-3xl mx-auto">
+                Eine intelligente Plattform, die Ihnen hilft, Reinigungen zu planen, zu koordinieren
+                und zu verwalten – alles an einem Ort.
+              </p>
+            </div>
 
-              {/* Drei Hauptfunktionen */}
-              <div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {[
-                  {
-                    emoji: '💬',
-                    title: 'WhatsApp Integration',
-                    text:
-                      'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.',
-                  },
-                  {
-                    emoji: '🗓️',
-                    title: 'Intelligente Planung',
-                    text:
-                      'Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
-                  },
-                  {
-                    emoji: '👥',
-                    title: 'Team-Management',
-                    text:
-                      'Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken Sie Fortschritte und behalten Sie alles im Blick.',
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.title}
-                    className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 transition-all duration-300 hover:bg-white/[0.07]"
-                  >
-                    <div className="inline-flex items-center justify-center rounded-xl px-3 py-1.5 bg-white/10 mb-4">
-                      <span className="text-lg mr-2">{item.emoji}</span>
-                      <span className="text-sm text-white/80">Feature</span>
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-semibold mb-2">{item.title}</h3>
-                    <p className="text-white/70 leading-relaxed">{item.text}</p>
+            {/* Drei Hauptfunktionen */}
+            <div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  emoji: '💬',
+                  title: 'WhatsApp Integration',
+                  text: 'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.',
+                },
+                {
+                  emoji: '🗓️',
+                  title: 'Intelligente Planung',
+                  text: 'Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
+                },
+                {
+                  emoji: '👥',
+                  title: 'Team-Management',
+                  text: 'Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken Sie Fortschritte und behalten Sie alles im Blick.',
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-6 transition-all duration-300 hover:bg-white/[0.07]"
+                >
+                  <div className="inline-flex items-center justify-center rounded-xl px-3 py-1.5 bg-white/10 mb-4">
+                    <span className="text-lg mr-2">{item.emoji}</span>
+                    <span className="text-sm text-white/80">Feature</span>
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{item.title}</h3>
+                  <p className="text-white/70 leading-relaxed">{item.text}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Section 2 – Funktionen, die überzeugen (goldene Akzente) */}
+          {/* Section 2 – Funktionen, die überzeugen (Gold) */}
           <div className="relative py-24">
             <div className="container mx-auto max-w-6xl px-4">
               <div className="text-center mb-12">
@@ -126,26 +120,22 @@ export function Landing() {
                   {
                     emoji: '✅',
                     title: 'Personalisierte Kommunikation',
-                    text:
-                      'Wählen Sie für jede Reinigungskraft den bevorzugten Kommunikationskanal – WhatsApp, SMS, E-Mail oder In-App-Benachrichtigungen.',
+                    text: 'Wählen Sie für jede Reinigungskraft den bevorzugten Kommunikationskanal – WhatsApp, SMS, E-Mail oder In-App-Benachrichtigungen.',
                   },
                   {
                     emoji: '🕒',
                     title: 'Echtzeit-Updates',
-                    text:
-                      'Erhalten Sie sofortige Benachrichtigungen, wenn Reinigungen gestartet, abgeschlossen oder verzögert werden.',
+                    text: 'Erhalten Sie sofortige Benachrichtigungen, wenn Reinigungen gestartet, abgeschlossen oder verzögert werden.',
                   },
                   {
                     emoji: '🛡️',
                     title: 'Sichere Datenverwaltung',
-                    text:
-                      'Alle Daten werden verschlüsselt und DSGVO-konform gespeichert. Ihre Privatsphäre hat oberste Priorität.',
+                    text: 'Alle Daten werden verschlüsselt und DSGVO-konform gespeichert. Ihre Privatsphäre hat oberste Priorität.',
                   },
                   {
                     emoji: '📊',
                     title: 'Automatische Berichte',
-                    text:
-                      'Generieren Sie automatisch detaillierte Berichte über Reinigungen, Arbeitszeiten und Kosten.',
+                    text: 'Generieren Sie automatisch detaillierte Berichte über Reinigungen, Arbeitszeiten und Kosten.',
                   },
                 ].map((item) => (
                   <div
@@ -166,7 +156,7 @@ export function Landing() {
         </section>
         {/* ---- Ende CleanFlow Features Section ---- */}
 
-        {/* CTA */}
+        {/* Call to Action */}
         <section className="py-24 border-t border-white/10">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-6">Ready to optimize your operations?</h2>
@@ -183,6 +173,7 @@ export function Landing() {
         </section>
       </main>
 
+      {/* Footer */}
       <footer className="border-t border-white/10 py-8">
         <div className="container mx-auto px-4 text-center text-white/50">
           <p>&copy; 2025 KNK-AI. All rights reserved.</p>
