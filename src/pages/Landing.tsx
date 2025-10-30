@@ -65,7 +65,6 @@ Coordinate your cleaning staff via WhatsApp or personalized communication channe
       </p>
     </div>
 
-
            {/* Drei Hauptfunktionen */}
 <div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
   {[
@@ -98,7 +97,6 @@ Coordinate your cleaning staff via WhatsApp or personalized communication channe
     </div>
   ))}
 </div>
-
 
           {/* Section 2 – Funktionen, die überzeugen (Gold) */}
           <div className="relative py-24">
