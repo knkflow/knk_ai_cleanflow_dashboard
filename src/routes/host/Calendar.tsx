@@ -9,15 +9,14 @@ interface ContextType {
   user: User;
 }
 
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
+
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth()); // 0-basiert (0 = Jan)
+  const [month, setMonth] = useState(now.getMonth()); // 0-11
 
   useEffect(() => {
     loadCleaners();
@@ -32,82 +31,79 @@ export function Calendar() {
     }
   }
 
-  /** Check: welche Cleaner sind an einem gegebenen ISO-Tag (yyyy-mm-dd) unavailable? */
-  function getUnavailableCleaners(dateStr: string): string[] {
-    return cleaners
-      .filter((c) => c.availability.includes(dateStr))
-      .map((c) => c.name);
-  }
-
-  /** Hilfsfunktion: ISO-String -> Date (lokal, 00:00) */
-  function parseIsoDate(dateStr: string): Date | null {
-    // Erwartet yyyy-mm-dd
-    const [y, m, d] = dateStr.split('-').map(Number);
-    if (!y || !m || !d) return null;
-    const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
-    return isNaN(dt.getTime()) ? null : dt;
-  }
-
-  /** Set roter Spalten (Wochentage), falls im sichtbaren Monat mind. ein unavailable-Tag in der Spalte */
-  const redWeekdays = useMemo(() => {
-    const set = new Set<number>();
+  // Map: 'yyyy-mm-dd' -> Set(cleanerName) der NICHT verfügbaren Cleaner
+  const unavailableMap = useMemo(() => {
+    const map = new Map<string, Set<string>>();
     for (const c of cleaners) {
-      for (const ds of c.availability) {
-        const dt = parseIsoDate(ds);
-        if (!dt) continue;
-        if (dt.getFullYear() === year && dt.getMonth() === month) {
-          set.add(dt.getDay()); // 0=Sun,...,6=Sat
-        }
+      const days = c.availability || [];
+      for (const iso of days) {
+        if (!map.has(iso)) map.set(iso, new Set());
+        map.get(iso)!.add(c.name);
       }
     }
-    return set;
-  }, [cleaners, year, month]);
+    return map;
+  }, [cleaners]);
 
+  function toISO(y: number, m: number, d: number) {
+    return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+
+  // Header-Färbung: welche Wochentage (0=Sun..6=Sat) sind im aktuellen Monat rot?
+  const redWeekdays = useMemo(() => {
+    const red = new Set<number>();
+    for (const [iso, names] of unavailableMap.entries()) {
+      if (!names || names.size === 0) continue;
+      const [yy, mm, dd] = iso.split('-').map(Number);
+      if (yy === year && (mm - 1) === month) {
+        const wd = new Date(yy, mm - 1, dd).getDay(); // 0..6
+        red.add(wd);
+      }
+    }
+    return red;
+  }, [unavailableMap, year, month]);
+
+  function getUnavailableCleaners(dateStr: string): string[] {
+    const names = unavailableMap.get(dateStr);
+    return names ? Array.from(names) : [];
+  }
+
+  // Rendering eines Tages (Zelle) – Design analog Vorgabe
   function renderDay(day: MonthDay) {
-    const unavailableList = getUnavailableCleaners(day.dateStr);
-    const isUnavailable = unavailableList.length > 0;
-    const isOtherMonth = !day.isCurrentMonth;
+    const missingNames = getUnavailableCleaners(day.dateStr);
+    const isUnavailable = day.isCurrentMonth && missingNames.length > 0;
 
     return (
-      <div className={`h-full`}>
-        {/* Zahl/Bubble */}
-        <div className="mb-1">
-          <span
-            className={[
-              'inline-block px-2 py-0.5 rounded-full text-xs',
-              day.isToday
-                ? 'bg-black text-white'
-                : 'bg-transparent',
-              isOtherMonth ? 'opacity-50' : '',
-            ].join(' ')}
-          >
-            {day.date.getDate()}
-          </span>
+      <div className={`h-full relative`}>
+        {/* Tagnummer oben rechts */}
+        <div
+          className={`absolute top-2 right-3 text-xs ${
+            day.isToday
+              ? 'font-bold text-white'
+              : day.isCurrentMonth
+              ? 'text-white/70'
+              : 'text-white/40'
+          }`}
+        >
+          {day.date.getDate()}
         </div>
 
-        {/* Box des Tages */}
+        {/* Card */}
         <div
           className={[
-            'min-h-[68px] rounded-md border p-2',
-            isUnavailable
-              ? 'bg-red-500 text-white border-red-600'
-              : 'bg-white text-black border-neutral-200',
-            isOtherMonth ? 'opacity-60' : '',
+            'absolute left-2.5 right-2.5 bottom-2.5',
+            'rounded-[10px]',
+            'transition-colors duration-300',
+            day.isCurrentMonth
+              ? isUnavailable
+                ? 'top-8 bg-red-600 text-white'
+                : 'top-8 bg-white text-black'
+              : 'top-8 bg-neutral-400 text-black',
           ].join(' ')}
-          title={
-            isUnavailable
-              ? `Unavailable: ${unavailableList.join(', ')}`
-              : 'All cleaners available'
-          }
         >
-          {/* Optional: Liste der Unavailable-Namen in klein */}
+          {/* Namen der fehlenden Cleaner oben links, nur wenn rot */}
           {isUnavailable && (
-            <div className="text-xs leading-4">
-              {unavailableList.map((name, idx) => (
-                <div key={idx} className="truncate">
-                  {name}
-                </div>
-              ))}
+            <div className="absolute top-2 left-3 pr-3 text-[12px] font-semibold text-white">
+              {missingNames.join(', ')}
             </div>
           )}
         </div>
@@ -119,57 +115,98 @@ export function Calendar() {
     return <div className="text-white">Loading...</div>;
   }
 
+  // Labels (englisch wie in deinem Beispiel; bei Bedarf eindeutschen)
+  const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  function goPrevMonth() {
+    const d = new Date(year, month, 1);
+    d.setMonth(d.getMonth() - 1);
+    setYear(d.getFullYear());
+    setMonth(d.getMonth());
+  }
+  function goNextMonth() {
+    const d = new Date(year, month, 1);
+    d.setMonth(d.getMonth() + 1);
+    setYear(d.getFullYear());
+    setMonth(d.getMonth());
+  }
+
+  const monthTitle = new Date(year, month, 1).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+
   return (
-    <div className="space-y-4">
-      <div className="mb-2">
-        <h2 className="text-2xl font-bold text-white mb-1">Cleaner Availability Calendar</h2>
-        <p className="text-white/70 text-sm">Rote Tage/Spalten = mindestens ein Cleaner nicht verfügbar</p>
+    <div>
+      {/* Topbar */}
+      <div className="grid grid-cols-[60px_1fr_60px] items-center mb-3">
+        <div className="flex items-center justify-center">
+          <button
+            onClick={goPrevMonth}
+            className="w-9 h-9 rounded-full bg-neutral-800 text-white hover:bg-neutral-700 transition"
+            aria-label="Voriger Monat"
+          >
+            ⟨
+          </button>
+        </div>
+        <div className="text-center font-bold text-[22px]">{monthTitle}</div>
+        <div className="flex items-center justify-end">
+          <button
+            onClick={goNextMonth}
+            className="w-9 h-9 rounded-full bg-neutral-800 text-white hover:bg-neutral-700 transition"
+            aria-label="Nächster Monat"
+          >
+            ⟩
+          </button>
+        </div>
       </div>
 
-      {/* Eigener Header für Wochentage */}
-      <div className="grid grid-cols-7 gap-2">
-        {WEEKDAY_LABELS.map((label, idx) => {
-          const isRed = redWeekdays.has(idx);
-          return (
+      {/* Kalender-Panel */}
+      <div className="border border-neutral-800 rounded-md overflow-hidden bg-neutral-900">
+        {/* Header der Wochentage */}
+        <div className="grid grid-cols-7 border-b border-neutral-800">
+          {weekdayLabels.map((label, idx) => (
             <div
               key={label}
               className={[
-                'text-center rounded-md px-2 py-2 font-medium',
-                isRed ? 'bg-red-500 text-white' : 'bg-green-500 text-white',
+                'px-3 py-2 text-left text-[12px] font-semibold',
+                redWeekdays.has(idx) ? 'bg-red-600 text-white' : 'bg-green-600 text-white',
               ].join(' ')}
             >
               {label}
             </div>
-          );
-        })}
+          ))}
+        </div>
+
+        {/* Grid vom vorhandenen MonthCalendar */}
+        <MonthCalendar
+          year={year}
+          month={month}
+          onMonthChange={(y, m) => {
+            setYear(y);
+            setMonth(m);
+          }}
+          renderDay={renderDay}
+        />
       </div>
 
-      {/* Monatskalender (Grids/Cells kommen aus MonthCalendar – wir liefern renderDay) */}
-      <MonthCalendar
-        year={year}
-        month={month}
-        onMonthChange={(y, m) => {
-          setYear(y);
-          setMonth(m);
-        }}
-        renderDay={renderDay}
-      />
-
       {/* Legende */}
-      <div className="mt-4 bg-white/5 border border-white/10 p-4 rounded-md">
+      <div className="mt-6 bg-white/5 border border-white/10 p-4">
         <h3 className="text-white font-semibold mb-3">Legende</h3>
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-sm bg-red-500 border border-red-600"></div>
-            <span className="text-white/80 text-sm">Mindestens ein Cleaner nicht verfügbar</span>
+            <div className="w-4 h-4 bg-red-600 border border-red-500" />
+            <span className="text-white/70 text-sm">
+              Mindestens ein Cleaner nicht verfügbar (Namen stehen oben links)
+            </span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-sm bg-white border border-neutral-200"></div>
-            <span className="text-white/80 text-sm">Alle Cleaner verfügbar</span>
+            <div className="w-4 h-4 bg-white border border-neutral-300" />
+            <span className="text-white/70 text-sm">Alle verfügbar (Standard)</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-sm bg-green-500 border border-green-600"></div>
-            <span className="text-white/80 text-sm">Wochentags-Header (grün) / rot falls Spalte betroffen</span>
+            <div className="w-4 h-4 bg-neutral-400 border border-neutral-500" />
+            <span className="text-white/70 text-sm">Tag liegt nicht im aktuellen Monat</span>
           </div>
         </div>
       </div>
