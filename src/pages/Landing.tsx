@@ -37,8 +37,8 @@ export function Landing() {
             Simplify your cleaning coordination
           </h1>
           <p className="text-xl text-white/70 max-w-2xl mx-auto mb-12">
-            Manage apartments, coordinate cleaners, and schedule tasks with precision.
-            Built for hosts who demand efficiency.
+            CleanFlow is the modern software solution for professional cleaning management.
+Coordinate your cleaning staff via WhatsApp or personalized communication channels – efficient, intuitive, and time-saving.
           </p>
           <button
             onClick={() => navigate('/login')}
