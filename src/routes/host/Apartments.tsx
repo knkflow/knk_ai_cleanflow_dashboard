@@ -117,10 +117,12 @@ export function Apartments() {
       </div>
 
       <div className="grid gap-4">
-       {apartments.map((apartment) => (
+{apartments.map((apartment) => (
   <div
     key={apartment.id}
-    className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-300 hover:border-white/30 hover:shadow-[0_0_15px_rgba(255,255,255,0.08)]"
+    className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500
+               hover:border-2 hover:border-white hover:shadow-[0_0_25px_rgba(255,255,255,0.25)]
+               hover:bg-white/[0.08]"
   >
     <div className="flex items-start justify-between">
       <div className="flex-1">
@@ -162,6 +164,7 @@ export function Apartments() {
     </div>
   </div>
 ))}
+
 
 
         {apartments.length === 0 && (
