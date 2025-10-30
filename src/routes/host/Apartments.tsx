@@ -117,7 +117,52 @@ export function Apartments() {
       </div>
 
       <div className="grid gap-4">
-       {apartments.map((apartment) => ( <div key={apartment.id} className="bg-white/5 border border-white/10 p-6" > <div className="flex items-start justify-between"> <div className="flex-1"> <h3 className="text-xl font-semibold text-white mb-2"> {apartment.name} </h3> <p className="text-white/70 text-sm mb-2"> Listing ID: {apartment.listing_id} </p> {apartment.address && ( <p className="text-white/60 text-sm mb-2">{apartment.address}</p> )} {apartment.default_cleaner && ( <p className="text-white/50 text-sm"> Default Cleaner: {apartment.default_cleaner.name} </p> )} </div> <div className="flex gap-2"> <button onClick={() => openEditModal(apartment)} className="p-2 hover:bg-white/10 transition-colors" title="Edit" > <Edit className="w-5 h-5 text-white" /> </button> <button onClick={() => handleDelete(apartment.id)} className="p-2 hover:bg-red-500/20 transition-colors" title="Delete" > <Trash2 className="w-5 h-5 text-red-500" /> </button> </div> </div> </div> ))}
+       {apartments.map((apartment) => (
+  <div
+    key={apartment.id}
+    className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-300 hover:border-white/30 hover:shadow-[0_0_15px_rgba(255,255,255,0.08)]"
+  >
+    <div className="flex items-start justify-between">
+      <div className="flex-1">
+        <h3 className="text-xl font-semibold text-white mb-2">
+          {apartment.name}
+        </h3>
+        <p className="text-white/70 text-sm mb-2">
+          Listing ID: {apartment.listing_id}
+        </p>
+
+        {apartment.address && (
+          <p className="text-white/60 text-sm mb-2">{apartment.address}</p>
+        )}
+
+        {apartment.default_cleaner && (
+          <p className="text-white/50 text-sm">
+            Default Cleaner: {apartment.default_cleaner.name}
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => openEditModal(apartment)}
+          className="p-2 rounded-md hover:bg-white/10 transition-colors"
+          title="Edit"
+        >
+          <Edit className="w-5 h-5 text-white" />
+        </button>
+
+        <button
+          onClick={() => handleDelete(apartment.id)}
+          className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+          title="Delete"
+        >
+          <Trash2 className="w-5 h-5 text-red-500" />
+        </button>
+      </div>
+    </div>
+  </div>
+))}
+
 
         {apartments.length === 0 && (
           <div className="text-center py-12 text-white/50">
