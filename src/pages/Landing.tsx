@@ -17,7 +17,7 @@ export function Landing() {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            <span className="text-xl font-semibold">KNK-AI Cleaning</span>
+            <span className="text-xl font-semibold">Cleanflow</span>
           </div>
           <button
             onClick={() => navigate('/login')}
