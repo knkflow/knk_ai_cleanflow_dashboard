@@ -178,11 +178,6 @@ export async function getTasksForCleaner(cleanerId: string, dateFrom?: string, d
 export async function createTask(task: Omit<CleaningTask, 'id' | 'created_at'>): Promise<CleaningTask> {
   let taskData = { ...task };
 
-    // ✅ listing_id als Zahl casten, falls nötig
-  if (typeof taskData.listing_id === 'string') {
-    taskData.listing_id = Number(taskData.listing_id);
-  }
-
   if (!taskData.cleaner_id && taskData.listing_id) {
     const { data: apartment } = await supabase
       .from('apartments')
