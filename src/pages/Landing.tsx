@@ -66,8 +66,7 @@ export function Landing() {
         Eine intelligente Plattform, die Ihnen hilft, Reinigungen zu planen, zu koordinieren
         und zu verwalten – alles an einem Ort.
       </p>
-    </div>
-</section>
+    </div></section>
 
             {/* Drei Hauptfunktionen */}
             <div className="grid gap-6 sm:gap-7 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
