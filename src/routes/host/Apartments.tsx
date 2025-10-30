@@ -154,7 +154,7 @@ export function Apartments() {
         </button>
 
         <button
-          onClick={() => handleDelete(apartment.id)}
+          onClick={() => handleDelete(apartment.listing_id)}
           className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
           title="Delete"
         >
