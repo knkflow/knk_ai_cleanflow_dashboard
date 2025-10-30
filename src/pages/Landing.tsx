@@ -54,7 +54,7 @@ export function Landing() {
       {/* Titel mit edlem Smaragd-Grünverlauf */}
     <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
   <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-200 via-emerald-300 to-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">
-    Was ist CleanFlow ?
+    Was ist CleanFlow
   </span>
 </h2>
 
