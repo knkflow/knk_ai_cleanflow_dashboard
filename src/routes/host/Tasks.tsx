@@ -38,7 +38,6 @@ export function Tasks() {
   }, [user.id, filters]);
 
   async function loadData() {
-    console.log("Halllo");
     try {
       const [tasksData, apartmentsData, cleanersData] = await Promise.all([
         getTasks(user.id, {
@@ -55,6 +54,8 @@ export function Tasks() {
     } finally {
       setLoading(false);
     }
+
+    console.log(apartments.length);
   }
 
   function openCreateModal() {
