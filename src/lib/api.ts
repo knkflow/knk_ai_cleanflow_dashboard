@@ -69,6 +69,7 @@ export async function getApartments(ownerId: string): Promise<ApartmentWithClean
     .order('name');
 
   if (error) throw error;
+  console.log(data);
   return data || [];
 }
 
