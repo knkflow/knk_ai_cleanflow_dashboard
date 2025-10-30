@@ -43,6 +43,7 @@ export function Landing() {
     )}&body=${encodeURIComponent(body)}`;
 
     window.location.href = mailto;
+    // Optional: Modal schließen nach Trigger
     setIsContactOpen(false);
   };
 
@@ -51,32 +52,14 @@ export function Landing() {
       {/* Header */}
       <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-          {/* Logo mit zentriertem Backlight + Hover-Boost */}
-          <div className="relative group flex items-center gap-3">
-            {/* Backlight hinter Logo – exakt zentriert zur Bildfläche */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 -z-10
-                         translate-x-0 translate-y-0
-                         bg-[radial-gradient(70%_70%_at_50%_50%,rgba(255,255,255,0.20),rgba(255,255,255,0.08)_55%,transparent_75%)]
-                         blur-xl opacity-80 transition-opacity duration-300
-                         group-hover:opacity-100"
-            />
-            {/* subtiler zweiter Schein (nur beim Hover sichtbar) */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -inset-4 -z-10 rounded-full
-                         bg-[radial-gradient(60%_60%_at_50%_50%,rgba(255,255,255,0.12),transparent_65%)]
-                         blur-2xl opacity-0 transition-opacity duration-300
-                         group-hover:opacity-60"
-            />
+          <div className="flex items-center gap-3">
             <img
               src="/brand/logo.png"
               alt="CleanFlow"
-              className="relative h-12 md:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.01]"
+              className="h-12 md:h-14 w-auto object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.15)]"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
-            <span className="relative text-sm md:text-base tracking-widest uppercase text-white/85">
+            <span className="text-sm md:text-base tracking-widest uppercase text-white/80">
               CleanFlow
             </span>
           </div>
@@ -108,33 +91,13 @@ export function Landing() {
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden">
-          {/* Neuer Hintergrund: Spotlight + Light-Streak (statt grauem Kreis) */}
-          <div className="absolute inset-0 -z-10 pointer-events-none">
-            {/* weicher „Bühnen-Spot“ von oben */}
-            <div className="absolute inset-0
-                            bg-[radial-gradient(120%_80%_at_50%_0%,rgba(255,255,255,0.09),transparent_60%)]" />
-            {/* diagonaler Light-Streak */}
-            <div className="absolute left-1/2 top-[-8%] h-[130%] w-[85%] -translate-x-1/2 -rotate-8
-                            bg-gradient-to-r from-white/12 via-transparent to-white/12 opacity-60 blur-2xl" />
-            {/* sanfte Vignette nach unten */}
-            <div className="absolute inset-0
-                            bg-[linear-gradient(to_bottom,rgba(0,0,0,0)_0%,rgba(0,0,0,0.18)_55%,rgba(0,0,0,0.55)_100%)]" />
+          <div className="absolute inset-0 pointer-events-none">
+            {/* sehr dezenter radialer Glanz */}
+            <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full bg-white/5 blur-3xl" />
           </div>
 
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
-            {/* Präsentier-Shape direkt hinter der Subheadline */}
-            <div className="relative inline-block">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -inset-x-8 -inset-y-2 -z-10
-                           bg-[radial-gradient(100%_120%_at_50%_50%,rgba(255,255,255,0.22),rgba(255,255,255,0.10)_45%,transparent_70%)]
-                           rounded-full blur-md opacity-90"
-              />
-              <p className="text-xs tracking-[0.35em] uppercase text-white/75">
-                Short-Term Rental · Operations
-              </p>
-            </div>
-
+            <p className="text-xs tracking-[0.35em] uppercase text-white/60">Short-Term Rental · Operations</p>
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
@@ -220,20 +183,22 @@ export function Landing() {
           </div>
         </section>
 
-        {/* SECTION – „Funktionen, die überzeugen“ (hell, schwarz) */}
-        <section ref={featuresRef} className="py-24 bg-white text-black border-t border-neutral-200">
+        {/* SECTION – „Funktionen, die überzeugen“ (Lösungen) */}
+        <section ref={featuresRef} className="py-24 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-black">
-                Funktionen, die überzeugen
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
+                  Funktionen, die überzeugen
+                </span>
               </h2>
-              <div className="w-24 h-[2px] bg-gradient-to-r from-black via-neutral-800 to-black mx-auto mt-6 mb-6 rounded-full" />
-              <p className="text-black/80 max-w-3xl mx-auto">
+              <div className="w-24 h-px bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mx-auto mt-6 mb-6 opacity-80" />
+              <p className="text-white/70 max-w-3xl mx-auto">
                 Alles, was Sie für professionelles Reinigungsmanagement brauchen.
               </p>
             </div>
 
-            <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 {
                   emoji: '✅',
@@ -262,14 +227,14 @@ export function Landing() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-3xl border-2 border-black bg-white p-8 hover:bg-neutral-50 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(0,0,0,0.12)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  className="rounded-2xl border border-white/10 bg-white/[0.035] p-7 hover:border-amber-400/30 transition-colors"
                 >
-                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-black mb-4">
+                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-amber-300/90 mb-4">
                     <span className="text-base">{item.emoji}</span>
                     <span>Highlight</span>
                   </div>
-                  <h3 className="text-2xl font-semibold text-black">{item.title}</h3>
-                  <p className="mt-3 text-black/90 leading-relaxed">{item.text}</p>
+                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+                  <p className="mt-3 text-white/70 leading-relaxed">{item.text}</p>
                 </div>
               ))}
             </div>
@@ -277,7 +242,7 @@ export function Landing() {
         </section>
 
         {/* CTA */}
-        <section className="py-28 bg-black text-white border-t border-white/10">
+        <section className="py-28 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-3xl text-center">
             <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-100 via-white to-neutral-100">
