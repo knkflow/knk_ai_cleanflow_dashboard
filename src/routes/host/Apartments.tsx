@@ -43,7 +43,7 @@ export function Apartments() {
   }
 
   function openCreateModal() {
-    setEditingId(null);
+    setEditingId(1);
     setFormData({
       listing_id: '',
       name: '',
