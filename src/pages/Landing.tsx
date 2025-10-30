@@ -1,11 +1,23 @@
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 
 export function Landing() {
   const navigate = useNavigate();
 
+  // Referenz zur "Was ist CleanFlow?" Sektion
+  const cleanflowRef = useRef<HTMLDivElement | null>(null);
+
+  const handleLearnMore = () => {
+    cleanflowRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleTalkToSales = () => {
+    window.location.href = 'mailto:knk.flow@web.de';
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Top Bar – minimal, präzise */}
+      {/* Header */}
       <header className="border-b border-white/10">
         <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -33,10 +45,9 @@ export function Landing() {
       </header>
 
       <main>
-        {/* HERO – große Bühne, klare Typo, minimaler Schimmer */}
+        {/* HERO */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            {/* sehr dezenter radialer Glanz */}
             <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[520px] w-[520px] rounded-full bg-white/5 blur-3xl" />
           </div>
 
@@ -61,73 +72,71 @@ export function Landing() {
                 Get Started
               </button>
               <button
+                onClick={handleLearnMore}
                 className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors"
               >
                 Learn More
               </button>
             </div>
 
-            {/* dünner Divider */}
             <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
           </div>
         </section>
-{/* SECTION – „Was ist CleanFlow?“ (klarer Weiß-Schwarz-Stil mit sichtbaren Linien) */}
-<section className="py-24 bg-white text-black">
-  <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
-    {/* Titel */}
-    <div className="text-center">
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-black">
-        Was ist <span className="text-black">CleanFlow</span>
-      </h2>
-      <div className="w-24 h-[2px] bg-gradient-to-r from-black via-neutral-800 to-black mx-auto mt-6 mb-6 rounded-full" />
-      <p className="text-black max-w-3xl mx-auto text-lg leading-relaxed">
-        CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.  
-        Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
-      </p>
-    </div>
 
-    {/* Drei Kerneigenschaften */}
-    <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-      {[
-        {
-          emoji: '💬',
-          title: 'WhatsApp Integration',
-          text:
-            'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
-        },
-        {
-          emoji: '🗓️',
-          title: 'Intelligente Planung',
-          text:
-            'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
-        },
-        {
-          emoji: '👥',
-          title: 'Team-Management',
-          text:
-            'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
-        },
-      ].map((item) => (
-        <div
-          key={item.title}
-          className="group relative rounded-3xl bg-white border-2 border-black shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.18)] hover:-translate-y-1 hover:bg-neutral-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
-        >
-          <div className="relative p-8">
-            <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-black mb-4">
-              <span className="text-base">{item.emoji}</span>
-              <span>Feature</span>
+        {/* SECTION – „Was ist CleanFlow?“ */}
+        <section ref={cleanflowRef} className="py-24 bg-white text-black">
+          <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-black">
+                Was ist <span className="text-black">CleanFlow</span>
+              </h2>
+              <div className="w-24 h-[2px] bg-gradient-to-r from-black via-neutral-800 to-black mx-auto mt-6 mb-6 rounded-full" />
+              <p className="text-black max-w-3xl mx-auto text-lg leading-relaxed">
+                CleanFlow ist die moderne Softwarelösung für professionelles Reinigungsmanagement.  
+                Koordinieren Sie Ihr Team effizient, zentral und in Echtzeit – alles an einem Ort.
+              </p>
             </div>
 
-            <h3 className="text-2xl font-semibold text-black mb-2">{item.title}</h3>
-            <p className="text-black leading-relaxed">{item.text}</p>
+            <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+              {[
+                {
+                  emoji: '💬',
+                  title: 'WhatsApp Integration',
+                  text:
+                    'Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates – in Echtzeit.',
+                },
+                {
+                  emoji: '🗓️',
+                  title: 'Intelligente Planung',
+                  text:
+                    'Automatische oder manuelle Planung. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.',
+                },
+                {
+                  emoji: '👥',
+                  title: 'Team-Management',
+                  text:
+                    'Zentrale Übersicht, klare Zuständigkeiten, Fortschritt im Blick. Qualitätssicherung inklusive.',
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="group relative rounded-3xl bg-white border-2 border-black shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.18)] hover:-translate-y-1 hover:bg-neutral-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                >
+                  <div className="relative p-8">
+                    <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-black mb-4">
+                      <span className="text-base">{item.emoji}</span>
+                      <span>Feature</span>
+                    </div>
+                    <h3 className="text-2xl font-semibold text-black mb-2">{item.title}</h3>
+                    <p className="text-black leading-relaxed">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
+        </section>
 
-        {/* SECTION – „Funktionen, die überzeugen“ (stärkerer Kontrast, dezente Goldkante) */}
+        {/* SECTION – Funktionen */}
         <section className="py-24 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
             <div className="text-center">
@@ -185,7 +194,7 @@ export function Landing() {
           </div>
         </section>
 
-        {/* CTA – präzise, ruhig, hochwertig */}
+        {/* CTA */}
         <section className="py-28 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-8 max-w-3xl text-center">
             <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -203,7 +212,10 @@ export function Landing() {
               >
                 Start Now
               </button>
-              <button className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors">
+              <button
+                onClick={handleTalkToSales}
+                className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors"
+              >
                 Talk to Sales
               </button>
             </div>
@@ -211,7 +223,7 @@ export function Landing() {
         </section>
       </main>
 
-      {/* Footer – sehr reduziert */}
+      {/* Footer */}
       <footer className="border-t border-white/10">
         <div className="container mx-auto px-6 lg:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-white/50 text-sm">© {new Date().getFullYear()} CleanFlow. All rights reserved.</p>
