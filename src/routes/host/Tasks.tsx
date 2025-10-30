@@ -139,42 +139,52 @@ export function Tasks() {
 
  // === FILTER-PRÜFUNG ===
 
-// Hilfsfunktionen
+// === FILTER-PRÜFUNG (mit ISO-Format yyyy-mm-dd) ===
+
 const today = new Date();
 const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 const sow = startOfWeek(today);
 const eow = endOfWeek(today);
 
 function isInQuickRanges(dateStr: string) {
-  // Wenn kein Filter oder 'ALL' gewählt → alle anzeigen
+  // Wenn kein Filter aktiv oder "ALL" gewählt → alle anzeigen
   if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
-  if (!isValidDateString(dateStr)) return false;
 
-  const [dd, mm, yyyy] = dateStr.split('-').map(Number);
-  const d = new Date(yyyy!, (mm ?? 1) - 1, dd ?? 1);
+  // Versuch, das Datum im Format yyyy-mm-dd zu parsen
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return false; // ungültiges Datum
+  
+  // Zeit normalisieren
   d.setHours(0, 0, 0, 0);
 
   const checks: boolean[] = [];
+
+  // Heute
   if (quickFilters.includes('TODAY')) {
     const t = new Date(today);
     t.setHours(0, 0, 0, 0);
     checks.push(d.getTime() === t.getTime());
   }
+
+  // Morgen
   if (quickFilters.includes('TOMORROW')) {
     const tm = new Date(tomorrow);
     tm.setHours(0, 0, 0, 0);
     checks.push(d.getTime() === tm.getTime());
   }
+
+  // Diese Woche
   if (quickFilters.includes('THIS_WEEK')) {
     checks.push(d >= sow && d <= eow);
   }
 
-  return checks.some(Boolean); // OR-Verknüpfung
+  // Mindestens eine Bedingung erfüllt → anzeigen
+  return checks.some(Boolean);
 }
 
-// Hauptfilter
+// === HAUPTFILTER ===
 const filteredTasks = tasks.filter((t) => {
-  // 1️⃣ Datum (Quick-Buttons)
+  // 1️⃣ Datum (Quick-Filter)
   if (!isInQuickRanges(t.date)) return false;
 
   // 2️⃣ Apartment-Suche (Name/Adresse)
