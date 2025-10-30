@@ -121,15 +121,27 @@ export function Tasks() {
   }
 
   // ---- Delete ----
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this task?')) return;
-    try {
-      await deleteTask(id);
-      loadData();
-    } catch (error: any) {
-      alert(error.message);
-    }
+// --- State für Delete-Modal ---
+const [taskToDelete, setTaskToDelete] = useState<CleaningTaskWithDetails | null>(null);
+
+// --- Öffnen des Modals ---
+function openDeleteModal(task: CleaningTaskWithDetails) {
+  setTaskToDelete(task);
+}
+
+// --- Bestätigung löschen ---
+async function confirmDelete() {
+  if (!taskToDelete) return;
+  try {
+    await deleteTask(taskToDelete.id);
+    setTaskToDelete(null);
+    loadData();
+  } catch (error: any) {
+    console.error(error);
+    // Optional: kleines Info-Fenster bei Fehler anzeigen
   }
+}
+
 
   // ---- Verfügbarkeit ----
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
