@@ -45,37 +45,97 @@ export function Landing() {
           </button>
         </section>
 
-        <section className="py-24 grid md:grid-cols-3 gap-12">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-6">
-              <Calendar className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-4">Smart Scheduling</h3>
-            <p className="text-white/70">
-              Coordinate cleaning tasks with real-time availability tracking and automatic assignment.
-            </p>
-          </div>
+        import React from "react";
 
-          <div className="text-center">
-            <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-6">
-              <Users className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-4">Team Management</h3>
-            <p className="text-white/70">
-              Manage your cleaning team, track performance, and ensure quality across all properties.
-            </p>
-          </div>
 
-          <div className="text-center">
-            <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-4">Seamless Experience</h3>
-            <p className="text-white/70">
-              Intuitive interface designed for busy hosts and efficient cleaners.
-            </p>
-          </div>
-        </section>
+// CleanFlow – Feature Sections (Dark mode: black background, white text, gold accents)
+// Emojis remain colored; all text is white; backgrounds are near-black; the previous blue accents are now gold.
+
+
+export default function CleanFlowFeatures() {
+const overview = [
+{
+emoji: "💬",
+title: "WhatsApp Integration",
+text:
+"Kommunizieren Sie direkt mit Ihren Reinigungskräften über WhatsApp. Senden Sie Aufträge, erhalten Sie Updates und bleiben Sie in Echtzeit verbunden.",
+badge: "bg-white/5 text-white ring-1 ring-white/10",
+},
+{
+emoji: "🗓️",
+title: "Intelligente Planung",
+text:
+"Planen Sie Reinigungen automatisch oder manuell. CleanFlow optimiert Routen, Zeiten und Ressourcen für maximale Effizienz.",
+badge: "bg-white/5 text-white ring-1 ring-white/10",
+},
+{
+emoji: "👥",
+title: "Team-Management",
+text:
+"Verwalten Sie Ihr gesamtes Reinigungsteam zentral. Weisen Sie Aufgaben zu, tracken Sie Fortschritte und behalten Sie alles im Blick.",
+badge: "bg-white/5 text-white ring-1 ring-white/10",
+},
+{
+emoji: "📝",
+title: "Aufgabenverwaltung",
+text:
+"Erstellen und verwalten Sie Reinigungsaufgaben mit allen Details. Status-Updates in Echtzeit und automatische Benachrichtigungen.",
+badge: "bg-white/5 text-white ring-1 ring-white/10",
+},
+{
+emoji: "💵",
+title: "Rechnungsverwaltung",
+text:
+"Erstellen, verwalten und versenden Sie Rechnungen direkt aus der Plattform. Vollständige Übersicht über alle Zahlungen und Abrechnungen.",
+badge: "bg-white/5 text-white ring-1 ring-white/10",
+},
+{
+emoji: "📅",
+title: "Verfügbarkeitsverwaltung",
+text:
+"Verwalten Sie Arbeitszeiten und Verfügbarkeiten Ihrer Reinigungskräfte. Gruppierte Zeiträume für wiederkehrende Schichten.",
+badge: "bg-white/5 text-white ring-1 ring-white/10",
+},
+];
+
+
+const highlights = [
+{
+emoji: "✅",
+title: "Personalisierte Kommunikation",
+text:
+"Wählen Sie für jede Reinigungskraft den bevorzugten Kommunikationskanal – WhatsApp, SMS, E‑Mail oder In‑App‑Benachrichtigungen.",
+badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
+},
+{
+emoji: "🕒",
+title: "Echtzeit‑Updates",
+text:
+"Erhalten Sie sofortige Benachrichtigungen, wenn Reinigungen gestartet, abgeschlossen oder verzögert werden.",
+badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
+},
+{
+emoji: "🛡️",
+title: "Sichere Datenverwaltung",
+text:
+"Alle Daten werden verschlüsselt und DSGVO‑konform gespeichert. Ihre Privatsphäre hat oberste Priorität.",
+badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
+},
+{
+emoji: "📊",
+title: "Automatische Berichte",
+text:
+"Generieren Sie automatisch detaillierte Berichte über Reinigungen, Arbeitszeiten und Kosten.",
+badge: "bg-amber-500/10 text-amber-300 ring-1 ring-amber-400/30",
+},
+];
+
+
+return (
+<section className="w-full bg-black text-white">
+{/* Section 1 – Was ist CleanFlow? */}
+<div className="relative py-20">
+}
 
         <section className="py-24 border-t border-white/10">
           <div className="max-w-3xl mx-auto text-center">
