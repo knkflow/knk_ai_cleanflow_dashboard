@@ -51,13 +51,13 @@ export function Landing() {
             CleanFlow
           </span>
 
- {/* Mittig – Logo */}
+{/* Mittig – Logo */}
 <div className="absolute left-1/2 -translate-x-1/2">
   <img
     src="/brand/logo.png"
     alt="CleanFlow Logo"
-    className="h-16 md:h-20 w-auto object-contain select-none 
-               border-2 border-white/70 shadow-[0_0_15px_rgba(255,255,255,0.35)]"
+    className="h-12 md:h-14 w-auto object-contain select-none 
+               border-2 border-white/70 shadow-[0_0_10px_rgba(255,255,255,0.3)]"
     onError={(e) => (e.currentTarget.style.display = 'none')}
   />
 </div>
