@@ -56,7 +56,7 @@ export function Landing() {
             <img
               src="/brand/logo.png"
               alt="CleanFlow Logo"
-              className="h-11 md:h-11"
+              className="h-12 md:h-12"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
           </div>
