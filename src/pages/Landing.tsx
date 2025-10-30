@@ -100,17 +100,19 @@ export function Landing() {
           <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
             {/* Unterzeile mit eigenem, schmalem Glow */}
             <div className="relative inline-block">
-              {/* Glow-Pill direkt unter dem Text */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 -bottom-1 h-4 rounded-full
-                           bg-[radial-gradient(60%_100%_at_50%_100%,rgba(255,255,255,0.35),transparent)]
-                           blur-md opacity-80"
-              />
-              <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/70">
-                Short-Term Rental · Operations
-              </p>
-            </div>
+  {/* Großer Glow um den gesamten Text */}
+  <span
+    aria-hidden
+    className="pointer-events-none absolute -inset-x-6 -inset-y-3 rounded-full
+               bg-[radial-gradient(80%_120%_at_50%_50%,rgba(255,255,255,0.35),rgba(255,255,255,0.12)_45%,transparent_80%)]
+               blur-[22px] opacity-90"
+  />
+
+  {/* Der eigentliche Text */}
+  <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/75">
+    Short-Term Rental · Operations
+  </p>
+</div>
 
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
