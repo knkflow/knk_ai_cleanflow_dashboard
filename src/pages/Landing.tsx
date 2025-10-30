@@ -104,9 +104,7 @@ export function Landing() {
                 before:content-[''] before:absolute before:inset-0 before:rounded-full before:border before:border-white/50 before:opacity-30
                 hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
                 transition-all duration-500 ease-out">
-         shadow-[0_4px_20px_rgba(255,255,255,0.1),inset_0_0_12px_rgba(255,255,255,0.08)]
-+ after:content-[''] after:absolute after:bottom-[-3px] after:left-1/2 after:-translate-x-1/2 after:w-2/3 after:h-px after:bg-white/20
-
+      
   
   {/* feiner Glow-Hintergrund */}
   <span
