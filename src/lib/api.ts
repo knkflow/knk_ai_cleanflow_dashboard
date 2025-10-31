@@ -40,6 +40,18 @@ export async function getCleaners(hostId: string): Promise<Cleaner[]> {
   if (error) throw error
   return data || []
 }
+export async function getApartmentsForCleaner(
+  cleanerId: string
+): Promise<Apartment[]> {
+  const { data, error } = await supabase
+    .from('apartments')
+    .select('*')
+    .eq('default_cleaner_id', cleanerId)
+    .order('name')
+
+  if (error) throw error
+  return data || []
+}
 
 /**
  * Cleaner erstellen + Einladung senden (Edge Function)
