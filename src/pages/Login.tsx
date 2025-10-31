@@ -19,7 +19,11 @@ export function Login() {
 
     try {
       if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({ email, password });
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
         if (signUpError) throw signUpError;
 
         const { data: { user } } = await supabase.auth.getUser();
@@ -29,11 +33,16 @@ export function Login() {
           .from('users')
           .update({ role })
           .eq('auth_id', user.id);
+
         if (profileError) throw profileError;
 
         navigate(role === 'Host' ? '/host' : '/cleaner');
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
         if (signInError) throw signInError;
 
         const { data: { user } } = await supabase.auth.getUser();
@@ -45,8 +54,11 @@ export function Login() {
           .eq('auth_id', user.id)
           .maybeSingle();
 
-        if (profile?.role === 'Host') navigate('/host');
-        else navigate('/cleaner');
+        if (profile?.role === 'Host') {
+          navigate('/host');
+        } else {
+          navigate('/cleaner');
+        }
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -56,31 +68,28 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white relative overflow-hidden">
-      {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#111] via-black to-[#0a0a0a] opacity-90" />
-      <div className="w-full max-w-md relative z-10 px-6 py-10 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-lg shadow-2xl">
-        
-        {/* Logo & Title */}
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img
             src="/brand/logo.jpg"
             alt="KNK-AI"
-            className="h-14 w-auto mx-auto mb-5 drop-shadow-[0_0_12px_rgba(212,175,55,0.5)]"
-            onError={(e) => (e.currentTarget.style.display = 'none')}
+            className="h-12 w-auto mx-auto mb-4"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
           />
-          <h1 className="text-3xl font-semibold text-white tracking-tight">
+          <h1 className="text-3xl font-bold mb-2">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
-          <p className="text-white/60 mt-2 text-sm">
+          <p className="text-white/70">
             {isSignUp ? 'Sign up to get started' : 'Login to continue'}
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm mb-2 text-white/80">
+            <label htmlFor="email" className="block text-sm font-medium mb-2">
               Email
             </label>
             <input
@@ -89,13 +98,13 @@ export function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/40 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/60 outline-none transition-all"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 focus:border-white focus:outline-none"
               placeholder="your@email.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm mb-2 text-white/80">
+            <label htmlFor="password" className="block text-sm font-medium mb-2">
               Password
             </label>
             <input
@@ -105,21 +114,21 @@ export function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/40 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/60 outline-none transition-all"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 focus:border-white focus:outline-none"
               placeholder="••••••••"
             />
           </div>
 
           {isSignUp && (
             <div>
-              <label htmlFor="role" className="block text-sm mb-2 text-white/80">
+              <label htmlFor="role" className="block text-sm font-medium mb-2">
                 I am a
               </label>
               <select
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as 'Host' | 'Cleaner')}
-                className="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 text-white focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/60 outline-none"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 focus:border-white focus:outline-none"
               >
                 <option value="Host">Host</option>
                 <option value="Cleaner">Cleaner</option>
@@ -128,7 +137,7 @@ export function Login() {
           )}
 
           {error && (
-            <div className="text-red-400 border border-red-500/30 bg-red-500/10 px-4 py-2 rounded text-sm text-center">
+            <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 text-sm">
               {error}
             </div>
           )}
@@ -136,29 +145,26 @@ export function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-3 rounded-md bg-white text-black font-semibold tracking-wide 
-                       hover:bg-[#d4af37] hover:text-black transition-all duration-300 
-                       flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 bg-white text-black hover:bg-white/90 disabled:bg-white/50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
           >
             <LogIn className="w-5 h-5" />
             {loading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Login'}
           </button>
         </form>
 
-        {/* Toggle SignUp / Login */}
-        <div className="mt-6 text-center">
+        {/*     <div className="mt-6 text-center">
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-[#d4af37] hover:text-[#f5d97b] text-sm transition-all"
+            className="text-white/70 hover:text-white transition-colors"
           >
             {isSignUp ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
           </button>
-        </div>
+        </div> */}
 
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate('/')}
-            className="text-white/40 hover:text-white/70 transition-colors text-sm"
+            className="text-white/50 hover:text-white/70 transition-colors text-sm"
           >
             ← Back to home
           </button>
