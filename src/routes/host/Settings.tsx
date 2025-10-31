@@ -11,7 +11,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ElementType }[] = 
   { key: 'apis', label: 'Verbindungen & APIs', icon: Link2 },
 ];
 
-export default function Settings() {
+export function Settings() {
   const [active, setActive] = useState<SectionKey>('general');
   // Für den Dummy: pro Bereich genau EIN Textfeld
   const [values, setValues] = useState<Record<SectionKey, string>>({
