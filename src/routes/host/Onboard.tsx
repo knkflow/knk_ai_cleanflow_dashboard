@@ -75,7 +75,7 @@ export function Onboard() {
     },
     {
       id: "plan-cleaning",
-      title: "Reinigung planen",
+      title: "Reinigungen planen",
       description: "Aufgaben und Reinigungspläne erstellen",
       done: false,
       icon: CalendarDays,
