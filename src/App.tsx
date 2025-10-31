@@ -15,8 +15,8 @@ import { Calendar as CleanerCalendar } from './routes/cleaner/Calendar';
 const hostTabs = [
   { to: '/host/apartments', label: '🏢 Apartments' },
   { to: '/host/cleaners', label: '🧑‍🔧 Reinigungskräfte' },
-  { to: '/host/tasks', label: 'Reinigungsplan' },
-  { to: '/host/calendar', label: 'Kalender' },
+  { to: '/host/tasks', label: '🧭 Reinigungsplan' },
+  { to: '/host/calendar', label: '🗓️ Kalender' },
 ];
 
 const cleanerTabs = [
