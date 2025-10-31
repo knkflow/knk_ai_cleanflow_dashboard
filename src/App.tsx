@@ -19,7 +19,7 @@ const hostTabs = [
   { to: '/host/cleaners', label: '🧑‍🔧 Reinigungskräfte' },
   { to: '/host/tasks', label: '🧭 Reinigungsplan' },
   { to: '/host/calendar', label: '🗓️ Kalender' },
-  { to: 'host/settings', label: '⚙️ Einstellungen '}
+  { to: '/host/settings', label: '⚙️ Einstellungen '}
 ];
 
 const cleanerTabs = [
