@@ -119,16 +119,16 @@ export function Apartments() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Apartments</h2>
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Apartment
-        </button>
-      </div>
+     <div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold text-white">Apartments</h2>
+  <button
+    onClick={openCreateModal}
+    className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md"
+  >
+    <Plus className="w-5 h-5" />
+    Add Apartment
+  </button>
+</div>
 
       <div className="grid gap-4">
         {apartments.map((apartment) => (
