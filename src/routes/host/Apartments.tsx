@@ -153,7 +153,7 @@ export function Apartments() {
 
                 {apartment.default_cleaner && (
                   <p className="text-white/50 text-sm">
-                    Default Cleaner: {apartment.default_cleaner.name}
+                    Stammreinigung: {apartment.default_cleaner.name}
                   </p>
                 )}
               </div>
