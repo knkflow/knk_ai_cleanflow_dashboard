@@ -5,7 +5,7 @@ import { getCleaners, updateCleaner, deleteCleaner } from '../../lib/api';
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import type { User, Cleaner } from '../../types/db';
-import { useSupabase } from '../../lib/supabaseClient'; // <<— wichtig: Supabase-Client
+import { useSupabase } from '../../lib/supabase';
 
 interface ContextType {
   user: User;
