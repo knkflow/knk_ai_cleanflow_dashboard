@@ -8,37 +8,37 @@ import type { MonthDay } from '../../lib/dates';
 
 interface ContextType { user: User; }
 
-// ---------------- Helpers ----------------
-
-// jsonb -> string[] (auch "2025-10-31T00:00:00Z" => "2025-10-31")
-const toDateArray = (val: unknown): string[] =>
-  Array.isArray(val)
-    ? val.map((v) => String(v)).map((s) => (s.includes('T') ? s.split('T')[0] : s))
-    : [];
-
-// Prüft, ob der Cleaner an diesem Tag NICHT verfügbar ist
-function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr?: string | null): boolean {
-  if (!dateStr) return false;
-  const unavailableDays = toDateArray((cleaner as any).availability);
-  return unavailableDays.includes(dateStr);
-}
+/* ---------------- Helpers ---------------- */
 
 function pad2(n: number) { return n.toString().padStart(2, '0'); }
 
-// Für Debug-Ausgaben
-const DEBUG = true;
-function logAvailabilitySnapshot(where: string, cleaners: Cleaner[]) {
-  if (!DEBUG) return;
-  // Gruppiertes Logging, gut lesbar
-  // eslint-disable-next-line no-console
-  console.group(`[Calendar] Availability Snapshot @ ${where}`);
-  cleaners.forEach((c) => {
-    const arr = toDateArray((c as any).availability);
-    // eslint-disable-next-line no-console
-    console.log(`- ${c.name} (${c.id}) -> availability:`, arr);
-  });
-  // eslint-disable-next-line no-console
-  console.groupEnd();
+/** Normalisiert diverse Eingaben (Date, 'YYYY-M-D', 'YYYY-MM-DD', 'YYYY-MM-DDTHH:MM:SSZ') zu 'YYYY-MM-DD' */
+function normalizeYMD(input: string | Date | undefined | null): string {
+  if (!input) return '';
+  if (input instanceof Date) {
+    return `${input.getFullYear()}-${pad2(input.getMonth() + 1)}-${pad2(input.getDate())}`;
+  }
+  let s = String(input);
+  if (s.includes('T')) s = s.split('T')[0];
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`;
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }
+  return s; // Fallback (wird selten benötigt)
+}
+
+// jsonb -> string[] → normalisiert auf 'YYYY-MM-DD'
+const toDateArray = (val: unknown): string[] =>
+  Array.isArray(val) ? val.map((v) => normalizeYMD(String(v))) : [];
+
+/** Prüft, ob der Cleaner an diesem Tag NICHT verfügbar ist */
+function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr?: string | null): boolean {
+  if (!dateStr) return false;
+  const unavailableDays = toDateArray((cleaner as any).availability);
+  const normalized = normalizeYMD(dateStr);
+  return unavailableDays.includes(normalized);
 }
 
 export function Calendar() {
@@ -70,8 +70,6 @@ export function Calendar() {
       if (!data || data.length === 0) {
         setErrorMsg('Sie haben noch keine Cleaner erstellt.');
       }
-      // **Konsole**: Availability direkt nach Laden loggen
-      logAvailabilitySnapshot('loadCleaners()', data ?? []);
     } catch (e: any) {
       setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
     } finally {
@@ -79,42 +77,24 @@ export function Calendar() {
     }
   }
 
-  // Bei Monatswechsel erneut eine Availability-Übersicht loggen
-  useEffect(() => {
-    logAvailabilitySnapshot(`monthChange -> ${year}-${pad2(month + 1)}`, cleaners);
-  }, [year, month, cleaners]);
-
-  function dateStrOf(d: Date) {
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-  }
-
   /** Liste der Namen, die an diesem Tag NICHT verfügbar sind – abhängig vom Filter */
   function getUnavailableNames(dateStr: string): string[] {
-    if (isAllView) {
-      const res = cleaners
-        .filter((c) => isCleanerUnavailableForDate(c, dateStr))
-        .map((c) => c.name);
+    const normalized = normalizeYMD(dateStr);
 
-      // **Konsole**: Für den konkreten Tag zeigen, wer blockiert ist
-      if (DEBUG && res.length > 0) {
-        // eslint-disable-next-line no-console
-        console.debug(`[Calendar] ${dateStr} -> unavailable (ALL):`, res);
-      }
-      return res;
+    if (isAllView) {
+      return cleaners
+        .filter((c) => isCleanerUnavailableForDate(c, normalized))
+        .map((c) => c.name);
     } else {
       const c = cleaners.find((x) => x.id === selectedCleanerId);
       if (!c) return [];
-      const isUn = isCleanerUnavailableForDate(c, dateStr);
-      if (DEBUG && isUn) {
-        // eslint-disable-next-line no-console
-        console.debug(`[Calendar] ${dateStr} -> unavailable (${c.name})`);
-      }
-      return isUn ? [c.name] : [];
+      return isCleanerUnavailableForDate(c, normalized) ? [c.name] : [];
     }
   }
 
   function renderDay(day: MonthDay) {
-    const unavailableNames = getUnavailableNames(day.dateStr);
+    // Falls dein MonthCalendar day.dateStr liefert, wird es zusätzlich normalisiert
+    const unavailableNames = getUnavailableNames(day.dateStr ?? normalizeYMD(day.date));
     const isUnavailable = unavailableNames.length > 0;
 
     const boxClass = isUnavailable
