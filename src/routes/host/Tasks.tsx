@@ -322,23 +322,12 @@ export function Tasks() {
           return (
             <div
               key={task.id}
-              className={`p-6 rounded-2xl transition-all duration-500 relative ${
+              className={`p-6 rounded-2xl transition-all duration-500 ${
                 unavailable
                   ? 'border-2 border-red-500 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,80,80,0.45)]'
                   : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
               }`}
             >
-              {/* Deadline Badge */}
-              {task.deadline && (
-                <span
-                  className="absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full
-                             bg-red-600/20 text-red-300 border border-red-500/60"
-                  title="Deadline"
-                >
-                  Deadline: {task.deadline}
-                </span>
-              )}
-
               {unavailable && (
                 <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
                   <AlertCircle className="w-4 h-4" />
@@ -348,9 +337,22 @@ export function Tasks() {
 
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    {task.apartment?.name || 'Unknown Apartment'}
-                  </h3>
+                  {/* Titel + Deadline nebeneinander */}
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
+                    <h3 className="text-xl font-semibold text-white">
+                      {task.apartment?.name || 'Unknown Apartment'}
+                    </h3>
+
+                    {task.deadline && (
+                      <span
+                        className="px-3 py-1 text-xs font-semibold rounded-full
+                                   bg-red-600/20 text-red-300 border border-red-500/60"
+                        title="Deadline"
+                      >
+                        Deadline: {task.deadline}
+                      </span>
+                    )}
+                  </div>
 
                   <p className="text-white/70 text-sm mb-1">Date: {task.date}</p>
 
@@ -415,7 +417,6 @@ export function Tasks() {
             value={formData.date}
             onChange={(e) => {
               const nextDate = e.target.value;
-              // Wenn der aktuelle Cleaner für neues Datum blockiert ist, zurücksetzen
               const selectedCleaner = cleaners.find(c => c.id === formData.cleaner_id);
               const stillAvailable =
                 !selectedCleaner || isCleanerAvailableForDate(selectedCleaner, nextDate);
