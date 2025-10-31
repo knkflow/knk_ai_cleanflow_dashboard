@@ -168,4 +168,4 @@ export function Onboard() {
   );
 }
 
-export Onboard;
+export default Onboard;
