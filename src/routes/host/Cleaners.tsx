@@ -42,42 +42,43 @@ export function Cleaners() {
   });
 
   useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.id, user.role]);
+  loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [user.id, user.role, user.auth_id]);
 
-  async function loadData() {
-    setLoading(true);
-    try {
-      if (user.role === 'Cleaner') {
-        // Nur den eigenen Datensatz anzeigen
-        const me = await getCleanerByUserId(user.id);
-        setCleaners(me ? [me] : []);
-        if (!me) {
-          setErrorModal({
-            open: true,
-            message:
-              'Kein Cleaner-Datensatz für diesen Benutzer gefunden. Bitte prüfe, ob cleaners.user_id auf users.id zeigt.',
-          });
-        }
-      } else {
-        // Host: alle Cleaner des Hosts
-        const data = await getCleaners(user.id);
-        setCleaners(data);
-        if (data.length === 0) {
-          setErrorModal({
-            open: true,
-            message:
-              'Für diesen Host wurden keine Cleaner gefunden. Bitte prüfe in Supabase, ob cleaners.host_id auf users.id des Hosts zeigt.',
-          });
-        }
+async function loadData() {
+  setLoading(true);
+  try {
+    if (user.role === 'Cleaner') {
+      // WICHTIG: über AUTH-ID laden (cleaners.user_id -> auth.users.id)
+      const me = await getCleanerByUserId(user.auth_id);
+      setCleaners(me ? [me] : []);
+      if (!me) {
+        setErrorModal({
+          open: true,
+          message:
+            'Kein Cleaner-Datensatz gefunden. Prüfe, ob cleaners.user_id auf auth.users.id (auth_id) zeigt.',
+        });
       }
-    } catch (e: any) {
-      setErrorModal({ open: true, message: e?.message ?? 'Fehler beim Laden der Cleaner' });
-    } finally {
-      setLoading(false);
+    } else {
+      // Host: alle Cleaner laden, deren host_id = users.id des Hosts
+      const data = await getCleaners(user.id);
+      setCleaners(data);
+      if (data.length === 0) {
+        setErrorModal({
+          open: true,
+          message:
+            'Für diesen Host wurden keine Cleaner gefunden. Prüfe in Supabase, ob cleaners.host_id auf users.id des Hosts zeigt.',
+        });
+      }
     }
+  } catch (e: any) {
+    setErrorModal({ open: true, message: e?.message ?? 'Fehler beim Laden der Cleaner' });
+  } finally {
+    setLoading(false);
   }
+}
+
 
   function openCreateModal() {
     setEditingId(null);
