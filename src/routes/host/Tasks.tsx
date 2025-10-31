@@ -148,6 +148,7 @@ export function Tasks() {
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner_id || !isValidDateString(task.date)) return false;
     const cleaner = getCleanerById(task.cleaner_id);
+    console.log(cleaner);
     if (!cleaner) return false;
     const availability = (cleaner as any).availability;
     return Array.isArray(availability) && availability.includes(task.date);
