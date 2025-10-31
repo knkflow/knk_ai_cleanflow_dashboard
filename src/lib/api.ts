@@ -38,17 +38,32 @@ export async function getCurrentUser(): Promise<User | null> {
 /* =========================
  * CLEANERS
  * ========================= */
-export async function getCleaners(hostId: string): Promise<Cleaner[]> {
+export async function getCleaners(hostUserId: string): Promise<Cleaner[]> {
+  // Holt alle Cleaner, deren host_id auf users.id des Hosts zeigt
   const { data, error } = await supabase
     .from('cleaners')
     .select('*')
-    .eq('host_id', hostId)
-    .order('name')
+    .eq('host_id', hostUserId)
+    .order('name');
 
-  if (error) throw error
-  return data || []
+  if (error) throw error;
+  return data || [];
 }
 
+/**
+ * Holt den Cleaner-Datensatz über die AUTH-ID (auth.users.id).
+ * WICHTIG: cleaners.user_id -> auth.users.id
+ */
+export async function getCleanerByUserId(authId: string): Promise<Cleaner | null> {
+  const { data, error } = await supabase
+    .from('cleaners')
+    .select('*')
+    .eq('user_id', authId) // <-- auth.users.id, NICHT public.users.id
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
 /** Cleaner erstellen + Einladung senden (Edge Function: smart-function) */
 export async function createCleanerAndInvite(payload: {
   host_id: string
