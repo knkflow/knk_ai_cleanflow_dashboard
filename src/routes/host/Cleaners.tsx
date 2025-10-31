@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import {
   getCleaners,
+  getCleanerByUserId,   // <-- NEU import
   updateCleaner,
   deleteCleanerCascade,
   createCleanerAndInvite,
@@ -42,13 +43,35 @@ export function Cleaners() {
 
   useEffect(() => {
     loadData();
-  }, [user.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id, user.role]);
 
   async function loadData() {
     setLoading(true);
     try {
-      const data = await getCleaners(user.id);
-      setCleaners(data);
+      if (user.role === 'Cleaner') {
+        // Nur den eigenen Datensatz anzeigen
+        const me = await getCleanerByUserId(user.id);
+        setCleaners(me ? [me] : []);
+        if (!me) {
+          setErrorModal({
+            open: true,
+            message:
+              'Kein Cleaner-Datensatz für diesen Benutzer gefunden. Bitte prüfe, ob cleaners.user_id auf users.id zeigt.',
+          });
+        }
+      } else {
+        // Host: alle Cleaner des Hosts
+        const data = await getCleaners(user.id);
+        setCleaners(data);
+        if (data.length === 0) {
+          setErrorModal({
+            open: true,
+            message:
+              'Für diesen Host wurden keine Cleaner gefunden. Bitte prüfe in Supabase, ob cleaners.host_id auf users.id des Hosts zeigt.',
+          });
+        }
+      }
     } catch (e: any) {
       setErrorModal({ open: true, message: e?.message ?? 'Fehler beim Laden der Cleaner' });
     } finally {
@@ -92,22 +115,23 @@ export function Cleaners() {
         send_magic_link: true,
       };
 
-      // Lokale Duplikat-Prüfung (Name / Email)
-      const nameKey = normalize(payload.name);
-      const emailKey = normalize(payload.email ?? '');
+      // Lokale Duplikat-Prüfung (Name / Email) nur beim Anlegen
+      if (!editingId) {
+        const nameKey = normalize(payload.name);
+        const emailKey = normalize(payload.email ?? '');
+        const duplicate =
+          cleaners.some(c => normalize(c.name) === nameKey) ||
+          (!!emailKey && cleaners.some(c => normalize(c.email || '') === emailKey));
 
-      const duplicate =
-        cleaners.some(c => normalize(c.name) === nameKey) ||
-        (!!emailKey && cleaners.some(c => normalize(c.email || '') === emailKey));
-
-      if (!editingId && duplicate) {
-        setErrorModal({
-          open: true,
-          message: payload.email
-            ? `Cleaner mit Name "${payload.name}" oder E-Mail "${payload.email}" existiert bereits.`
-            : `Cleaner mit Name "${payload.name}" existiert bereits.`,
-        });
-        return;
+        if (duplicate) {
+          setErrorModal({
+            open: true,
+            message: payload.email
+              ? `Cleaner mit Name "${payload.name}" oder E-Mail "${payload.email}" existiert bereits.`
+              : `Cleaner mit Name "${payload.name}" existiert bereits.`,
+          });
+          return;
+        }
       }
 
       if (editingId) {
@@ -119,12 +143,11 @@ export function Cleaners() {
           hourly_rate: payload.hourly_rate,
         });
       } else {
-        // Edge Function (Slug "smart-function")
+        // Edge Function (Slug "smart-function") – Bearer-Auth passiert in api.ts
         try {
-          const data = await createCleanerAndInvite(payload);
-
-          const msg = String((data as any)?.message ?? '').toLowerCase();
-          const err = String((data as any)?.error ?? '').toLowerCase();
+          const res = await createCleanerAndInvite(payload);
+          const msg = String((res as any)?.message ?? '').toLowerCase();
+          const err = String((res as any)?.error ?? '').toLowerCase();
           if (msg.includes('already exists') || err.includes('already exists') || err.includes('duplicate')) {
             setErrorModal({
               open: true,
@@ -181,32 +204,48 @@ export function Cleaners() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
+  // Availability-Länge robust aus jsonb (kann null, string[] oder anderes sein)
+  const getAvailCount = (c: Cleaner) => {
+    const a: any = (c as any).availability;
+    return Array.isArray(a) ? a.length : 0;
+  };
+
+  // Host darf neue Cleaner anlegen, Cleaner nicht (optional)
+  const canCreate = user.role === 'Host';
+
   return (
     <div>
       {/* Header */}
       <div className="relative z-[50] flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Reinigungskräfte</h2>
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md focus:outline-none focus:ring focus:ring-white/50"
-          aria-label="Add Cleaner"
-        >
-          <Plus className="w-5 h-5" />
-          Add Cleaner
-        </button>
+        <h2 className="text-2xl font-bold text-white">
+          {user.role === 'Cleaner' ? 'Mein Profil' : 'Reinigungskräfte'}
+        </h2>
+
+        {canCreate && (
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md focus:outline-none focus:ring focus:ring-white/50"
+            aria-label="Add Cleaner"
+          >
+            <Plus className="w-5 h-5" />
+            Add Cleaner
+          </button>
+        )}
       </div>
 
       {/* Info Box */}
-      <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
-        <p className="font-medium mb-2">How Cleaner Invitations Work:</p>
-        <ol className="list-decimal list-inside space-y-1">
-          <li>Add a cleaner with their email address (or phone).</li>
-          <li>A magic link (email) is sent for first-time login.</li>
-          <li>Role is set to <b>Cleaner</b> automatically.</li>
-          <li>Cleaner can then access assignments and set a password.</li>
-        </ol>
-      </div>
+      {canCreate && (
+        <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+          <p className="font-medium mb-2">How Cleaner Invitations Work:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Add a cleaner with their email address (or phone).</li>
+            <li>A magic link (email) is sent for first-time login.</li>
+            <li>Role is set to <b>Cleaner</b> automatically.</li>
+            <li>Cleaner can then access assignments and set a password.</li>
+          </ol>
+        </div>
+      )}
 
       {/* Cleaner Cards */}
       <div className="grid gap-4">
@@ -237,6 +276,11 @@ export function Cleaners() {
                     Rate: €{Number(cleaner.hourly_rate).toFixed(2)}/hour
                   </p>
                 )}
+
+                {/* Nur informativ – falls availability-jsonb bei dir noch genutzt wird */}
+                <p className="text-white/40 text-xs mt-2">
+                  Unavailable days: {getAvailCount(cleaner)}
+                </p>
               </div>
 
               <div className="flex gap-2">
@@ -248,14 +292,18 @@ export function Cleaners() {
                 >
                   <Edit className="w-5 h-5 text-white" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(cleaner)}
-                  className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 className="w-5 h-5 text-red-500" />
-                </button>
+
+                {/* Löschen nur für Host */}
+                {canCreate && (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(cleaner)}
+                    className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-500" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -263,71 +311,73 @@ export function Cleaners() {
 
         {cleaners.length === 0 && (
           <div className="text-center py-12 text-white/50">
-            No cleaners yet. Add your first cleaner to get started.
+            Keine Einträge gefunden.
           </div>
         )}
       </div>
 
       {/* Create/Edit Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingId ? 'Edit Cleaner' : 'Add Cleaner'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            placeholder="Full name"
-          />
+      {canCreate && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={editingId ? 'Edit Cleaner' : 'Add Cleaner'}
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+              placeholder="Full name"
+            />
 
-          <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="email@example.com"
-          />
+            <Input
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="email@example.com"
+            />
 
-          <Input
-            label="Phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="+49 123 456789"
-          />
+            <Input
+              label="Phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              placeholder="+49 123 456789"
+            />
 
-          <Input
-            label="Hourly Rate (€)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.hourly_rate}
-            onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-            placeholder="15.00"
-          />
+            <Input
+              label="Hourly Rate (€)"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.hourly_rate}
+              onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
+              placeholder="15.00"
+            />
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 disabled:opacity-60 transition-colors font-medium rounded-md"
-            >
-              {submitting ? 'Saving…' : editingId ? 'Update' : 'Create'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              disabled={submitting}
-              className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-60 transition-colors rounded-md"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <div className="flex gap-3 pt-4">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 disabled:opacity-60 transition-colors font-medium rounded-md"
+              >
+                {submitting ? 'Saving…' : editingId ? 'Update' : 'Create'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                disabled={submitting}
+                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-60 transition-colors rounded-md"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Delete Confirm Popup */}
       {isConfirmOpen && selectedCleaner && (
