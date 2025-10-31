@@ -72,14 +72,15 @@ export async function deleteCleanerCascade(cleanerId: string) {
 
   if (error) {
     console.error('❌ Supabase invoke error:', error);
-    throw new Error(error.message || 'Failed to invoke Edge Function');
+    throw new Error(error.message || 'Failed to invoke delete-cleaner-cascade');
   }
 
   if (data?.error) {
-    console.error('❌ Function logic error:', data.error);
-    throw new Error(data.error || 'Edge Function returned an error');
+    console.error('❌ Function returned error:', data.error);
+    throw new Error(data.error);
   }
 
+  console.log('✅ Cleaner deletion success:', data);
   return data;
 }
 
