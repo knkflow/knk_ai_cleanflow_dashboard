@@ -30,7 +30,7 @@ export function Header({ user }: HeaderProps) {
       <div>
         {/* Greeting */}
         <h1 className="text-xl font-semibold text-white">
-          Willkommen, {user.name || user.email}
+          Guten Tag, {user.name || user.email}
         </h1>
 
         {/* Role badge */}
