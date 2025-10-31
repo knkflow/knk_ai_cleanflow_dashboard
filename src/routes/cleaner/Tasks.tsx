@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getTasksForCleaner, getCleanerByUserId } from '../../lib/api';
+import { getTasks, getCleanerByUserId } from '../../lib/api';
 import { toDdMmYyyy, getTodayPlusN, formatDateLabel } from '../../lib/dates';
 import type { User, CleaningTaskWithDetails } from '../../types/db';
 
@@ -25,7 +25,7 @@ export function Tasks() {
       if (cleaner) {
         const today = getTodayPlusN(dayOffset);
         const dateStr = toDdMmYyyy(today);
-        const data = await getTasksForCleaner(cleaner.id, dateStr, dateStr);
+        const data = await getTasks(cleaner.id, dateStr, dateStr);
         setTasks(data);
       }
     } finally {
