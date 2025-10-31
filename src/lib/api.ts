@@ -259,13 +259,3 @@ export async function getCleanerById(cleanerId: string): Promise<Cleaner | null>
   return data
 }
 
-export async function getCleanerByUserId(userId: string): Promise<Cleaner | null> {
-  const { data, error } = await supabase
-    .from('cleaners')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (error) throw error
-  return data
-}
