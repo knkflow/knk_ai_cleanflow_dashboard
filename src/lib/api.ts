@@ -28,6 +28,9 @@ export async function getCurrentUser(): Promise<User | null> {
 
 /* ========== CLEANERS ========== */
 
+/**
+ * Holt alle Cleaner eines Hosts
+ */
 export async function getCleaners(hostId: string): Promise<Cleaner[]> {
   const { data, error } = await supabase
     .from('cleaners')
@@ -44,15 +47,12 @@ export async function getCleaners(hostId: string): Promise<Cleaner[]> {
  * Diese Function legt automatisch Auth, User & Cleaner an.
  */
 export async function createCleanerAndInvite(payload: {
-  body: {
-    host_id: user.id,
-    name: formData.name,
-    email: formData.email,
-    phone: formData.phone,
-    hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-  },
-});
-
+  host_id: string
+  name: string
+  email?: string | null
+  phone?: string | null
+  hourly_rate?: number | null
+  send_magic_link?: boolean
 }) {
   const { data, error } = await supabase.functions.invoke('create_initial_users', {
     body: payload,
@@ -68,20 +68,20 @@ export async function createCleanerAndInvite(payload: {
 export async function deleteCleanerCascade(cleanerId: string) {
   const { data, error } = await supabase.functions.invoke('delete.cleaner-oncascade', {
     body: { cleaner_id: cleanerId },
-  });
+  })
 
   if (error) {
-    console.error('❌ Supabase invoke error:', error);
-    throw new Error(error.message || 'Failed to invoke delete-cleaner-cascade');
+    console.error('❌ Supabase invoke error:', error)
+    throw new Error(error.message || 'Failed to invoke delete-cleaner-cascade')
   }
 
   if (data?.error) {
-    console.error('❌ Function returned error:', data.error);
-    throw new Error(data.error);
+    console.error('❌ Function returned error:', data.error)
+    throw new Error(data.error)
   }
 
-  console.log('✅ Cleaner deletion success:', data);
-  return data;
+  console.log('✅ Cleaner deletion success:', data)
+  return data
 }
 
 /**
