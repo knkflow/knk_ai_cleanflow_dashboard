@@ -1,3 +1,4 @@
+// src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
@@ -13,10 +14,9 @@ import { Settings as HostSettings } from './routes/host/Settings';
 import { Apartments as CleanerApartments } from './routes/cleaner/Apartments';
 import { Tasks as CleanerTasks } from './routes/cleaner/Tasks';
 import { Calendar as CleanerCalendar } from './routes/cleaner/Calendar';
-import { Routes, Route } from 'react-router-dom';
 import SetPassword from './routes/cleaner/SetPassword';
 
-// Lucide icons (inherit currentColor → white on dark header)
+// Lucide icons
 import {
   Handshake,
   Building2,
@@ -45,9 +45,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Öffentliche Seiten */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
 
+        {/* Magic-Link Zielseite: Passwort setzen (ohne Guard) */}
+        <Route path="/cleaner/set-password" element={<SetPassword />} />
+
+        {/* Host-Bereich (geschützt) */}
         <Route path="/host" element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}>
           <Route index element={<DashboardHost />} />
           <Route path="onboard" element={<HostOnboard />} />
@@ -58,6 +63,7 @@ function App() {
           <Route path="settings" element={<HostSettings />} />
         </Route>
 
+        {/* Cleaner-Bereich (geschützt) */}
         <Route path="/cleaner" element={<GuardedLayout requiredRole="Cleaner" tabs={cleanerTabs} />}>
           <Route index element={<DashboardCleaner />} />
           <Route path="apartments" element={<CleanerApartments />} />
@@ -65,21 +71,11 @@ function App() {
           <Route path="calendar" element={<CleanerCalendar />} />
         </Route>
 
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
-return (
-    <Routes>
-      {/* ... deine bisherigen Routen ... */}
 
-      {/* Magic-Link-Route */}
-      <Route path="/cleaner/set-password" element={<SetPassword />} />
-
-      {/* Optional: Catch-All 404 */}
-      <Route path="*" element={<div>404 - Seite nicht gefunden</div>} />
-    </Routes>
-  );
-}
 export default App;
