@@ -63,7 +63,7 @@ export async function createCleanerAndInvite(payload: {
  * Löscht Cleaner + zugehörigen User + Auth-Account über Edge Function.
  */
 export async function deleteCleanerCascade(cleanerId: string) {
-  const { data, error } = await supabase.functions.invoke('delete-cleaner-cascade', {
+  const { data, error } = await supabase.functions.invoke('delete.cleaner-oncascade', {
     body: { cleaner_id: cleanerId },
   })
 
