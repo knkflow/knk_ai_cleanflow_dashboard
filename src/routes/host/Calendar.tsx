@@ -8,7 +8,7 @@ import type { MonthDay } from '../../lib/dates';
 
 interface ContextType { user: User; }
 
-/* ----------------------- 🔧 Hilfsfunktionen ----------------------- */
+/* ---------------------- 🔧 Hilfsfunktionen ---------------------- */
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
 
@@ -142,9 +142,10 @@ export function Calendar() {
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const c of cleaners) {
+      const name = c.name?.trim() || '[Unbenannt]';
       const set = availabilityToSet((c as any).availability);
       m.set(c.id, set);
-      console.debug('[Calendar] Cleaner', c.name, 'availability set:', Array.from(set));
+      console.debug(`[Calendar] Cleaner "${name}" availability set:`, Array.from(set));
     }
     return m;
   }, [cleaners]);
@@ -156,22 +157,38 @@ export function Calendar() {
 
     if (isAllView) {
       for (const c of cleaners) {
+        const name = c.name?.trim() || '[Unbenannt]';
         const set = unavailableIndex.get(c.id);
-        const hit = set?.has(ymd);
-        console.debug(`[Calendar] Check day ${ymd} → ${c.name}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
-        if (hit) names.push(c.name);
+        if (!set) {
+          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${name}`);
+          continue;
+        }
+        const hit = set.has(ymd);
+        console.debug(`[Calendar] Check day ${ymd} → ${name}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
+        if (hit) names.push(name);
       }
     } else {
       const c = cleaners.find(x => x.id === selectedCleanerId);
       if (c) {
+        const name = c.name?.trim() || '[Unbenannt]';
         const set = unavailableIndex.get(c.id);
-        const hit = set?.has(ymd);
-        console.debug(`[Calendar] (Filter ${c.name}) Check day ${ymd}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
-        if (hit) names.push(c.name);
+        if (!set) {
+          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${name}`);
+        } else {
+          const hit = set.has(ymd);
+          console.debug(`[Calendar] (Filter ${name}) Check day ${ymd}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
+          if (hit) names.push(name);
+        }
+      } else {
+        console.warn(`[Calendar] ⚠️ Kein Cleaner mit ID ${selectedCleanerId} gefunden.`);
       }
     }
 
-    if (names.length > 0) console.debug(`[Calendar] 🔴 ${ymd} →`, names);
+    if (names.length > 0)
+      console.debug(`[Calendar] 🔴 ${ymd} →`, names);
+    else
+      console.debug(`[Calendar] 🟢 ${ymd} → alle verfügbar`);
+
     return names;
   }
 
@@ -208,13 +225,15 @@ export function Calendar() {
             {showNamesBadge && (
               <div className="absolute left-1 top-1">
                 <div className="group relative">
-                  <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full
-                                   bg-red-500/25 text-red-200 border border-red-500/60">
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full
+                                 bg-red-500/25 text-red-200 border border-red-500/60"
+                  >
                     <span className="text-[10px] font-semibold tracking-wide">Wer:</span>
                   </span>
                   <div className="pointer-events-none absolute z-20 mt-1 hidden min-w-[140px] max-w-[220px]
-                                   whitespace-normal break-words rounded-lg border border-red-500/40
-                                   bg-red-900/90 px-3 py-2 text-[11px] text-red-100 shadow-lg group-hover:block">
+                                  whitespace-normal break-words rounded-lg border border-red-500/40
+                                  bg-red-900/90 px-3 py-2 text-[11px] text-red-100 shadow-lg group-hover:block">
                     <div className="mb-1 text-[10px] uppercase tracking-wider text-red-200/80">
                       Abwesend:
                     </div>
@@ -232,7 +251,7 @@ export function Calendar() {
   }
 
   const sortedCleaners = useMemo(
-    () => [...cleaners].sort((a, b) => a.name.localeCompare(b.name)),
+    () => [...cleaners].sort((a, b) => (a.name || '').localeCompare(b.name || '')),
     [cleaners]
   );
 
@@ -252,6 +271,7 @@ export function Calendar() {
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {/* Alle */}
             <button
               onClick={() => setSelectedCleanerId(null)}
               className={`rounded-xl px-3 py-3 border transition
@@ -264,9 +284,11 @@ export function Calendar() {
               <div className="text-xs text-white/60">Gesamtübersicht</div>
             </button>
 
+            {/* Einzelne Cleaner */}
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
-              const initials = c.name?.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase() || 'C';
+              const name = c.name?.trim() || '[Unbenannt]';
+              const initials = name.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase() || 'C';
               return (
                 <button
                   key={c.id}
@@ -283,7 +305,7 @@ export function Calendar() {
                       <span className="text-xs font-bold">{initials}</span>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-white truncate">{c.name}</div>
+                      <div className="text-sm font-medium text-white truncate">{name}</div>
                       <div className="text-[11px] text-white/60">
                         {active ? 'Ausgewählt' : 'Klicken zum Anzeigen'}
                       </div>
@@ -297,7 +319,7 @@ export function Calendar() {
           <div className="mt-3 text-xs text-white/60">
             {isAllView
               ? 'Ansicht: Alle Reinigungskräfte'
-              : `Ansicht gefiltert auf: ${sortedCleaners.find(x => x.id === selectedCleanerId)?.name ?? 'Unbekannt'}`}
+              : `Ansicht gefiltert auf: ${sortedCleaners.find(x => x.id === selectedCleanerId)?.name ?? '[Unbekannt]'}`}
           </div>
         </div>
       )}
