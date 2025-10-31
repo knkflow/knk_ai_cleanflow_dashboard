@@ -10,35 +10,47 @@ interface ContextType { user: User; }
 
 /* ---------------- Helpers ---------------- */
 
-function pad2(n: number) {
-  return n.toString().padStart(2, '0');
-}
+const pad2 = (n: number) => n.toString().padStart(2, '0');
 
-/** Normalisiert diverse Eingaben (Date, 'YYYY-M-D', 'YYYY-MM-DD', 'YYYY-MM-DDTHH:MM:SSZ') zu 'YYYY-MM-DD' */
+/** Normalisiert beliebige Eingaben zu 'YYYY-MM-DD' (ohne Zeitanteil). */
 function normalizeYMD(input: string | Date | undefined | null): string {
   if (!input) return '';
   if (input instanceof Date) {
-    return `${input.getFullYear()}-${pad2(input.getMonth() + 1)}-${pad2(input.getDate())}`;
+    // KEIN lokales ISO – wir extrahieren Zahlen direkt
+    const y = input.getFullYear();
+    const m = pad2(input.getMonth() + 1);
+    const d = pad2(input.getDate());
+    return `${y}-${m}-${d}`;
   }
   let s = String(input);
-  if (s.includes('T')) s = s.split('T')[0];
+  if (s.includes('T')) s = s.split('T')[0];                       // '2025-10-31T00:00:00Z' -> '2025-10-31'
   const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (m) return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`;
+
+  // Fallback: Date parse (nur falls es wirklich kein YMD war)
   const d = new Date(s);
-  if (!isNaN(d.getTime())) {
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-  }
-  return s; // Fallback
+  if (!isNaN(d.getTime())) return normalizeYMD(d);
+  return s;
 }
 
-/** jsonb -> string[] → normalisiert auf 'YYYY-MM-DD' */
-const toDateArray = (val: unknown): string[] =>
-  Array.isArray(val) ? val.map((v) => normalizeYMD(String(v))) : [];
+/** Wandelt 'YYYY-MM-DD' in einen stabilen UTC-Key (number) via Date.UTC(Y, M-1, D) um. */
+function ymdToUTCKey(ymd: string): number {
+  const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return NaN;
+  const y = +m[1], mo = +m[2], d = +m[3];
+  return Date.UTC(y, mo - 1, d); // UTC Mitternacht
+}
 
-/** Prüft, ob der Cleaner an diesem Tag NICHT verfügbar ist */
-function isCleanerUnavailableForDate(cleaner: Cleaner, ymd: string): boolean {
-  const unavailableDays = toDateArray((cleaner as any).availability);
-  return unavailableDays.includes(ymd);
+/** jsonb -> string[] -> normalisiert -> Set<number> (UTC-Keys) */
+function availabilityToKeySet(av: unknown): Set<number> {
+  const arr = Array.isArray(av) ? av : [];
+  const set = new Set<number>();
+  for (const v of arr as unknown[]) {
+    const ymd = normalizeYMD(String(v));
+    const key = ymdToUTCKey(ymd);
+    if (!isNaN(key)) set.add(key);
+  }
+  return set;
 }
 
 export function Calendar() {
@@ -57,61 +69,58 @@ export function Calendar() {
   const isAllView = selectedCleanerId === null;
 
   useEffect(() => {
-    void loadCleaners();
+    (async () => {
+      setLoading(true);
+      setErrorMsg(null);
+      try {
+        const data = await getCleaners(user.id);
+        setCleaners(data ?? []);
+        if (!data || data.length === 0) {
+          setErrorMsg('Sie haben noch keine Cleaner erstellt.');
+        }
+      } catch (e: any) {
+        setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
+      } finally {
+        setLoading(false);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
-  async function loadCleaners() {
-    setLoading(true);
-    setErrorMsg(null);
-    try {
-      const data = await getCleaners(user.id);
-      setCleaners(data ?? []);
-      if (!data || data.length === 0) {
-        setErrorMsg('Sie haben noch keine Cleaner erstellt.');
-      }
-    } catch (e: any) {
-      setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  /** Für O(1)-Lookups: Map<cleanerId, Set<'YYYY-MM-DD'>> */
+  /** Map<cleanerId, Set<UTCKey>> für O(1) Lookups */
   const unavailableIndex = useMemo(() => {
-    const m = new Map<string, Set<string>>();
+    const m = new Map<string, Set<number>>();
     for (const c of cleaners) {
-      const arr = toDateArray((c as any).availability);
-      m.set(c.id, new Set(arr));
+      m.set(c.id, availabilityToKeySet((c as any).availability));
     }
     return m;
   }, [cleaners]);
 
-  /** Liste der Namen, die an diesem Tag NICHT verfügbar sind – abhängig vom Filter */
-  function getUnavailableNames(dateStr: string | undefined): string[] {
-    const ymd = normalizeYMD(dateStr);
-    if (!ymd) return [];
+  /** Wer ist an diesem Tag (UTC-Key) NICHT verfügbar? */
+  function getUnavailableNamesByKey(utcKey: number): string[] {
+    if (isNaN(utcKey)) return [];
 
     if (isAllView) {
       const names: string[] = [];
       for (const c of cleaners) {
         const set = unavailableIndex.get(c.id);
-        if (set && set.has(ymd)) names.push(c.name);
+        if (set && set.has(utcKey)) names.push(c.name);
       }
       return names;
     } else {
       const c = cleaners.find((x) => x.id === selectedCleanerId);
       if (!c) return [];
       const set = unavailableIndex.get(c.id);
-      return set && set.has(ymd) ? [c.name] : [];
+      return set && set.has(utcKey) ? [c.name] : [];
     }
   }
 
   function renderDay(day: MonthDay) {
-    // Nutze IMMER normalisierte YMD (unabhängig davon, ob dateStr vorhanden ist)
+    // Wir bauen IMMER erst ein YMD und dann einen UTC-Key, egal was MonthCalendar liefert
     const ymd = normalizeYMD(day.dateStr ?? day.date);
+    const utcKey = ymdToUTCKey(ymd);
 
-    const unavailableNames = getUnavailableNames(ymd);
+    const unavailableNames = getUnavailableNamesByKey(utcKey);
     const isUnavailable = unavailableNames.length > 0;
 
     const boxClass = isUnavailable
@@ -192,7 +201,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Filter-Kacheln: Alle + einzelne Cleaner */}
+      {/* Filter-Kacheln */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
@@ -214,7 +223,7 @@ export function Calendar() {
               <div className="text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
             </button>
 
-            {/* Einzelne Cleaner */}
+            {/* Einzelne */}
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
               const initials =
