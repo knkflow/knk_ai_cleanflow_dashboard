@@ -113,13 +113,21 @@ export function Landing() {
 </p>
 </div>
 
-            <h1
+     <h1
   className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]
              bg-clip-text text-transparent bg-gradient-to-r from-[#b9932f] via-[#d4af37] to-[#f5e4a0]
-             animate-gradient-slow drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+             animate-gradient-slow drop-shadow-[0_0_10px_rgba(212,175,55,0.3)] relative"
 >
   Smart. Klar. Sauber.
+  {/* Sanfter goldener Glow unterhalb */}
+  <span
+    aria-hidden
+    className="absolute left-1/2 -translate-x-1/2 bottom-[-80px] w-[160%] h-[300px] 
+               bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.25)_0%,rgba(0,0,0,0)_80%)]
+               blur-[80px] opacity-70 pointer-events-none"
+  ></span>
 </h1>
+
 
 
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
