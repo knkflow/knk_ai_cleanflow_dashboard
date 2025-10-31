@@ -151,6 +151,7 @@ export function Tasks() {
     console.log(cleaner);
     if (!cleaner) return false;
     const availability = (cleaner as any).availability;
+    console.log("Av: " + availability);
     return Array.isArray(availability) && availability.includes(task.date);
   }
 
