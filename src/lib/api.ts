@@ -9,7 +9,6 @@ import type {
 } from '../types/db'
 
 /* ========== USER ========== */
-
 export async function getCurrentUser(): Promise<User | null> {
   const {
     data: { user },
@@ -27,10 +26,6 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /* ========== CLEANERS ========== */
-
-/**
- * Holt alle Cleaner eines Hosts
- */
 export async function getCleaners(hostId: string): Promise<Cleaner[]> {
   const { data, error } = await supabase
     .from('cleaners')
@@ -41,7 +36,6 @@ export async function getCleaners(hostId: string): Promise<Cleaner[]> {
   if (error) throw error
   return data || []
 }
-
 
 export async function createCleanerAndInvite(payload: {
   host_id: string
@@ -54,7 +48,6 @@ export async function createCleanerAndInvite(payload: {
   const { data, error } = await supabase.functions.invoke('create_initial_users', {
     body: payload,
   })
-
   if (error) throw new Error(error.message || 'Edge Function call failed')
   return data
 }
@@ -78,9 +71,6 @@ export async function deleteCleanerCascade(cleanerId: string) {
   return data
 }
 
-/**
- * Lokales Update in der Tabelle cleaners (kein Edge Function Call)
- */
 export async function updateCleaner(id: string, updates: Partial<Cleaner>): Promise<Cleaner> {
   const { data, error } = await supabase
     .from('cleaners')
@@ -94,7 +84,6 @@ export async function updateCleaner(id: string, updates: Partial<Cleaner>): Prom
 }
 
 /* ========== APARTMENTS ========== */
-
 export async function getApartments(ownerId: string): Promise<ApartmentWithCleaner[]> {
   const { data, error } = await supabase
     .from('apartments')
@@ -108,10 +97,8 @@ export async function getApartments(ownerId: string): Promise<ApartmentWithClean
   if (error) throw error
   return data || []
 }
-// === Apartments für einen bestimmten Cleaner laden ===
-export async function getApartmentsForCleaner(
-  cleanerId: string
-): Promise<Apartment[]> {
+
+export async function getApartmentsForCleaner(cleanerId: string): Promise<Apartment[]> {
   const { data, error } = await supabase
     .from('apartments')
     .select('*')
@@ -156,7 +143,6 @@ export async function deleteApartment(id: string): Promise<void> {
 }
 
 /* ========== TASKS ========== */
-
 export async function getTasks(
   ownerId: string,
   filters?: { dateFrom?: string; dateTo?: string; cleanerId?: string }
@@ -175,6 +161,24 @@ export async function getTasks(
   if (filters?.cleanerId) query = query.eq('cleaner_id', filters.cleanerId)
 
   const { data, error } = await query.order('date')
+  if (error) throw error
+  return data ?? []
+}
+
+/** 🔹 Fehlte vorher → wird oft von Cleaner-Dashboard importiert */
+export async function getTasksForCleaner(
+  cleanerId: string
+): Promise<CleaningTaskWithDetails[]> {
+  const { data, error } = await supabase
+    .from('cleaning_tasks')
+    .select(`
+      *,
+      apartment:apartments(*),
+      cleaner:cleaners(*)
+    `)
+    .eq('cleaner_id', cleanerId)
+    .order('date')
+
   if (error) throw error
   return data ?? []
 }
@@ -222,7 +226,6 @@ export async function deleteTask(id: string): Promise<void> {
 }
 
 /* ========== LOOKUPS ========== */
-
 export async function getCleanerById(cleanerId: string): Promise<Cleaner | null> {
   const { data, error } = await supabase
     .from('cleaners')
