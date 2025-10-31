@@ -10,7 +10,9 @@ interface ContextType { user: User; }
 
 /* ---------------- Helpers ---------------- */
 
-function pad2(n: number) { return n.toString().padStart(2, '0'); }
+function pad2(n: number) {
+  return n.toString().padStart(2, '0');
+}
 
 /** Normalisiert diverse Eingaben (Date, 'YYYY-M-D', 'YYYY-MM-DD', 'YYYY-MM-DDTHH:MM:SSZ') zu 'YYYY-MM-DD' */
 function normalizeYMD(input: string | Date | undefined | null): string {
@@ -26,19 +28,17 @@ function normalizeYMD(input: string | Date | undefined | null): string {
   if (!isNaN(d.getTime())) {
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
-  return s; // Fallback (wird selten benötigt)
+  return s; // Fallback
 }
 
-// jsonb -> string[] → normalisiert auf 'YYYY-MM-DD'
+/** jsonb -> string[] → normalisiert auf 'YYYY-MM-DD' */
 const toDateArray = (val: unknown): string[] =>
   Array.isArray(val) ? val.map((v) => normalizeYMD(String(v))) : [];
 
 /** Prüft, ob der Cleaner an diesem Tag NICHT verfügbar ist */
-function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr?: string | null): boolean {
-  if (!dateStr) return false;
+function isCleanerUnavailableForDate(cleaner: Cleaner, ymd: string): boolean {
   const unavailableDays = toDateArray((cleaner as any).availability);
-  const normalized = normalizeYMD(dateStr);
-  return unavailableDays.includes(normalized);
+  return unavailableDays.includes(ymd);
 }
 
 export function Calendar() {
@@ -77,24 +77,41 @@ export function Calendar() {
     }
   }
 
+  /** Für O(1)-Lookups: Map<cleanerId, Set<'YYYY-MM-DD'>> */
+  const unavailableIndex = useMemo(() => {
+    const m = new Map<string, Set<string>>();
+    for (const c of cleaners) {
+      const arr = toDateArray((c as any).availability);
+      m.set(c.id, new Set(arr));
+    }
+    return m;
+  }, [cleaners]);
+
   /** Liste der Namen, die an diesem Tag NICHT verfügbar sind – abhängig vom Filter */
-  function getUnavailableNames(dateStr: string): string[] {
-    const normalized = normalizeYMD(dateStr);
+  function getUnavailableNames(dateStr: string | undefined): string[] {
+    const ymd = normalizeYMD(dateStr);
+    if (!ymd) return [];
 
     if (isAllView) {
-      return cleaners
-        .filter((c) => isCleanerUnavailableForDate(c, normalized))
-        .map((c) => c.name);
+      const names: string[] = [];
+      for (const c of cleaners) {
+        const set = unavailableIndex.get(c.id);
+        if (set && set.has(ymd)) names.push(c.name);
+      }
+      return names;
     } else {
       const c = cleaners.find((x) => x.id === selectedCleanerId);
       if (!c) return [];
-      return isCleanerUnavailableForDate(c, normalized) ? [c.name] : [];
+      const set = unavailableIndex.get(c.id);
+      return set && set.has(ymd) ? [c.name] : [];
     }
   }
 
   function renderDay(day: MonthDay) {
-    // Falls dein MonthCalendar day.dateStr liefert, wird es zusätzlich normalisiert
-    const unavailableNames = getUnavailableNames(day.dateStr ?? normalizeYMD(day.date));
+    // Nutze IMMER normalisierte YMD (unabhängig davon, ob dateStr vorhanden ist)
+    const ymd = normalizeYMD(day.dateStr ?? day.date);
+
+    const unavailableNames = getUnavailableNames(ymd);
     const isUnavailable = unavailableNames.length > 0;
 
     const boxClass = isUnavailable
