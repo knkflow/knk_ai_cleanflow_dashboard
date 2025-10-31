@@ -47,10 +47,9 @@ export async function createCleanerAndInvite(payload: {
   phone?: string | null
   hourly_rate?: number | null
   send_magic_link?: boolean
-}) {
-  const { data, error } = await supabase.functions.invoke('create_initial_users', {
-    body: payload,
-  })
+})const { data, error } = await supabase.functions.invoke('smart-function', {
+  body: payload,
+})
 
   // Rückgabe immer konsistent
   return { data, error }
