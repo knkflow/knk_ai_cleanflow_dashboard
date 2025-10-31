@@ -8,49 +8,48 @@ import type { MonthDay } from '../../lib/dates';
 
 interface ContextType { user: User; }
 
-/* ---------------- Helpers ---------------- */
+/* ---------------- Helpers: String-basierter Abgleich ---------------- */
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
 
-/** Normalisiert beliebige Eingaben zu 'YYYY-MM-DD' (ohne Zeitanteil). */
+/** Normalisiert zu 'YYYY-MM-DD' (ohne Zeit, tolerant für 'YYYY-M-D' und '...T...') */
 function normalizeYMD(input: string | Date | undefined | null): string {
   if (!input) return '';
   if (input instanceof Date) {
-    // KEIN lokales ISO – wir extrahieren Zahlen direkt
     const y = input.getFullYear();
     const m = pad2(input.getMonth() + 1);
     const d = pad2(input.getDate());
     return `${y}-${m}-${d}`;
   }
-  let s = String(input);
-  if (s.includes('T')) s = s.split('T')[0];                       // '2025-10-31T00:00:00Z' -> '2025-10-31'
+  let s = String(input).trim();
+  if (!s) return '';
+  if (s.includes('T')) s = s.split('T')[0]; // '2025-10-31T...' -> '2025-10-31'
   const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (m) return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`;
 
-  // Fallback: Date parse (nur falls es wirklich kein YMD war)
+  // Fallback: Date-parse (nur wenn kein Y-M-D)
   const d = new Date(s);
   if (!isNaN(d.getTime())) return normalizeYMD(d);
-  return s;
+  return '';
 }
 
-/** Wandelt 'YYYY-MM-DD' in einen stabilen UTC-Key (number) via Date.UTC(Y, M-1, D) um. */
-function ymdToUTCKey(ymd: string): number {
-  const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return NaN;
-  const y = +m[1], mo = +m[2], d = +m[3];
-  return Date.UTC(y, mo - 1, d); // UTC Mitternacht
-}
-
-/** jsonb -> string[] -> normalisiert -> Set<number> (UTC-Keys) */
-function availabilityToKeySet(av: unknown): Set<number> {
-  const arr = Array.isArray(av) ? av : [];
-  const set = new Set<number>();
-  for (const v of arr as unknown[]) {
-    const ymd = normalizeYMD(String(v));
-    const key = ymdToUTCKey(ymd);
-    if (!isNaN(key)) set.add(key);
+/** availability(jsonb) -> Set<'YYYY-MM-DD'> (nur echte Arrays berücksichtigen) */
+function availabilityToSet(av: unknown): Set<string> {
+  const set = new Set<string>();
+  if (Array.isArray(av)) {
+    for (const v of av) {
+      const ymd = normalizeYMD(String(v));
+      if (ymd) set.add(ymd);
+    }
   }
   return set;
+}
+
+/** Prüft, ob Cleaner am Tag (ymd) NICHT verfügbar ist */
+function isCleanerUnavailableForDate(cleaner: Cleaner, ymd: string): boolean {
+  if (!ymd) return false;
+  const set = availabilityToSet((cleaner as any).availability);
+  return set.has(ymd);
 }
 
 export function Calendar() {
@@ -87,40 +86,38 @@ export function Calendar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
-  /** Map<cleanerId, Set<UTCKey>> für O(1) Lookups */
+  /** Map<cleanerId, Set<'YYYY-MM-DD'>> für O(1)-Lookups */
   const unavailableIndex = useMemo(() => {
-    const m = new Map<string, Set<number>>();
+    const m = new Map<string, Set<string>>();
     for (const c of cleaners) {
-      m.set(c.id, availabilityToKeySet((c as any).availability));
+      m.set(c.id, availabilityToSet((c as any).availability));
     }
     return m;
   }, [cleaners]);
 
-  /** Wer ist an diesem Tag (UTC-Key) NICHT verfügbar? */
-  function getUnavailableNamesByKey(utcKey: number): string[] {
-    if (isNaN(utcKey)) return [];
+  /** Wer ist an diesem Tag (ymd) NICHT verfügbar? */
+  function getUnavailableNames(ymd: string): string[] {
+    if (!ymd) return [];
 
     if (isAllView) {
       const names: string[] = [];
       for (const c of cleaners) {
         const set = unavailableIndex.get(c.id);
-        if (set && set.has(utcKey)) names.push(c.name);
+        if (set && set.has(ymd)) names.push(c.name);
       }
       return names;
     } else {
       const c = cleaners.find((x) => x.id === selectedCleanerId);
       if (!c) return [];
       const set = unavailableIndex.get(c.id);
-      return set && set.has(utcKey) ? [c.name] : [];
+      return set && set.has(ymd) ? [c.name] : [];
     }
   }
 
   function renderDay(day: MonthDay) {
-    // Wir bauen IMMER erst ein YMD und dann einen UTC-Key, egal was MonthCalendar liefert
-    const ymd = normalizeYMD(day.dateStr ?? day.date);
-    const utcKey = ymdToUTCKey(ymd);
-
-    const unavailableNames = getUnavailableNamesByKey(utcKey);
+    // Egal, ob day.dateStr vorhanden ist: wir normalisieren sicher auf 'YYYY-MM-DD'
+    const ymd = normalizeYMD((day as any).dateStr ?? day.date);
+    const unavailableNames = getUnavailableNames(ymd);
     const isUnavailable = unavailableNames.length > 0;
 
     const boxClass = isUnavailable
