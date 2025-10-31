@@ -115,7 +115,8 @@ export function Cleaners() {
   async function handleDeleteConfirmed() {
     if (!selectedCleaner) return;
     try {
-      await deleteCleaner(selectedCleaner.id);
+await deleteCleanerCascade(selectedCleaner.id);
+
       setIsConfirmOpen(false);
       await loadData();
     } catch (error: any) {
