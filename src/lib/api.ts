@@ -48,20 +48,30 @@ export async function getCurrentUser(): Promise<User | null> {
  * Holt alle Cleaner eines Hosts (host_id = users.id) inkl. availability (jsonb).
  * availability wird zu string[] normalisiert.
  */
+// src/lib/api.ts
 export async function getCleaners(hostUserId: string): Promise<Cleaner[]> {
   const { data, error } = await supabase
     .from('cleaners')
-    .select('id, host_id, user_id, name, email, phone, hourly_rate, availability')
+    .select('*')
     .eq('host_id', hostUserId)
-    .order('name')
+    .order('name');
 
-  if (error) throw error
+  if (error) throw error;
 
-  return (data ?? []).map((row: any) => ({
-    ...row,
-    availability: toStringArray(row.availability),
-  })) as Cleaner[]
+  // availability sicher in string[] (YYYY-MM-DD) mappen
+  const norm = (v: any): string[] => {
+    if (!Array.isArray(v)) return [];
+    return v
+      .map((x) => String(x))
+      .map((s) => s.includes('T') ? s.split('T')[0] : s); // "2025-10-31T..." -> "2025-10-31"
+  };
+
+  return (data || []).map((c: any) => ({
+    ...c,
+    availability: norm(c.availability),
+  })) as Cleaner[];
 }
+
 
 /**
  * Holt einen Cleaner über die AUTH-ID (cleaners.user_id -> auth.users.id).
