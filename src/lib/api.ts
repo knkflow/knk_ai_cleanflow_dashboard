@@ -165,24 +165,6 @@ export async function getTasks(
   return data ?? []
 }
 
-/** 🔹 Fehlte vorher → wird oft von Cleaner-Dashboard importiert */
-export async function getTasksForCleaner(
-  cleanerId: string
-): Promise<CleaningTaskWithDetails[]> {
-  const { data, error } = await supabase
-    .from('cleaning_tasks')
-    .select(`
-      *,
-      apartment:apartments(*),
-      cleaner:cleaners(*)
-    `)
-    .eq('cleaner_id', cleanerId)
-    .order('date')
-
-  if (error) throw error
-  return data ?? []
-}
-
 export async function createTask(task: Omit<CleaningTask, 'id' | 'created_at'>) {
   const taskData = { ...task }
 
