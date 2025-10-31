@@ -10,7 +10,10 @@ interface ContextType { user: User; }
 
 // jsonb -> string[]
 const toDateArray = (val: unknown): string[] =>
-  Array.isArray(val) ? val.map(String) : [];
+  Array.isArray(val)
+    ? val.map((v) => String(v)).map((s) => (s.includes('T') ? s.split('T')[0] : s))
+    : [];
+
 
 // Prüft, ob der Cleaner an diesem Tag NICHT verfügbar ist
 function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr?: string | null): boolean {
