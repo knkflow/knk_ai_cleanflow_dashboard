@@ -10,7 +10,14 @@ interface ContextType { user: User; }
 
 // jsonb -> string[]
 const toDateArray = (val: unknown): string[] =>
-  Array.isArray(val) ? val.map((v) => String(v)) : [];
+  Array.isArray(val) ? val.map(String) : [];
+
+// Prüft, ob der Cleaner an diesem Tag NICHT verfügbar ist
+function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr?: string | null): boolean {
+  if (!dateStr) return false;
+  const unavailableDays = toDateArray((cleaner as any).availability);
+  return unavailableDays.includes(dateStr);
+}
 
 function pad2(n: number) { return n.toString().padStart(2, '0'); }
 
@@ -50,16 +57,20 @@ export function Calendar() {
     }
   }
 
+  function dateStrOf(d: Date) {
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }
+
   /** Liste der Namen, die an diesem Tag NICHT verfügbar sind – abhängig vom Filter */
   function getUnavailableNames(dateStr: string): string[] {
     if (isAllView) {
       return cleaners
-        .filter(c => toDateArray((c as any).availability).includes(dateStr))
+        .filter(c => isCleanerUnavailableForDate(c, dateStr))
         .map(c => c.name);
     } else {
       const c = cleaners.find(x => x.id === selectedCleanerId);
       if (!c) return [];
-      return toDateArray((c as any).availability).includes(dateStr) ? [c.name] : [];
+      return isCleanerUnavailableForDate(c, dateStr) ? [c.name] : [];
     }
   }
 
@@ -75,7 +86,6 @@ export function Calendar() {
       ? (isUnavailable ? 'Nicht verfügbar (>1)' : 'Alle verfügbar')
       : (isUnavailable ? 'Nicht verfügbar' : 'Verfügbar');
 
-    // Hover-Badge NUR in "Alle"-Ansicht
     const showNamesBadge = isAllView && isUnavailable;
 
     return (
@@ -96,6 +106,7 @@ export function Calendar() {
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
             <div className="truncate">{primaryText}</div>
 
+            {/* Tooltip mit Namen nur in "Alle"-Ansicht */}
             {showNamesBadge && (
               <div className="absolute left-1 top-1">
                 <div className="group relative">
@@ -137,10 +148,6 @@ export function Calendar() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
-  const legendTextTop = isAllView
-    ? 'Rot = Mindestens ein Cleaner ist nicht verfügbar · Grün = Alle Cleaner sind verfügbar'
-    : 'Rot = Cleaner nicht verfügbar · Grün = Cleaner verfügbar';
-
   return (
     <div>
       {errorMsg && (
@@ -149,12 +156,7 @@ export function Calendar() {
         </div>
       )}
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Cleaner Availability Calendar</h2>
-        <p className="text-white/70 text-sm">{legendTextTop}</p>
-      </div>
-
-      {/* Filter: Alle + einzelne Cleaner */}
+      {/* Filter-Kacheln: Alle + einzelne Cleaner (Hover-Glow) */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
@@ -167,7 +169,7 @@ export function Calendar() {
                 ${
                   isAllView
                     ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                    : 'border-white/10 bg-white/5 hover:shadow-[0_0_15px_rgba(255,255,255,0.35)] hover:border-white/30'
+                    : 'border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:border-white/30'
                 }
                 focus:outline-none focus:ring-2 focus:ring-white/40`}
               title="Alle Cleaner anzeigen"
@@ -191,7 +193,7 @@ export function Calendar() {
                     ${
                       active
                         ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                        : 'border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(255,255,255,0.45)] hover:border-white/30'
+                        : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'
                     }
                     focus:outline-none focus:ring-2 focus:ring-white/40`}
                   title={`Nur ${c.name} anzeigen`}
@@ -232,14 +234,14 @@ export function Calendar() {
         renderDay={renderDay}
       />
 
-      {/* Legende unten – Text abhängig vom Modus */}
+      {/* Legende */}
       <div className="mt-6 bg-white/5 border border-white/10 p-4 rounded-lg">
         <h3 className="text-white font-semibold mb-3">Legende</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
             <span className="text-white/80">
-              {isAllView ? 'Mindestens ein Cleaner nicht verfügbar' : 'Cleaner nicht verfügbar'}
+              {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend'}
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -249,11 +251,6 @@ export function Calendar() {
             </span>
           </div>
         </div>
-        {isAllView && (
-          <p className="mt-3 text-xs text-white/60">
-            In der „Alle“-Ansicht zeigt ein roter Tag auf Hover, <i>wer</i> abwesend ist.
-          </p>
-        )}
       </div>
     </div>
   );
