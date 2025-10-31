@@ -19,43 +19,35 @@ export function Tasks() {
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal (Create/Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Delete-Modal
   const [taskToDelete, setTaskToDelete] = useState<CleaningTaskWithDetails | null>(null);
 
-  // Quick-Filter, Suche, Checkbox
-  // gültige IDs: 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'ALL'
   const [quickFilters, setQuickFilters] = useState<string[]>([]);
   const [apartmentQuery, setApartmentQuery] = useState('');
   const [cleanerQuery, setCleanerQuery] = useState('');
   const [withDeadlineOnly, setWithDeadlineOnly] = useState(false);
 
-  // Formular
   const [formData, setFormData] = useState({
     listing_id: '',
     cleaner_id: '',
-    date: '',     // yyyy-mm-dd
-    deadline: '', // yyyy-mm-dd
+    date: '',
+    deadline: '',
     note: '',
   });
 
-  // ---- Utils (Datum) ----
-  // robustes Parsen von yyyy-mm-dd ohne Timezone-Überraschungen
   function parseISODateYMD(dateStr: string): Date | null {
     if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
     const [y, m, d] = dateStr.split('-').map((n) => parseInt(n, 10));
     const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
-    // Validierung: JS korrigiert automatisch (z.B. 2025-02-31 -> März)
     if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
     return dt;
   }
 
   function startOfWeek(d = new Date()) {
     const date = new Date(d);
-    const day = (date.getDay() + 6) % 7; // Montag = 0
+    const day = (date.getDay() + 6) % 7;
     date.setDate(date.getDate() - day);
     date.setHours(0, 0, 0, 0);
     return date;
@@ -68,7 +60,6 @@ export function Tasks() {
     return e;
   }
 
-  // ---- Daten laden: immer ALLE Tasks holen, Filter clientseitig ----
   useEffect(() => {
     loadData();
   }, [user.id]);
@@ -77,7 +68,7 @@ export function Tasks() {
     setLoading(true);
     try {
       const [tasksRes, apartmentsRes, cleanersRes] = await Promise.allSettled([
-        getTasks(user.id),            // keine Server-Filter, alles lokal filtern
+        getTasks(user.id),
         getApartments(user.id),
         getCleaners(user.id),
       ]);
@@ -95,7 +86,6 @@ export function Tasks() {
     }
   }
 
-  // ---- Modal öffnen/schließen ----
   function openCreateModal() {
     setEditingId(null);
     setFormData({ listing_id: '', cleaner_id: '', date: '', deadline: '', note: '' });
@@ -106,22 +96,21 @@ export function Tasks() {
     setFormData({
       listing_id: task.listing_id,
       cleaner_id: task.cleaner_id || '',
-      date: task.date,              // erwartet yyyy-mm-dd
-      deadline: task.deadline || '',// erwartet yyyy-mm-dd
+      date: task.date,
+      deadline: task.deadline || '',
       note: task.note || '',
     });
     setIsModalOpen(true);
   }
 
-  // ---- Submit ----
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     try {
       const data = {
         listing_id: formData.listing_id,
         cleaner_id: formData.cleaner_id || null,
-        date: formData.date,                     // yyyy-mm-dd
-        deadline: formData.deadline || null,     // yyyy-mm-dd | null
+        date: formData.date,
+        deadline: formData.deadline || null,
         note: formData.note || null,
       };
       if (editingId) await updateTask(editingId, data);
@@ -129,12 +118,10 @@ export function Tasks() {
       setIsModalOpen(false);
       loadData();
     } catch (error: any) {
-      // optional: eigenes Error-Toast/Fenster
       console.error(error);
     }
   }
 
-  // ---- Delete ----
   function openDeleteModal(task: CleaningTaskWithDetails) {
     setTaskToDelete(task);
   }
@@ -149,13 +136,11 @@ export function Tasks() {
     }
   }
 
-  // ---- Verfügbarkeit ----
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner || !isValidDateString(task.date)) return false;
     return task.cleaner.availability.includes(task.date);
   }
 
-  // === FILTER-PRÜFUNG ===
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -164,7 +149,6 @@ export function Tasks() {
   const eow = endOfWeek(today);
 
   function isInQuickRanges(dateStr: string) {
-    // Kein Quick-Filter aktiv oder "ALL" aktiv → alles anzeigen
     if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
 
     const d = parseISODateYMD(dateStr);
@@ -182,41 +166,29 @@ export function Tasks() {
       checks.push(d >= sow && d <= eow);
     }
 
-    // OR-Verknüpfung der gewählten Bereiche
     return checks.some(Boolean);
   }
 
-  // === HAUPTFILTER ===
   const filteredTasks = tasks.filter((t) => {
-    // 1) Datum (Quick-Filter)
     if (!isInQuickRanges(t.date)) return false;
-
-    // 2) Apartment-Suche (Name/Adresse)
     if (apartmentQuery.trim()) {
       const q = apartmentQuery.toLowerCase();
       const name = (t.apartment?.name || '').toLowerCase();
       const addr = (t.apartment?.address || '').toLowerCase();
       if (!name.includes(q) && !addr.includes(q)) return false;
     }
-
-    // 3) Cleaner-Suche
     if (cleanerQuery.trim()) {
       const cq = cleanerQuery.toLowerCase();
       const cn = (t.cleaner?.name || '').toLowerCase();
       if (!cn.includes(cq)) return false;
     }
-
-    // 4) Nur mit Deadline
     if (withDeadlineOnly && !t.deadline) return false;
-
     return true;
   });
 
-  // ---- Handlers ----
   function toggleQuickFilter(id: 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'ALL') {
     setQuickFilters((prev) => {
       if (id === 'ALL') return prev.includes('ALL') ? [] : ['ALL'];
-      // Wenn ALL aktiv, zuerst entfernen
       const base = prev.filter((x) => x !== 'ALL');
       return base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
     });
@@ -249,7 +221,6 @@ export function Tasks() {
 
       {/* Filterleiste */}
       <div className="mb-6 flex flex-col gap-4">
-        {/* Quick-Buttons + Reset */}
         <div className="flex flex-wrap items-center gap-3">
           {[
             { id: 'TODAY', label: 'Heute' },
@@ -272,7 +243,6 @@ export function Tasks() {
             );
           })}
 
-          {/* Filter zurücksetzen */}
           <button
             onClick={resetFilters}
             className="ml-1 px-4 py-2 rounded-full text-sm transition-all duration-300 border border-white/20
@@ -284,7 +254,6 @@ export function Tasks() {
           </button>
         </div>
 
-        {/* Suchen & Checkbox */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             type="text"
@@ -324,6 +293,8 @@ export function Tasks() {
               className={`p-6 rounded-2xl transition-all duration-500 ${
                 unavailable
                   ? 'border-2 border-red-500 bg-white/5 hover:shadow-[0_0_18px_2px_rgba(255,0,0,0.4)]'
+                  : task.deadline
+                  ? 'border-2 border-red-400 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,100,100,0.45)]'
                   : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
               }`}
             >
@@ -343,7 +314,10 @@ export function Tasks() {
                   <p className="text-white/70 text-sm mb-1">Date: {task.date}</p>
 
                   {task.deadline && (
-                    <p className="text-white/60 text-sm mb-1">Deadline: {task.deadline}</p>
+                    <div className="inline-flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-sm font-medium">
+                      <AlertCircle className="w-4 h-4 text-red-400" />
+                      <span>Deadline: {task.deadline}</span>
+                    </div>
                   )}
 
                   {task.cleaner && (
@@ -408,7 +382,6 @@ export function Tasks() {
             ]}
           />
 
-          {/* Hinweis: Backend erwartet yyyy-mm-dd */}
           <Input
             label="Date (yyyy-mm-dd)"
             value={formData.date}
@@ -455,17 +428,8 @@ export function Tasks() {
 
       {/* Delete-Modal */}
       {taskToDelete && (
-        <div
-          aria-modal="true"
-          role="dialog"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setTaskToDelete(null)}
-          />
-          {/* Dialog */}
+        <div aria-modal="true" role="dialog" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setTaskToDelete(null)} />
           <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
             <h3 className="text-lg font-semibold mb-4">Task löschen?</h3>
 
@@ -484,20 +448,4 @@ export function Tasks() {
             <div className="flex gap-3">
               <button
                 onClick={confirmDelete}
-                className="flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
-              >
-                Löschen
-              </button>
-              <button
-                onClick={() => setTaskToDelete(null)}
-                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
-              >
-                Abbrechen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                className="flex
