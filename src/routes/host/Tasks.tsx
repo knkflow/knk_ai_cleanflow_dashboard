@@ -323,15 +323,15 @@ export function Tasks() {
             className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm rounded-md
                        placeholder-white/50 focus:outline-none focus:border-white"
           />
-          <label className="inline-flex items-center gap-2 text-sm text-white/80 select-none">
-            <input
-              type="checkbox"
-              checked={withDeadlineOnly}
-              onChange={(e) => setWithDeadlineOnly(e.target.checked)}
-              className="h-4 w-4 rounded border-white/30 bg-transparent text-white focus:ring-0"
-            />
-            Nur mit Deadline
-          </label>
+        <label className="inline-flex items-center gap-2 text-sm text-white/80 select-none">
+          <input
+            type="checkbox"
+            checked={withDeadlineOnly}
+            onChange={(e) => setWithDeadlineOnly(e.target.checked)}
+            className="h-4 w-4 appearance-none rounded border border-white/40 bg-transparent checked:bg-white checked:border-white/70 checked:before:content-['✓'] checked:before:text-black checked:before:text-xs checked:before:flex checked:before:items-center checked:before:justify-center focus:ring-0 transition-all"
+          />
+          Nur mit Deadline
+        </label>
         </div>
       </div>
 
