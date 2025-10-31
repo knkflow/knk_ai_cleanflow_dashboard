@@ -59,7 +59,7 @@ export async function createCleanerAndInvite(payload: {
  * Cleaner + zugehörige Daten löschen (Edge Function)
  */
 export async function deleteCleanerCascade(cleanerId: string) {
-  const { data, error } = await supabase.functions.invoke('delete.cleaner-oncascade', {
+  const { data, error } = await supabase.functions.invoke('quick-task', {
     body: { cleaner_id: cleanerId },
   })
 
