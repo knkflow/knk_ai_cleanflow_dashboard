@@ -14,7 +14,6 @@ const toDateArray = (val: unknown): string[] =>
     ? val.map((v) => String(v)).map((s) => (s.includes('T') ? s.split('T')[0] : s))
     : [];
 
-
 // Prüft, ob der Cleaner an diesem Tag NICHT verfügbar ist
 function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr?: string | null): boolean {
   if (!dateStr) return false;
@@ -66,16 +65,17 @@ export function Calendar() {
 
   /** Liste der Namen, die an diesem Tag NICHT verfügbar sind – abhängig vom Filter */
   function getUnavailableNames(dateStr: string): string[] {
-    if (isAllView) {
-      return cleaners
-        .filter(c => isCleanerUnavailableForDate(c, dateStr))
-        .map(c => c.name);
-    } else {
-      const c = cleaners.find(x => x.id === selectedCleanerId);
-      if (!c) return [];
-      return isCleanerUnavailableForDate(c, dateStr) ? [c.name] : [];
-    }
+  if (isAllView) {
+    return cleaners
+      // !!! WICHTIG: availability (nicht "available")
+      .filter((c) => toDateArray((c as any).availability).includes(dateStr))
+      .map((c) => c.name);
+  } else {
+    const c = cleaners.find((x) => x.id === selectedCleanerId);
+    if (!c) return [];
+    return toDateArray((c as any).availability).includes(dateStr) ? [c.name] : [];
   }
+}
 
   function renderDay(day: MonthDay) {
     const unavailableNames = getUnavailableNames(day.dateStr);
