@@ -21,7 +21,6 @@ export function Tasks() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [taskToDelete, setTaskToDelete] = useState<CleaningTaskWithDetails | null>(null);
 
   const [quickFilters, setQuickFilters] = useState<string[]>([]);
@@ -43,6 +42,23 @@ export function Tasks() {
     const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
     if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
     return dt;
+  }
+
+  // 🟢 NEU: Für Anzeigeformatierung (Di, 20.06.2025)
+  function formatDisplayDate(dateStr?: string | null): string {
+    if (!dateStr) return '';
+    const dt = parseISODateYMD(dateStr);
+    if (!dt) return dateStr;
+
+    const formatted = new Intl.DateTimeFormat('de-DE', {
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      timeZone: 'Europe/Berlin',
+    }).format(dt);
+
+    return formatted.replace(/^([^.]+)\.\s*/, '$1 ');
   }
 
   function startOfWeek(d = new Date()) {
@@ -138,26 +154,22 @@ export function Tasks() {
     }
   }
 
-  // Helper: Cleaner per ID holen
   function getCleanerById(id?: string | null) {
     if (!id) return undefined;
     return cleaners.find((c) => c.id === id);
   }
 
-  // Prüft, ob der Cleaner an diesem Tag UNavailable ist (Datenfeld enthält gesperrte Tage)
   function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
     if (!dateStr) return false;
     const availability = (cleaner as any)?.availability;
     return Array.isArray(availability) && availability.includes(dateStr);
   }
 
-  // Umkehrung: verfügbar, wenn nicht als unavailable markiert
   function isCleanerAvailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
-    if (!dateStr || !isValidDateString(dateStr)) return true; // solange kein Datum gesetzt ist, alle zeigen
+    if (!dateStr || !isValidDateString(dateStr)) return true;
     return !isCleanerUnavailableForDate(cleaner, dateStr);
   }
 
-  // Prüft für Badge auf der Karte
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner_id) return false;
     const cleaner = getCleanerById(task.cleaner_id);
@@ -179,7 +191,6 @@ export function Tasks() {
     if (!d) return false;
 
     const checks: boolean[] = [];
-
     if (quickFilters.includes('TODAY')) {
       checks.push(d.getTime() === today.getTime());
     }
@@ -227,7 +238,6 @@ export function Tasks() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
-  // Cleaner-Optionen im Modal: nur Verfügbare für formData.date
   const cleanerOptionsForDate = [
     { value: '', label: 'Use default cleaner' },
     ...cleaners
@@ -349,12 +359,14 @@ export function Tasks() {
                                    bg-red-600/20 text-red-300 border border-red-500/60"
                         title="Deadline"
                       >
-                        Deadline: {task.deadline}
+                        Deadline: {formatDisplayDate(task.deadline)}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-white/70 text-sm mb-1">Date: {task.date}</p>
+                  <p className="text-white/70 text-sm mb-1">
+                    Datum: {formatDisplayDate(task.date)}
+                  </p>
 
                   {taskCleaner && (
                     <p className="text-white/70 text-sm mb-1">
@@ -452,70 +464,3 @@ export function Tasks() {
               rows={3}
               className="w-full px-4 py-2 bg-white/10 border border-white/20 text-white focus:border-white focus:outline-none"
               placeholder="Additional instructions..."
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
-            >
-              {editingId ? 'Update' : 'Create'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Delete Modal */}
-      {taskToDelete && (
-        <div
-          aria-modal="true"
-          role="dialog"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setTaskToDelete(null)}
-          />
-          <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
-            <h3 className="text-lg font-semibold mb-4">Task löschen?</h3>
-
-            <p className="text-white/80 mb-6">
-              Möchten Sie die Reinigung für{' '}
-              <span className="font-semibold text-white">
-                {taskToDelete.apartment?.name || 'Unbekanntes Apartment'}
-              </span>{' '}
-              am{' '}
-              <span className="font-semibold text-white">
-                {taskToDelete.date || 'Unbekanntes Datum'}
-              </span>{' '}
-              wirklich entfernen?
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={confirmDelete}
-                className="flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
-              >
-                Löschen
-              </button>
-              <button
-                onClick={() => setTaskToDelete(null)}
-                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
-              >
-                Abbrechen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
