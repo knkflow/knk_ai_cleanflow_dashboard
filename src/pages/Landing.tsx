@@ -52,19 +52,17 @@ export function Landing() {
           </span>
 
 {/* Mittig – Logo */}
-<div className="absolute left-1/2 -translate-x-1/2 z-50">
+<div className="absolute left-1/2 -translate-x-1/2">
   <img
     src="/brand/logo.png"
     alt="CleanFlow Logo"
-    className="h-14 md:h-16 w-auto object-contain select-none rounded-full
-               border-2 border-white/60 shadow-[0_0_10px_rgba(255,255,255,0.25)]
-               transition-all duration-500 ease-out cursor-pointer
-               hover:scale-105 hover:border-[#d4af37] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)]"
-    onClick={() => navigate('/')}
+    className="h-12 md:h-14 w-auto object-contain select-none
+               rounded-full border-2 border-white/70 shadow-[0_0_10px_rgba(255,255,255,0.25)]
+               transition-all duration-500 ease-out
+               hover:shadow-[0_0_25px_rgba(255,255,255,0.55)] hover:border-white"
     onError={(e) => (e.currentTarget.style.display = 'none')}
   />
 </div>
-
 
           {/* Navigation rechts */}
           <nav className="flex items-center gap-6 md:gap-8">
@@ -122,14 +120,12 @@ export function Landing() {
 </p>
 </div>
 
-            <h1
-  className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]
-             bg-clip-text text-transparent bg-gradient-to-r from-[#b9932f] via-[#d4af37] to-[#f5e4a0]
-             animate-gradient-slow drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
->
-  Smart. Klar. Sauber.
-</h1>
-
+            <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+              <span className="text-white">Effortless</span>{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
+                Cleaning Coordination
+              </span>
+            </h1>
 
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
              Verwalten Sie Apartments, koordinieren Sie Reinigungskräfte und planen Sie Aufgaben mit Präzision. Entwickelt für Gastgeber, die Wert auf Effizienz legen.
