@@ -353,7 +353,7 @@ export function Tasks() {
               {unavailable && (
                 <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
                   <AlertCircle className="w-4 h-4" />
-                  <span>Cleaner unavailable on this date</span>
+                  <span>Die zugeordnete Reinigungskraft ist am Tag der Reinigung nicht verfügbar.</span>
                 </div>
               )}
 
