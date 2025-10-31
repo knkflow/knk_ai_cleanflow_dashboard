@@ -42,10 +42,7 @@ export async function getCleaners(hostId: string): Promise<Cleaner[]> {
   return data || []
 }
 
-/**
- * Erstellt einen Cleaner über Edge Function.
- * Diese Function legt automatisch Auth, User & Cleaner an.
- */
+
 export async function createCleanerAndInvite(payload: {
   host_id: string
   name: string
@@ -62,9 +59,6 @@ export async function createCleanerAndInvite(payload: {
   return data
 }
 
-/**
- * Löscht Cleaner + zugehörigen User + Auth-Account über Edge Function.
- */
 export async function deleteCleanerCascade(cleanerId: string) {
   const { data, error } = await supabase.functions.invoke('delete.cleaner-oncascade', {
     body: { cleaner_id: cleanerId },
