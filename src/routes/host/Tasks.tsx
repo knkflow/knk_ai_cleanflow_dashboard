@@ -138,11 +138,19 @@ export function Tasks() {
     }
   }
 
-  // Prüft, ob der Cleaner an diesem Tag unavailable ist
+  // Helper: Cleaner per ID holen
+  function getCleanerById(id?: string | null) {
+    if (!id) return undefined;
+    return cleaners.find((c) => c.id === id);
+  }
+
+  // Prüft, ob der Cleaner an diesem Tag unavailable ist (über cleaner_id -> Cleaner laden)
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
-    console.log("Cleaner name: " + task.cleaner_id);
-    if (!task.cleaner || !isValidDateString(task.date)) return false;
-    return Array.isArray(task.cleaner.availability) && task.cleaner.availability.includes(task.date);
+    if (!task.cleaner_id || !isValidDateString(task.date)) return false;
+    const cleaner = getCleanerById(task.cleaner_id);
+    if (!cleaner) return false;
+    const availability = (cleaner as any).availability;
+    return Array.isArray(availability) && availability.includes(task.date);
   }
 
   // === Filter ===
@@ -183,7 +191,7 @@ export function Tasks() {
     }
     if (cleanerQuery.trim()) {
       const cq = cleanerQuery.toLowerCase();
-      const cn = (t.cleaner?.name || '').toLowerCase();
+      const cn = (getCleanerById(t.cleaner_id)?.name || '').toLowerCase();
       if (!cn.includes(cq)) return false;
     }
     if (withDeadlineOnly && !t.deadline) return false;
@@ -289,6 +297,8 @@ export function Tasks() {
       <div className="grid gap-4">
         {filteredTasks.map((task) => {
           const unavailable = isCleanerUnavailable(task);
+          const taskCleaner = getCleanerById(task.cleaner_id);
+
           return (
             <div
               key={task.id}
@@ -313,9 +323,9 @@ export function Tasks() {
 
                   <p className="text-white/70 text-sm mb-1">Date: {task.date}</p>
 
-                  {task.cleaner && (
+                  {taskCleaner && (
                     <p className="text-white/70 text-sm mb-1">
-                      Cleaner: {task.cleaner.name}
+                      Cleaner: {taskCleaner.name}
                     </p>
                   )}
 
