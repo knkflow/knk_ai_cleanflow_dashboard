@@ -70,5 +70,16 @@ function App() {
     </BrowserRouter>
   );
 }
+return (
+    <Routes>
+      {/* ... deine bisherigen Routen ... */}
 
+      {/* Magic-Link-Route */}
+      <Route path="/cleaner/set-password" element={<SetPassword />} />
+
+      {/* Optional: Catch-All 404 */}
+      <Route path="*" element={<div>404 - Seite nicht gefunden</div>} />
+    </Routes>
+  );
+}
 export default App;
