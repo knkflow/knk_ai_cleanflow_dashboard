@@ -387,10 +387,10 @@ export function Tasks() {
                   )}
 
                   {task.note && (
-  <div className="mt-3 rounded-md bg-white/90 text-black text-sm px-3 py-2 shadow-sm border border-white/20">
-    {task.note}
-  </div>
-)}
+                    <div className="mt-3 rounded-md bg-white/90 text-black text-sm px-3 py-2 shadow-sm border border-white/20">
+                      {task.note}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
