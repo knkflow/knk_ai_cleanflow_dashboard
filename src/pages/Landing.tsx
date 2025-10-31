@@ -120,12 +120,14 @@ export function Landing() {
 </p>
 </div>
 
-            <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
-              <span className="text-white">Effortless</span>{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
-                Cleaning Coordination
-              </span>
-            </h1>
+            <h1
+  className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]
+             bg-clip-text text-transparent bg-gradient-to-r from-[#b9932f] via-[#d4af37] to-[#f5e4a0]
+             animate-gradient-slow drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+>
+  Smart. Klar. Sauber.
+</h1>
+
 
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
              Verwalten Sie Apartments, koordinieren Sie Reinigungskräfte und planen Sie Aufgaben mit Präzision. Entwickelt für Gastgeber, die Wert auf Effizienz legen.
