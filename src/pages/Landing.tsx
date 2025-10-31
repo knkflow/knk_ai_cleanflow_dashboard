@@ -107,12 +107,9 @@ export function Landing() {
                          transition-all duration-500 ease-out"
             >
     {/* Feiner, neutral-weißer Glow-Hintergrund */}
-<span
-  aria-hidden
-  className="absolute -inset-x-6 -inset-y-3 rounded-full 
-             bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.15)_70%,transparent_100%)]
-             blur-[24px] opacity-80"
-></span>
+{/* Entfernt: kein Glow-Hintergrund mehr, clean look */}
+<span aria-hidden className="hidden"></span>
+
 
 {/* Text */}
 <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]">
