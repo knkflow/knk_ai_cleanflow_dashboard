@@ -150,17 +150,7 @@ export function Calendar() {
         </div>
       )}
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Cleaner Availability Calendar</h2>
-        <p className="text-white/70 text-sm">
-          <span className="inline-flex items-center gap-2 mr-4">
-            <span className="inline-block w-3 h-3 rounded bg-red-500/60" /> Rot = Mindestens ein Cleaner ist nicht verfügbar
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="inline-block w-3 h-3 rounded bg-emerald-500/60" /> Grün = Alle Cleaner sind verfügbar
-          </span>
-        </p>
-      </div>
+    
 
       {/* Filter: Alle + einzelne Cleaner */}
       {cleaners.length > 0 && (
