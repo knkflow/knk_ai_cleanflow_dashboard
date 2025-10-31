@@ -28,7 +28,7 @@ export function Header({ user }: HeaderProps) {
         }}
       />
       <div>
-        <h1 className="text-xl font-semibold text-white">Cleanflow</h1>
+        <h1 className="text-xl font-semibold text-white">Willkommen {user.name}</h1>
 
         {/* Role badge */}
         <div className="mt-1 inline-flex items-center rounded-full bg-green-400/15 px-2.5 py-0.5 text-xs font-medium text-green-300 ring-1 ring-inset ring-green-400/20">
