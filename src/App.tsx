@@ -13,19 +13,27 @@ import { Apartments as CleanerApartments } from './routes/cleaner/Apartments';
 import { Tasks as CleanerTasks } from './routes/cleaner/Tasks';
 import { Calendar as CleanerCalendar } from './routes/cleaner/Calendar';
 
+// Lucide Icons (weiße Icons)
+import {
+  Building2,
+  Users,
+  ClipboardList,
+  CalendarDays,
+  Settings as SettingsIcon,
+} from 'lucide-react';
 
 const hostTabs = [
-  { to: '/host/apartments', label: '🏢 Apartments' },
-  { to: '/host/cleaners', label: '🧑‍🔧 Reinigungskräfte' },
-  { to: '/host/tasks', label: '🧭 Reinigungsplan' },
-  { to: '/host/calendar', label: '🗓️ Kalender' },
-  { to: '/host/settings', label: '⚙️ Einstellungen '}
+  { to: '/host/apartments', label: 'Apartments', icon: <Building2 size={18} color="white" /> },
+  { to: '/host/cleaners', label: 'Reinigungskräfte', icon: <Users size={18} color="white" /> },
+  { to: '/host/tasks', label: 'Reinigungsplan', icon: <ClipboardList size={18} color="white" /> },
+  { to: '/host/calendar', label: 'Kalender', icon: <CalendarDays size={18} color="white" /> },
+  { to: '/host/settings', label: 'Einstellungen', icon: <SettingsIcon size={18} color="white" /> },
 ];
 
 const cleanerTabs = [
-  { to: '/cleaner/apartments', label: 'Apartments' },
-  { to: '/cleaner/tasks', label: 'Reinigungsaufträge' },
-  { to: '/cleaner/calendar', label: 'Kalender' },
+  { to: '/cleaner/apartments', label: 'Apartments', icon: <Building2 size={18} color="white" /> },
+  { to: '/cleaner/tasks', label: 'Reinigungsaufträge', icon: <ClipboardList size={18} color="white" /> },
+  { to: '/cleaner/calendar', label: 'Kalender', icon: <CalendarDays size={18} color="white" /> },
 ];
 
 function App() {
@@ -35,7 +43,10 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
 
-        <Route path="/host" element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}>
+        <Route
+          path="/host"
+          element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}
+        >
           <Route index element={<DashboardHost />} />
           <Route path="apartments" element={<HostApartments />} />
           <Route path="cleaners" element={<HostCleaners />} />
@@ -44,7 +55,10 @@ function App() {
           <Route path="settings" element={<HostSettings />} />
         </Route>
 
-        <Route path="/cleaner" element={<GuardedLayout requiredRole="Cleaner" tabs={cleanerTabs} />}>
+        <Route
+          path="/cleaner"
+          element={<GuardedLayout requiredRole="Cleaner" tabs={cleanerTabs} />}
+        >
           <Route index element={<DashboardCleaner />} />
           <Route path="apartments" element={<CleanerApartments />} />
           <Route path="tasks" element={<CleanerTasks />} />
