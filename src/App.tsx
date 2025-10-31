@@ -16,6 +16,7 @@ import { Calendar as CleanerCalendar } from './routes/cleaner/Calendar';
 
 // Lucide icons (inherit currentColor → white on dark header)
 import {
+  Handshake,
   Building2,
   Users,
   ClipboardList,
@@ -24,7 +25,7 @@ import {
 } from 'lucide-react';
 
 const hostTabs = [
-  { to: '/host/onboard', label: 'Onboard', icon: Building2 },
+  { to: '/host/onboard', label: 'Onboard', icon: Handshake },
   { to: '/host/apartments', label: 'Apartments', icon: Building2 },
   { to: '/host/cleaners', label: 'Reinigungskräfte', icon: Users },
   { to: '/host/tasks', label: 'Reinigungsplan', icon: ClipboardList },
@@ -47,6 +48,7 @@ function App() {
 
         <Route path="/host" element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}>
           <Route index element={<DashboardHost />} />
+           <Route path="onboard" element={<HostOnboard />} />
           <Route path="apartments" element={<HostApartments />} />
           <Route path="cleaners" element={<HostCleaners />} />
           <Route path="tasks" element={<HostTasks />} />
