@@ -11,9 +11,7 @@ import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import type { User, Cleaner } from '../../types/db';
 
-interface ContextType {
-  user: User;
-}
+interface ContextType { user: User; }
 
 export function Cleaners() {
   const { user } = useOutletContext<ContextType>();
@@ -29,7 +27,7 @@ export function Cleaners() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  // Error-/Hinweis-Popup
+  // Popup (Fehler/Hinweis)
   const [errorModal, setErrorModal] = useState<{ open: boolean; message: string }>({
     open: false,
     message: '',
@@ -51,8 +49,8 @@ export function Cleaners() {
     try {
       const data = await getCleaners(user.id);
       setCleaners(data);
-    } catch (e) {
-      console.error('[Cleaners] loadData error:', e);
+    } catch (e: any) {
+      setErrorModal({ open: true, message: e?.message ?? 'Fehler beim Laden der Cleaner' });
     } finally {
       setLoading(false);
     }
@@ -75,6 +73,10 @@ export function Cleaners() {
     setIsModalOpen(true);
   }
 
+  function normalize(s: string) {
+    return (s || '').trim().toLowerCase();
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (submitting) return;
@@ -90,8 +92,26 @@ export function Cleaners() {
         send_magic_link: true,
       };
 
+      // Lokale Duplikat-Prüfung (Name / Email)
+      const nameKey = normalize(payload.name);
+      const emailKey = normalize(payload.email ?? '');
+
+      const duplicate =
+        cleaners.some(c => normalize(c.name) === nameKey) ||
+        (!!emailKey && cleaners.some(c => normalize(c.email || '') === emailKey));
+
+      if (!editingId && duplicate) {
+        setErrorModal({
+          open: true,
+          message: payload.email
+            ? `Cleaner mit Name "${payload.name}" oder E-Mail "${payload.email}" existiert bereits.`
+            : `Cleaner mit Name "${payload.name}" existiert bereits.`,
+        });
+        return;
+      }
+
       if (editingId) {
-        // Update direkt in cleaners
+        // Update in cleaners
         await updateCleaner(editingId, {
           name: payload.name,
           email: payload.email,
@@ -99,45 +119,38 @@ export function Cleaners() {
           hourly_rate: payload.hourly_rate,
         });
       } else {
-        // Edge Function (Slug = "smart-function") für Create + Invite
+        // Edge Function (Slug "smart-function")
         try {
           const data = await createCleanerAndInvite(payload);
 
-          // ✅ NEU: auch "ok: true, message: 'User already exists…'" abfangen
-          const msg = String(data?.message ?? '').toLowerCase();
-          if (
-            (data?.error && /already exists|duplicate/i.test(String(data.error))) ||
-            msg.includes('already exists')
-          ) {
+          const msg = String((data as any)?.message ?? '').toLowerCase();
+          const err = String((data as any)?.error ?? '').toLowerCase();
+          if (msg.includes('already exists') || err.includes('already exists') || err.includes('duplicate')) {
             setErrorModal({
               open: true,
-              message: `Ein Cleaner mit der E-Mail "${payload.email ?? ''}" existiert bereits.`,
+              message: payload.email
+                ? `Cleaner "${payload.name}" / "${payload.email}" existiert bereits.`
+                : `Cleaner "${payload.name}" existiert bereits.`,
             });
-            return; // Formular offen lassen
+            return;
           }
-
-          console.log('✅ Cleaner created via Edge Function:', data);
         } catch (err: any) {
-          const msg = String(err?.message ?? '').toLowerCase();
-          if (msg.includes('already exists') || msg.includes('duplicate')) {
-            setErrorModal({
-              open: true,
-              message: `Ein Cleaner mit der E-Mail "${payload.email ?? ''}" existiert bereits.`,
-            });
-          } else {
-            setErrorModal({
-              open: true,
-              message: 'Fehler beim Erstellen des Cleaners.',
-            });
-          }
-          return; // Formular offen lassen
+          const m = String(err?.message ?? '').toLowerCase();
+          setErrorModal({
+            open: true,
+            message: m.includes('already exists') || m.includes('duplicate')
+              ? (payload.email
+                  ? `Cleaner "${payload.name}" / "${payload.email}" existiert bereits.`
+                  : `Cleaner "${payload.name}" existiert bereits.`)
+              : 'Fehler beim Erstellen des Cleaners.',
+          });
+          return;
         }
       }
 
-      setIsModalOpen(false); // nur schließen, wenn kein Duplicate-Fall
+      setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      console.error('[Cleaners] handleSubmit error:', err);
       setErrorModal({
         open: true,
         message: err?.message ?? 'Unbekannter Fehler beim Speichern',
@@ -155,12 +168,10 @@ export function Cleaners() {
   async function handleDeleteConfirmed() {
     if (!selectedCleaner) return;
     try {
-      // Edge Function (Slug = "quick-task") für das Löschen inkl. Cascade
       await deleteCleanerCascade(selectedCleaner.id);
       setIsConfirmOpen(false);
       await loadData();
     } catch (error: any) {
-      console.error('[Cleaners] delete error:', error);
       setErrorModal({
         open: true,
         message: error?.message ?? 'Löschen fehlgeschlagen',
@@ -221,15 +232,11 @@ export function Cleaners() {
 
                 {cleaner.email && <p className="text-white/70 text-sm mb-1">{cleaner.email}</p>}
                 {cleaner.phone && <p className="text-white/60 text-sm mb-1">{cleaner.phone}</p>}
-                {cleaner.hourly_rate && (
+                {typeof cleaner.hourly_rate === 'number' && (
                   <p className="text-white/50 text-sm">
-                    Rate: €{cleaner.hourly_rate.toFixed(2)}/hour
+                    Rate: €{Number(cleaner.hourly_rate).toFixed(2)}/hour
                   </p>
                 )}
-                <p className="text-white/40 text-xs mt-2">
-                  Unavailable days:{' '}
-                  {Array.isArray(cleaner.availability) ? cleaner.availability.length : 0}
-                </p>
               </div>
 
               <div className="flex gap-2">
@@ -374,3 +381,5 @@ export function Cleaners() {
     </div>
   );
 }
+
+export default Cleaners;
