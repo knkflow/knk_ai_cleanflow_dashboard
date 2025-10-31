@@ -91,6 +91,7 @@ export function Tasks() {
     setFormData({ listing_id: '', cleaner_id: '', date: '', deadline: '', note: '' });
     setIsModalOpen(true);
   }
+
   function openEditModal(task: CleaningTaskWithDetails) {
     setEditingId(task.id);
     setFormData({
@@ -125,6 +126,7 @@ export function Tasks() {
   function openDeleteModal(task: CleaningTaskWithDetails) {
     setTaskToDelete(task);
   }
+
   async function confirmDelete() {
     if (!taskToDelete) return;
     try {
@@ -136,11 +138,13 @@ export function Tasks() {
     }
   }
 
+  // Prüft, ob der Cleaner an diesem Tag unavailable ist
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner || !isValidDateString(task.date)) return false;
-    return task.cleaner.availability.includes(task.date);
+    return Array.isArray(task.cleaner.availability) && task.cleaner.availability.includes(task.date);
   }
 
+  // === Filter ===
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -150,7 +154,6 @@ export function Tasks() {
 
   function isInQuickRanges(dateStr: string) {
     if (quickFilters.length === 0 || quickFilters.includes('ALL')) return true;
-
     const d = parseISODateYMD(dateStr);
     if (!d) return false;
 
@@ -201,13 +204,11 @@ export function Tasks() {
     setWithDeadlineOnly(false);
   }
 
-  if (loading) {
-    return <div className="text-white">Loading...</div>;
-  }
+  if (loading) return <div className="text-white">Loading...</div>;
 
   return (
     <div>
-      {/* Kopfzeile */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Geplante Reinigungen</h2>
         <button
@@ -219,7 +220,7 @@ export function Tasks() {
         </button>
       </div>
 
-      {/* Filterleiste */}
+      {/* Filter */}
       <div className="mb-6 flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
           {[
@@ -283,7 +284,7 @@ export function Tasks() {
         </div>
       </div>
 
-      {/* Liste */}
+      {/* Task Cards */}
       <div className="grid gap-4">
         {filteredTasks.map((task) => {
           const unavailable = isCleanerUnavailable(task);
@@ -292,9 +293,7 @@ export function Tasks() {
               key={task.id}
               className={`p-6 rounded-2xl transition-all duration-500 ${
                 unavailable
-                  ? 'border-2 border-red-500 bg-white/5 hover:shadow-[0_0_18px_2px_rgba(255,0,0,0.4)]'
-                  : task.deadline
-                  ? 'border-2 border-red-400 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,100,100,0.45)]'
+                  ? 'border-2 border-red-500 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,80,80,0.45)]'
                   : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
               }`}
             >
@@ -313,15 +312,10 @@ export function Tasks() {
 
                   <p className="text-white/70 text-sm mb-1">Date: {task.date}</p>
 
-                  {task.deadline && (
-                    <div className="inline-flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-sm font-medium">
-                      <AlertCircle className="w-4 h-4 text-red-400" />
-                      <span>Deadline: {task.deadline}</span>
-                    </div>
-                  )}
-
                   {task.cleaner && (
-                    <p className="text-white/70 text-sm mb-1">Cleaner: {task.cleaner.name}</p>
+                    <p className="text-white/70 text-sm mb-1">
+                      Cleaner: {task.cleaner.name}
+                    </p>
                   )}
 
                   {task.note && <p className="text-white/50 text-sm mt-2">{task.note}</p>}
@@ -350,7 +344,9 @@ export function Tasks() {
         })}
 
         {filteredTasks.length === 0 && (
-          <div className="text-center py-12 text-white/50">Keine Reinigungen gefunden.</div>
+          <div className="text-center py-12 text-white/50">
+            Keine Reinigungen gefunden.
+          </div>
         )}
       </div>
 
@@ -426,10 +422,17 @@ export function Tasks() {
         </form>
       </Modal>
 
-      {/* Delete-Modal */}
+      {/* Delete Modal */}
       {taskToDelete && (
-        <div aria-modal="true" role="dialog" className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setTaskToDelete(null)} />
+        <div
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setTaskToDelete(null)}
+          />
           <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
             <h3 className="text-lg font-semibold mb-4">Task löschen?</h3>
 
@@ -448,4 +451,20 @@ export function Tasks() {
             <div className="flex gap-3">
               <button
                 onClick={confirmDelete}
-                className="flex"
+                className="flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
+              >
+                Löschen
+              </button>
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
