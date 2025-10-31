@@ -118,8 +118,8 @@ export function Calendar() {
 
   const loadCleaners = useCallback(async () => {
     const nowTs = Date.now();
-    if (inFlightRef.current) return;                       // bereits ein Request aktiv
-    if (nowTs - lastFetchTsRef.current < THROTTLE_MS) return; // zu schnell hintereinander
+    if (inFlightRef.current) return;
+    if (nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
 
     inFlightRef.current = true;
     setLoading(true);
@@ -137,10 +137,8 @@ export function Calendar() {
     }
   }, [user.id]);
 
-  // 1) Einmal beim Mount + bei Userwechsel
   useEffect(() => { void loadCleaners(); }, [loadCleaners]);
 
-  // 2) Navigation: Nur neu laden, wenn wir *wirklich* in den Kalender wechseln
   useEffect(() => {
     const path = location.pathname || '';
     if (path.toLowerCase().includes('calendar')) {
@@ -148,7 +146,6 @@ export function Calendar() {
     }
   }, [location.pathname, loadCleaners]);
 
-  // 3) Auf Fokus / Tab sichtbar → reload (gedrosselt)
   useEffect(() => {
     const onFocus = () => void loadCleaners();
     const onVis = () => { if (!document.hidden) void loadCleaners(); };
@@ -163,15 +160,10 @@ export function Calendar() {
   /** Map<cleanerId, Set<'YYYY-MM-DD'>> */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
-    // Einmaliges, kurzes Log (nicht spammen)
-    console.groupCollapsed('[Calendar] Build unavailableIndex');
     for (const c of cleaners) {
-      const label = getCleanerLabel(c);
       const set = availabilityToSet((c as any).availability);
       m.set(c.id, set);
-      console.debug(`- ${label} →`, Array.from(set));
     }
-    console.groupEnd();
     return m;
   }, [cleaners]);
 
@@ -202,11 +194,13 @@ export function Calendar() {
       ? 'bg-red-500/20 text-red-300 border-red-500/40'
       : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
+    // ⚠️ Kein "(>1)" mehr – immer nur "Nicht verfügbar"
     const primaryText = isAllView
-      ? (isUnavailable ? 'Nicht verfügbar (>1)' : 'Alle verfügbar')
+      ? (isUnavailable ? 'Nicht verfügbar' : 'Alle verfügbar')
       : (isUnavailable ? 'Nicht verfügbar' : 'Verfügbar');
 
-    const showNamesBadge = isAllView && isUnavailable;
+    // Wer-Liste nur in "Alle"-Ansicht und nur wenn mind. 1 abwesend
+    const showNamesList = isAllView && isUnavailable;
 
     return (
       <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
@@ -220,26 +214,20 @@ export function Calendar() {
 
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
+            {/* Haupttext */}
             <div className="truncate">{primaryText}</div>
 
-            {showNamesBadge && (
-              <div className="absolute left-1 top-1">
-                <div className="group relative">
-                  <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full
-                                   bg-red-500/25 text-red-200 border border-red-500/60">
-                    <span className="text-[10px] font-semibold tracking-wide">Wer:</span>
-                  </span>
-                  <div className="pointer-events-none absolute z-20 mt-1 hidden min-w-[140px] max-w-[220px]
-                                  whitespace-normal break-words rounded-lg border border-red-500/40
-                                  bg-red-900/90 px-3 py-2 text-[11px] text-red-100 shadow-lg group-hover:block">
-                    <div className="mb-1 text-[10px] uppercase tracking-wider text-red-200/80">
-                      Abwesend:
-                    </div>
-                    <ul className="list-disc pl-4 space-y-0.5">
-                      {unavailableNames.map((n, i) => <li key={i}>{n}</li>)}
-                    </ul>
-                  </div>
+            {/* „Wer“ direkt darunter anzeigen */}
+            {showNamesList && (
+              <div className="mt-1 text-[11px] text-red-200">
+                <div className="font-semibold uppercase tracking-wider mb-0.5 text-[10px]">
+                  Wer:
                 </div>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  {unavailableNames.map((n, i) => (
+                    <li key={i} className="leading-tight">{n}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
