@@ -8,7 +8,7 @@ import type { MonthDay } from '../../lib/dates';
 
 interface ContextType { user: User; }
 
-/* ---------------------- 🔧 Hilfsfunktionen ---------------------- */
+/* ---------------------- Helfer ---------------------- */
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
 
@@ -20,11 +20,7 @@ function isValidYMD(y: number, m1: number, d: number): boolean {
   if (!Number.isInteger(y) || !Number.isInteger(m1) || !Number.isInteger(d)) return false;
   if (m1 < 1 || m1 > 12 || d < 1 || d > 31) return false;
   const dt = new Date(Date.UTC(y, m1 - 1, d));
-  return (
-    dt.getUTCFullYear() === y &&
-    dt.getUTCMonth() === m1 - 1 &&
-    dt.getUTCDate() === d
-  );
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m1 - 1 && dt.getUTCDate() === d;
 }
 
 /** Normalisiert alle möglichen Datumsformen → 'YYYY-MM-DD' */
@@ -76,14 +72,14 @@ function availabilityToSet(av: unknown): Set<string> {
   };
   const walk = (val: unknown) => {
     if (val == null) return;
-    if (Array.isArray(val)) {
-      for (const v of val) walk(v);
-      return;
-    }
+    if (Array.isArray(val)) { for (const v of val) walk(v); return; }
     const s = String(val).trim();
-    if (s.includes(',') || s.includes(';') || /\s/.test(s))
+    if (!s) return;
+    if (s.includes(',') || s.includes(';') || /\s/.test(s)) {
       for (const part of s.split(/[,;\s]+/)) add(part);
-    else add(s);
+    } else {
+      add(s);
+    }
   };
   walk(av);
   return set;
@@ -93,7 +89,18 @@ function dayToYMD(day: MonthDay): string {
   return normalizeYMD((day as any).dateStr ?? day.date);
 }
 
-/* -------------------------- 🧩 Komponente -------------------------- */
+/** Fallback-Label für Cleaner (falls name leer/fehlend) */
+function getCleanerLabel(c: Cleaner): string {
+  const n = (c as any)?.name;
+  if (typeof n === 'string' && n.trim().length > 0) return n.trim();
+  const e = (c as any)?.email;
+  if (typeof e === 'string' && e.trim().length > 0) return e.trim();
+  const p = (c as any)?.phone;
+  if (typeof p === 'string' && p.trim().length > 0) return p.trim();
+  return '[Unbenannt]';
+}
+
+/* ---------------------- Komponente ---------------------- */
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -110,7 +117,7 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
-  /* ---------- 🌀 Cleaners neu laden bei Navigation / Fokus ---------- */
+  // Neu laden bei Benutzerwechsel / Navigationswechsel / Fokus / Sichtbarkeit
   useEffect(() => { void loadCleaners(); }, [user.id]);
   useEffect(() => { void loadCleaners(); }, [location.key]);
   useEffect(() => {
@@ -129,6 +136,7 @@ export function Calendar() {
     setErrorMsg(null);
     try {
       const data = await getCleaners(user.id);
+      console.debug('[Calendar] getCleaners() raw:', data);
       setCleaners(data ?? []);
       if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
     } catch (e: any) {
@@ -138,46 +146,52 @@ export function Calendar() {
     }
   }
 
-  /** Map<cleanerId, Set<'YYYY-MM-DD'>> */
+  /** Map<cleanerId, Set<'YYYY-MM-DD'>> + Debug log mit Fallback-Name */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
+    console.group('[Calendar] Build unavailableIndex');
     for (const c of cleaners) {
-      const name = c.name?.trim() || '[Unbenannt]';
+      const label = getCleanerLabel(c);
       const set = availabilityToSet((c as any).availability);
       m.set(c.id, set);
-      console.debug(`[Calendar] Cleaner "${name}" availability set:`, Array.from(set));
+      console.debug(`- ${label} (${c.id}) availability ->`, Array.from(set));
+      if (!('name' in c) || (typeof (c as any).name !== 'string') || !(c as any).name?.trim()) {
+        console.warn(`  ⚠️ Cleaner hat keinen sichtbaren Namen. Genutztes Label: ${label}`);
+      }
     }
+    console.groupEnd();
     return m;
   }, [cleaners]);
 
-  /** Wer ist an diesem Tag nicht verfügbar? + Konsolenlog */
+  /** Wer ist an diesem Tag nicht verfügbar? */
   function getUnavailableNames(ymd: string): string[] {
     if (!ymd) return [];
     const names: string[] = [];
 
     if (isAllView) {
       for (const c of cleaners) {
-        const name = c.name?.trim() || '[Unbenannt]';
+        const label = getCleanerLabel(c);
         const set = unavailableIndex.get(c.id);
         if (!set) {
-          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${name}`);
+          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${label}`);
           continue;
         }
         const hit = set.has(ymd);
-        console.debug(`[Calendar] Check day ${ymd} → ${name}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
-        if (hit) names.push(name);
+        console.debug(`[Calendar] ${ymd} → ${label}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
+        if (hit) names.push(label);
       }
     } else {
       const c = cleaners.find(x => x.id === selectedCleanerId);
       if (c) {
-        const name = c.name?.trim() || '[Unbenannt]';
+        const label = getCleanerLabel(c);
         const set = unavailableIndex.get(c.id);
         if (!set) {
-          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${name}`);
+          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${label}`);
+        } else if (set.has(ymd)) {
+          console.debug(`[Calendar] (Filter ${label}) ${ymd}: ❌ UNAVAILABLE`);
+          names.push(label);
         } else {
-          const hit = set.has(ymd);
-          console.debug(`[Calendar] (Filter ${name}) Check day ${ymd}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
-          if (hit) names.push(name);
+          console.debug(`[Calendar] (Filter ${label}) ${ymd}: ✅ available`);
         }
       } else {
         console.warn(`[Calendar] ⚠️ Kein Cleaner mit ID ${selectedCleanerId} gefunden.`);
@@ -185,9 +199,9 @@ export function Calendar() {
     }
 
     if (names.length > 0)
-      console.debug(`[Calendar] 🔴 ${ymd} →`, names);
+      console.debug(`[Calendar] 🔴 ${ymd} ->`, names);
     else
-      console.debug(`[Calendar] 🟢 ${ymd} → alle verfügbar`);
+      console.debug(`[Calendar] 🟢 ${ymd} -> alle verfügbar`);
 
     return names;
   }
@@ -222,13 +236,12 @@ export function Calendar() {
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
             <div className="truncate">{primaryText}</div>
+
             {showNamesBadge && (
               <div className="absolute left-1 top-1">
                 <div className="group relative">
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full
-                                 bg-red-500/25 text-red-200 border border-red-500/60"
-                  >
+                  <span className="inline-flex items-center gap-1 px-2 py-[2px] rounded-full
+                                   bg-red-500/25 text-red-200 border border-red-500/60">
                     <span className="text-[10px] font-semibold tracking-wide">Wer:</span>
                   </span>
                   <div className="pointer-events-none absolute z-20 mt-1 hidden min-w-[140px] max-w-[220px]
@@ -251,13 +264,12 @@ export function Calendar() {
   }
 
   const sortedCleaners = useMemo(
-    () => [...cleaners].sort((a, b) => (a.name || '').localeCompare(b.name || '')),
+    () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
     [cleaners]
   );
 
   if (loading) return <div className="text-white">Loading...</div>;
 
-  /* --------------------------- Render Output --------------------------- */
   return (
     <div>
       {errorMsg && (
@@ -266,7 +278,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Cleaner Filter */}
+      {/* Filter-Kacheln */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
@@ -284,11 +296,12 @@ export function Calendar() {
               <div className="text-xs text-white/60">Gesamtübersicht</div>
             </button>
 
-            {/* Einzelne Cleaner */}
+            {/* Einzelne */}
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
-              const name = c.name?.trim() || '[Unbenannt]';
-              const initials = name.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase() || 'C';
+              const label = getCleanerLabel(c);
+              const initials = label.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase() || 'C';
+
               return (
                 <button
                   key={c.id}
@@ -305,7 +318,7 @@ export function Calendar() {
                       <span className="text-xs font-bold">{initials}</span>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-white truncate">{name}</div>
+                      <div className="text-sm font-medium text-white truncate">{label}</div>
                       <div className="text-[11px] text-white/60">
                         {active ? 'Ausgewählt' : 'Klicken zum Anzeigen'}
                       </div>
@@ -319,12 +332,12 @@ export function Calendar() {
           <div className="mt-3 text-xs text-white/60">
             {isAllView
               ? 'Ansicht: Alle Reinigungskräfte'
-              : `Ansicht gefiltert auf: ${sortedCleaners.find(x => x.id === selectedCleanerId)?.name ?? '[Unbekannt]'}`}
+              : `Ansicht gefiltert auf: ${sortedCleaners.find(x => x.id === selectedCleanerId)?.name ?? getCleanerLabel(sortedCleaners.find(x => x.id === selectedCleanerId) as Cleaner)}`}
           </div>
         </div>
       )}
 
-      {/* Monatskalender */}
+      {/* Kalender */}
       <MonthCalendar
         year={year}
         month={month}
