@@ -328,7 +328,7 @@ export function Tasks() {
             type="checkbox"
             checked={withDeadlineOnly}
             onChange={(e) => setWithDeadlineOnly(e.target.checked)}
-            className="h-4 w-4 appearance-none rounded border border-white/40 bg-transparent checked:bg-white checked:border-white/70 checked:before:content-['✓'] checked:before:text-black checked:before:text-xs checked:before:flex checked:before:items-center checked:before:justify-center focus:ring-0 transition-all"
+            className="h-4 w-4 appearance-none rounded border border-white/40 bg-transparent checked:bg-white/70 checked:border-white focus:ring-0 transition-colors duration-150"
           />
           Nur mit Deadline
         </label>
