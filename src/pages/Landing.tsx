@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
+import logoPng from '/brand/logo.png'; // liegt in public/brand/logo.png
+
 
 export function Landing() {
   const navigate = useNavigate();
