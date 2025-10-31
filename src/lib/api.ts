@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from './supabase'
 import type {
   User,
   Cleaner,
@@ -6,26 +6,24 @@ import type {
   CleaningTask,
   ApartmentWithCleaner,
   CleaningTaskWithDetails,
-} from '../types/db';
+} from '../types/db'
 
 /* ========== USER ========== */
 
 export async function getCurrentUser(): Promise<User | null> {
   const {
     data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  } = await supabase.auth.getUser()
+  if (!user) return null
 
-  // In deinem Schema existieren sowohl auth_id als auch auth_user_id.
-  // Wir filtern hier über auth_id (wie bisher bei dir genutzt).
   const { data, error } = await supabase
     .from('users')
     .select('*')
     .eq('auth_id', user.id)
-    .maybeSingle();
+    .maybeSingle()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
 
 /* ========== CLEANERS ========== */
@@ -35,84 +33,73 @@ export async function getCleaners(hostId: string): Promise<Cleaner[]> {
     .from('cleaners')
     .select('*')
     .eq('host_id', hostId)
-    .order('name');
+    .order('name')
 
-  if (error) throw error;
-  return data || [];
+  if (error) throw error
+  return data || []
 }
 
-export async function createCleaner(
-  cleaner: Omit<Cleaner, 'id' | 'created_at'>
-): Promise<Cleaner> {
-  const { data, error } = await supabase
-    .from('cleaners')
-    .insert([cleaner])
-    .select()
-    .single();
+/**
+ * Erstellt einen Cleaner über Edge Function.
+ * Diese Function legt automatisch Auth, User & Cleaner an.
+ */
+export async function createCleanerAndInvite(payload: {
+  host_id: string
+  name: string
+  email?: string | null
+  phone?: string | null
+  hourly_rate?: number | null
+  send_magic_link?: boolean
+}) {
+  const { data, error } = await supabase.functions.invoke('create_initial_users', {
+    body: payload,
+  })
 
-  if (error) throw error;
-  return data;
+  if (error) throw new Error(error.message || 'Edge Function call failed')
+  return data
 }
 
-export async function updateCleaner(
-  id: string,
-  updates: Partial<Cleaner>
-): Promise<Cleaner> {
+/**
+ * Löscht Cleaner + zugehörigen User + Auth-Account über Edge Function.
+ */
+export async function deleteCleanerCascade(cleanerId: string) {
+  const { data, error } = await supabase.functions.invoke('delete-cleaner-cascade', {
+    body: { cleaner_id: cleanerId },
+  })
+
+  if (error) throw new Error(error.message || 'Failed to delete cleaner cascade')
+  return data
+}
+
+/**
+ * Lokales Update in der Tabelle cleaners (kein Edge Function Call)
+ */
+export async function updateCleaner(id: string, updates: Partial<Cleaner>): Promise<Cleaner> {
   const { data, error } = await supabase
     .from('cleaners')
     .update(updates)
     .eq('id', id)
     .select()
-    .single();
+    .single()
 
-  if (error) throw error;
-  return data;
-}
-
-// ruft deine Edge Function auf (Service-Role läuft serverseitig dort)
-export async function deleteCleanerCascade(cleanerId: string) {
-  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-cleaner-cascade`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ cleaner_id: cleanerId }),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json?.error || 'Failed to delete cleaner');
-  return json;
+  if (error) throw error
+  return data
 }
 
 /* ========== APARTMENTS ========== */
 
-export async function getApartments(
-  ownerId: string
-): Promise<ApartmentWithCleaner[]> {
+export async function getApartments(ownerId: string): Promise<ApartmentWithCleaner[]> {
   const { data, error } = await supabase
     .from('apartments')
-    .select(
-      `
+    .select(`
       *,
       default_cleaner:cleaners(*)
-    `
-    )
+    `)
     .eq('owner_id', ownerId)
-    .order('name');
+    .order('name')
 
-  if (error) throw error;
-  return data || [];
-}
-
-export async function getApartmentsForCleaner(
-  cleanerId: string
-): Promise<Apartment[]> {
-  const { data, error } = await supabase
-    .from('apartments')
-    .select('*')
-    .eq('default_cleaner_id', cleanerId)
-    .order('name');
-
-  if (error) throw error;
-  return data || [];
+  if (error) throw error
+  return data || []
 }
 
 export async function createApartment(
@@ -122,10 +109,10 @@ export async function createApartment(
     .from('apartments')
     .insert([apartment])
     .select()
-    .single();
+    .single()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
 
 export async function updateApartment(
@@ -137,19 +124,15 @@ export async function updateApartment(
     .update(updates)
     .eq('listing_id', id)
     .select()
-    .single();
+    .single()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
 
 export async function deleteApartment(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('apartments')
-    .delete()
-    .eq('listing_id', id);
-
-  if (error) throw error;
+  const { error } = await supabase.from('apartments').delete().eq('listing_id', id)
+  if (error) throw error
 }
 
 /* ========== TASKS ========== */
@@ -158,66 +141,36 @@ export async function getTasks(
   ownerId: string,
   filters?: { dateFrom?: string; dateTo?: string; cleanerId?: string }
 ): Promise<CleaningTaskWithDetails[]> {
-  // Alias "apartment" für den Join, damit Filter stabil sind
   let query = supabase
     .from('cleaning_tasks')
-    .select(
-      `
+    .select(`
       *,
       apartment:apartments!inner(*),
       cleaner:cleaners(*)
-    `
-    )
-    .eq('apartment.owner_id', ownerId); // Filter auf die gejointe Tabelle via Alias
+    `)
+    .eq('apartment.owner_id', ownerId)
 
-  if (filters?.dateFrom) query = query.gte('date', filters.dateFrom);
-  if (filters?.dateTo) query = query.lte('date', filters.dateTo);
-  if (filters?.cleanerId) query = query.eq('cleaner_id', filters.cleanerId);
+  if (filters?.dateFrom) query = query.gte('date', filters.dateFrom)
+  if (filters?.dateTo) query = query.lte('date', filters.dateTo)
+  if (filters?.cleanerId) query = query.eq('cleaner_id', filters.cleanerId)
 
-  const { data, error } = await query.order('date');
-  if (error) throw error;
-  return data ?? [];
+  const { data, error } = await query.order('date')
+  if (error) throw error
+  return data ?? []
 }
 
-export async function getTasksForCleaner(
-  cleanerId: string,
-  dateFrom?: string,
-  dateTo?: string
-): Promise<CleaningTaskWithDetails[]> {
-  let query = supabase
-    .from('cleaning_tasks')
-    .select(
-      `
-      *,
-      apartment:apartments!cleaning_tasks_listing_id_fkey(*)
-    `
-    )
-    .eq('cleaner_id', cleanerId);
+export async function createTask(task: Omit<CleaningTask, 'id' | 'created_at'>) {
+  const taskData = { ...task }
 
-  if (dateFrom) query = query.gte('date', dateFrom);
-  if (dateTo) query = query.lte('date', dateTo);
-
-  const { data, error } = await query.order('date');
-  if (error) throw error;
-  return data || [];
-}
-
-export async function createTask(
-  task: Omit<CleaningTask, 'id' | 'created_at'>
-): Promise<CleaningTask> {
-  const taskData: CleaningTask = { ...(task as any) };
-
-  // Falls kein cleaner_id übergeben wurde, default_cleaner des Apartments verwenden
   if (!taskData.cleaner_id && taskData.listing_id) {
-    const { data: apartment, error: aErr } = await supabase
+    const { data: apartment } = await supabase
       .from('apartments')
       .select('default_cleaner_id')
-      .eq('listing_id', taskData.listing_id) // ✅ richtiger Key (vorher fälschlich 'name')
-      .maybeSingle();
+      .eq('listing_id', taskData.listing_id)
+      .maybeSingle()
 
-    if (aErr) throw aErr;
     if (apartment?.default_cleaner_id) {
-      taskData.cleaner_id = apartment.default_cleaner_id;
+      taskData.cleaner_id = apartment.default_cleaner_id
     }
   }
 
@@ -225,56 +178,49 @@ export async function createTask(
     .from('cleaning_tasks')
     .insert([taskData])
     .select()
-    .single();
+    .single()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
 
-export async function updateTask(
-  id: string,
-  updates: Partial<CleaningTask>
-): Promise<CleaningTask> {
+export async function updateTask(id: string, updates: Partial<CleaningTask>): Promise<CleaningTask> {
   const { data, error } = await supabase
     .from('cleaning_tasks')
     .update(updates)
     .eq('id', id)
     .select()
-    .single();
+    .single()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const { error } = await supabase.from('cleaning_tasks').delete().eq('id', id);
-  if (error) throw error;
+  const { error } = await supabase.from('cleaning_tasks').delete().eq('id', id)
+  if (error) throw error
 }
 
 /* ========== LOOKUPS ========== */
 
-export async function getCleanerById(
-  cleanerId: string
-): Promise<Cleaner | null> {
+export async function getCleanerById(cleanerId: string): Promise<Cleaner | null> {
   const { data, error } = await supabase
     .from('cleaners')
     .select('*')
     .eq('id', cleanerId)
-    .maybeSingle();
+    .maybeSingle()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
 
-export async function getCleanerByUserId(
-  userId: string
-): Promise<Cleaner | null> {
+export async function getCleanerByUserId(userId: string): Promise<Cleaner | null> {
   const { data, error } = await supabase
     .from('cleaners')
     .select('*')
     .eq('user_id', userId)
-    .maybeSingle();
+    .maybeSingle()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
