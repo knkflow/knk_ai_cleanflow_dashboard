@@ -35,7 +35,7 @@ export function Header({ user }: HeaderProps) {
 
         {/* Role badge */}
         <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-green-400/15 px-3 py-1 text-xs font-medium text-green-300 ring-1 ring-inset ring-green-400/20">
-  <span className="text-green-200/80">Your Cleanflow role:</span>
+  <span className="text-green-200/80">Deine Rolle in Cleanflow:</span>
   <span className="font-semibold text-green-300">{user.role}</span>
 </div>
 
