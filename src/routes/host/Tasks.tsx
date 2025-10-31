@@ -448,4 +448,4 @@ export function Tasks() {
             <div className="flex gap-3">
               <button
                 onClick={confirmDelete}
-                className="flex
+                className="flex"
