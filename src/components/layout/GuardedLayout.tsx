@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import { Header } from './Header';
-import { TabNav } from './TabNav';
 import { getCurrentUser } from '../../lib/api';
 import type { User } from '../../types/db';
 
+type TabItem = {
+  to: string;
+  label: string;
+  icon?: React.ElementType; // Lucide icon component type
+};
+
 interface GuardedLayoutProps {
   requiredRole: 'Host' | 'Cleaner';
-  tabs: Array<{ to: string; label: string }>;
+  tabs: TabItem[];
 }
 
 export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
@@ -37,9 +42,32 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white">
       <Header user={user} />
-      <TabNav tabs={tabs} />
+
+      {/* Inline tab navigation (replaces TabNav) */}
+      <nav className="container mx-auto px-4">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 py-3">
+          {tabs.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                [
+                  'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-white text-black'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white',
+                ].join(' ')
+              }
+            >
+              {Icon ? <Icon className="w-4 h-4" /> : null}
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
+
       <main className="container mx-auto px-4 py-8">
         <Outlet context={{ user }} />
       </main>
