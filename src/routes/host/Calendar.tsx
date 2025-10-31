@@ -9,30 +9,44 @@ interface ContextType {
   user: User;
 }
 
+// Hilfsfunktion: safely JSONB → string[]
+const toDateArray = (val: unknown): string[] =>
+  Array.isArray(val) ? val.map((v) => String(v)) : [];
+
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
+
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
 
   useEffect(() => {
     loadCleaners();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   async function loadCleaners() {
     try {
       const data = await getCleaners(user.id);
-      setCleaners(data);
+      setCleaners(data ?? []);
     } finally {
       setLoading(false);
     }
   }
 
+  /**
+   * Gibt Namen der Cleaner zurück, die an einem bestimmten Tag NICHT verfügbar sind.
+   * Feld `available` in der DB = Liste von Tagen, an denen Cleaner NICHT verfügbar ist.
+   */
   function getUnavailableCleaners(dateStr: string): string[] {
     return cleaners
-      .filter((c) => c.availability.includes(dateStr))
+      .filter((c: any) => {
+        const arr = toDateArray(c?.available);
+        // Wenn der Tag in available enthalten ist → Cleaner ist NICHT verfügbar
+        return arr.includes(dateStr);
+      })
       .map((c) => c.name);
   }
 
@@ -40,12 +54,13 @@ export function Calendar() {
     const unavailable = getUnavailableCleaners(day.dateStr);
     const isUnavailable = unavailable.length > 0;
 
+    const boxClass = isUnavailable
+      ? 'bg-red-500/20 text-red-300 border-red-500/40'
+      : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
+
     return (
-      <div
-        className={`h-full ${
-          day.isCurrentMonth ? '' : 'opacity-40'
-        }`}
-      >
+      <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
+        {/* Datum */}
         <div
           className={`text-xs mb-1 ${
             day.isToday
@@ -57,15 +72,20 @@ export function Calendar() {
         >
           {day.date.getDate()}
         </div>
-        {day.isCurrentMonth && isUnavailable && (
-          <div className={`text-xs p-1 ${
-            isUnavailable ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
-          }`}>
-            {unavailable.map((name, idx) => (
-              <div key={idx} className="truncate">
-                {name}
-              </div>
-            ))}
+
+        {/* Tagesstatus */}
+        {day.isCurrentMonth && (
+          <div className={`text-xs p-1 rounded border ${boxClass}`}>
+            {isUnavailable ? (
+              <>
+                <div className="font-medium truncate">Nicht verfügbar</div>
+                {unavailable.map((name, idx) => (
+                  <div key={idx} className="truncate">{name}</div>
+                ))}
+              </>
+            ) : (
+              <div className="truncate">Alle verfügbar</div>
+            )}
           </div>
         )}
       </div>
@@ -79,9 +99,12 @@ export function Calendar() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Cleaner Availability Calendar</h2>
+        <h2 className="text-2xl font-bold text-white mb-2">
+          Cleaner Availability Calendar
+        </h2>
         <p className="text-white/70 text-sm">
-          Red days indicate when cleaners are unavailable
+          🔴 Rot = Mindestens ein Cleaner ist nicht verfügbar<br />
+          🟢 Grün = Alle Cleaner sind verfügbar
         </p>
       </div>
 
@@ -95,19 +118,22 @@ export function Calendar() {
         renderDay={renderDay}
       />
 
-      <div className="mt-6 bg-white/5 border border-white/10 p-4">
-        <h3 className="text-white font-semibold mb-3">Legend</h3>
+      {/* Legende */}
+      <div className="mt-6 bg-white/5 border border-white/10 p-4 rounded-lg">
+        <h3 className="text-white font-semibold mb-3">Legende</h3>
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-red-500/20 border border-red-500"></div>
-            <span className="text-white/70 text-sm">One or more cleaners unavailable</span>
+            <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
+            <span className="text-white/70 text-sm">Mindestens ein Cleaner nicht verfügbar</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-white/5 border border-white/10"></div>
-            <span className="text-white/70 text-sm">All cleaners available</span>
+            <div className="w-4 h-4 rounded border bg-emerald-500/15 border-emerald-500/35"></div>
+            <span className="text-white/70 text-sm">Alle verfügbar</span>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+export default Calendar;
