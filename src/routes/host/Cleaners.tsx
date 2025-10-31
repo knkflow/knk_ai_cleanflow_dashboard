@@ -29,7 +29,7 @@ export function Cleaners() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  // ❗ Neues Error-Popup (z.B. wenn Email schon existiert)
+  // Error-/Hinweis-Popup
   const [errorModal, setErrorModal] = useState<{ open: boolean; message: string }>({
     open: false,
     message: '',
@@ -91,7 +91,7 @@ export function Cleaners() {
       };
 
       if (editingId) {
-        // normales Update direkt in cleaners
+        // Update direkt in cleaners
         await updateCleaner(editingId, {
           name: payload.name,
           email: payload.email,
@@ -103,13 +103,17 @@ export function Cleaners() {
         try {
           const data = await createCleanerAndInvite(payload);
 
-          // Falls Function “already exists” zurückgibt → Popup
-          if (data?.error && /already exists|duplicate/i.test(String(data.error))) {
+          // ✅ NEU: auch "ok: true, message: 'User already exists…'" abfangen
+          const msg = String(data?.message ?? '').toLowerCase();
+          if (
+            (data?.error && /already exists|duplicate/i.test(String(data.error))) ||
+            msg.includes('already exists')
+          ) {
             setErrorModal({
               open: true,
               message: `Ein Cleaner mit der E-Mail "${payload.email ?? ''}" existiert bereits.`,
             });
-            return;
+            return; // Formular offen lassen
           }
 
           console.log('✅ Cleaner created via Edge Function:', data);
@@ -126,11 +130,11 @@ export function Cleaners() {
               message: 'Fehler beim Erstellen des Cleaners.',
             });
           }
-          return; // nicht weiter schließen/reloaden
+          return; // Formular offen lassen
         }
       }
 
-      setIsModalOpen(false);
+      setIsModalOpen(false); // nur schließen, wenn kein Duplicate-Fall
       await loadData();
     } catch (err: any) {
       console.error('[Cleaners] handleSubmit error:', err);
@@ -151,7 +155,7 @@ export function Cleaners() {
   async function handleDeleteConfirmed() {
     if (!selectedCleaner) return;
     try {
-      // Edge Function (Slug = "quick-task") für das Löschen inkl. Kaskade
+      // Edge Function (Slug = "quick-task") für das Löschen inkl. Cascade
       await deleteCleanerCascade(selectedCleaner.id);
       setIsConfirmOpen(false);
       await loadData();
@@ -349,19 +353,19 @@ export function Cleaners() {
         </div>
       )}
 
-      {/* Error Popup */}
+      {/* Error / Hinweis Popup */}
       {errorModal.open && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-xl font-semibold mb-3">Hinweis</h3>
             <p className="text-white/80 mb-6">{errorModal.message}</p>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setErrorModal({ open: false, message: '' })}
                 className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg-white/80 transition-colors"
               >
-                OK
+                Zurück
               </button>
             </div>
           </div>
