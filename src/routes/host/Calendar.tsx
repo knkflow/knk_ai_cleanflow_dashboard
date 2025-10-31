@@ -1,5 +1,5 @@
 // src/routes/.../Calendar.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocation, useOutletContext } from 'react-router-dom';
 import { MonthCalendar } from '../../components/calendar/MonthCalendar';
 import { getCleaners } from '../../lib/api';
@@ -8,7 +8,7 @@ import type { MonthDay } from '../../lib/dates';
 
 interface ContextType { user: User; }
 
-/* ---------------------- Helfer ---------------------- */
+/* ---------------- Helpers ---------------- */
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
 
@@ -38,21 +38,19 @@ function normalizeYMD(input: unknown): string {
       return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
   }
 
-  const m1 = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (m1) {
-    const y = +m1[1], mo = +m1[2], d = +m1[3];
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) {
+    const y = +m[1], mo = +m[2], d = +m[3];
     return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
   }
-
-  const m2 = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if (m2) {
-    const d = +m2[1], mo = +m2[2], y = +m2[3];
+  m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); // DD.MM.YYYY
+  if (m) {
+    const d = +m[1], mo = +m[2], y = +m[3];
     return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
   }
-
-  const m3 = s.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (m3) {
-    const y = +m3[1], mo = +m3[2], d = +m3[3];
+  m = s.match(/^(\d{4})(\d{2})(\d{2})$/); // YYYYMMDD
+  if (m) {
+    const y = +m[1], mo = +m[2], d = +m[3];
     return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
   }
 
@@ -63,7 +61,7 @@ function normalizeYMD(input: unknown): string {
   return '';
 }
 
-/** availability(jsonb) → Set<'YYYY-MM-DD'> (beliebig robust) */
+/** availability(jsonb/Strings) → Set<'YYYY-MM-DD'> (robust) */
 function availabilityToSet(av: unknown): Set<string> {
   const set = new Set<string>();
   const add = (x: unknown) => {
@@ -89,18 +87,14 @@ function dayToYMD(day: MonthDay): string {
   return normalizeYMD((day as any).dateStr ?? day.date);
 }
 
-/** Fallback-Label für Cleaner (falls name leer/fehlend) */
 function getCleanerLabel(c: Cleaner): string {
-  const n = (c as any)?.name;
-  if (typeof n === 'string' && n.trim().length > 0) return n.trim();
-  const e = (c as any)?.email;
-  if (typeof e === 'string' && e.trim().length > 0) return e.trim();
-  const p = (c as any)?.phone;
-  if (typeof p === 'string' && p.trim().length > 0) return p.trim();
+  const n = (c as any)?.name; if (typeof n === 'string' && n.trim()) return n.trim();
+  const e = (c as any)?.email; if (typeof e === 'string' && e.trim()) return e.trim();
+  const p = (c as any)?.phone; if (typeof p === 'string' && p.trim()) return p.trim();
   return '[Unbenannt]';
 }
 
-/* ---------------------- Komponente ---------------------- */
+/* ---------------- Component ---------------- */
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -117,96 +111,89 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
-  // Neu laden bei Benutzerwechsel / Navigationswechsel / Fokus / Sichtbarkeit
-  useEffect(() => { void loadCleaners(); }, [user.id]);
-  useEffect(() => { void loadCleaners(); }, [location.key]);
-  useEffect(() => {
-    const onFocus = () => void loadCleaners();
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
-  useEffect(() => {
-    const onVis = () => { if (!document.hidden) void loadCleaners(); };
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
-  }, []);
+  // Throttle/Guards fürs Laden
+  const inFlightRef = useRef(false);
+  const lastFetchTsRef = useRef(0);
+  const THROTTLE_MS = 500;
 
-  async function loadCleaners() {
+  const loadCleaners = useCallback(async () => {
+    const nowTs = Date.now();
+    if (inFlightRef.current) return;                       // bereits ein Request aktiv
+    if (nowTs - lastFetchTsRef.current < THROTTLE_MS) return; // zu schnell hintereinander
+
+    inFlightRef.current = true;
     setLoading(true);
     setErrorMsg(null);
     try {
       const data = await getCleaners(user.id);
-      console.debug('[Calendar] getCleaners() raw:', data);
       setCleaners(data ?? []);
       if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
     } catch (e: any) {
       setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
     } finally {
+      lastFetchTsRef.current = Date.now();
+      inFlightRef.current = false;
       setLoading(false);
     }
-  }
+  }, [user.id]);
 
-  /** Map<cleanerId, Set<'YYYY-MM-DD'>> + Debug log mit Fallback-Name */
+  // 1) Einmal beim Mount + bei Userwechsel
+  useEffect(() => { void loadCleaners(); }, [loadCleaners]);
+
+  // 2) Navigation: Nur neu laden, wenn wir *wirklich* in den Kalender wechseln
+  useEffect(() => {
+    const path = location.pathname || '';
+    if (path.toLowerCase().includes('calendar')) {
+      void loadCleaners();
+    }
+  }, [location.pathname, loadCleaners]);
+
+  // 3) Auf Fokus / Tab sichtbar → reload (gedrosselt)
+  useEffect(() => {
+    const onFocus = () => void loadCleaners();
+    const onVis = () => { if (!document.hidden) void loadCleaners(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [loadCleaners]);
+
+  /** Map<cleanerId, Set<'YYYY-MM-DD'>> */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
-    console.group('[Calendar] Build unavailableIndex');
+    // Einmaliges, kurzes Log (nicht spammen)
+    console.groupCollapsed('[Calendar] Build unavailableIndex');
     for (const c of cleaners) {
       const label = getCleanerLabel(c);
       const set = availabilityToSet((c as any).availability);
       m.set(c.id, set);
-      console.debug(`- ${label} (${c.id}) availability ->`, Array.from(set));
-      if (!('name' in c) || (typeof (c as any).name !== 'string') || !(c as any).name?.trim()) {
-        console.warn(`  ⚠️ Cleaner hat keinen sichtbaren Namen. Genutztes Label: ${label}`);
-      }
+      console.debug(`- ${label} →`, Array.from(set));
     }
     console.groupEnd();
     return m;
   }, [cleaners]);
 
   /** Wer ist an diesem Tag nicht verfügbar? */
-  function getUnavailableNames(ymd: string): string[] {
+  const getUnavailableNames = useCallback((ymd: string): string[] => {
     if (!ymd) return [];
-    const names: string[] = [];
-
     if (isAllView) {
+      const names: string[] = [];
       for (const c of cleaners) {
         const label = getCleanerLabel(c);
         const set = unavailableIndex.get(c.id);
-        if (!set) {
-          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${label}`);
-          continue;
-        }
-        const hit = set.has(ymd);
-        console.debug(`[Calendar] ${ymd} → ${label}: ${hit ? '❌ UNAVAILABLE' : '✅ available'}`);
-        if (hit) names.push(label);
+        if (set?.has(ymd)) names.push(label);
       }
+      return names;
     } else {
       const c = cleaners.find(x => x.id === selectedCleanerId);
-      if (c) {
-        const label = getCleanerLabel(c);
-        const set = unavailableIndex.get(c.id);
-        if (!set) {
-          console.warn(`[Calendar] ⚠️ Kein availability-Set für ${label}`);
-        } else if (set.has(ymd)) {
-          console.debug(`[Calendar] (Filter ${label}) ${ymd}: ❌ UNAVAILABLE`);
-          names.push(label);
-        } else {
-          console.debug(`[Calendar] (Filter ${label}) ${ymd}: ✅ available`);
-        }
-      } else {
-        console.warn(`[Calendar] ⚠️ Kein Cleaner mit ID ${selectedCleanerId} gefunden.`);
-      }
+      if (!c) return [];
+      return unavailableIndex.get(c.id)?.has(ymd) ? [getCleanerLabel(c)] : [];
     }
+  }, [cleaners, isAllView, selectedCleanerId, unavailableIndex]);
 
-    if (names.length > 0)
-      console.debug(`[Calendar] 🔴 ${ymd} ->`, names);
-    else
-      console.debug(`[Calendar] 🟢 ${ymd} -> alle verfügbar`);
-
-    return names;
-  }
-
-  function renderDay(day: MonthDay) {
+  const renderDay = useCallback((day: MonthDay) => {
     const ymd = dayToYMD(day);
     const unavailableNames = getUnavailableNames(ymd);
     const isUnavailable = unavailableNames.length > 0;
@@ -223,13 +210,11 @@ export function Calendar() {
 
     return (
       <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-        <div
-          className={`text-xs mb-1 ${
-            day.isToday ? 'font-bold text-white'
-              : day.isCurrentMonth ? 'text-white/70'
-              : 'text-white/40'
-          }`}
-        >
+        <div className={`text-xs mb-1 ${
+          day.isToday ? 'font-bold text-white'
+          : day.isCurrentMonth ? 'text-white/70'
+          : 'text-white/40'
+        }`}>
           {day.date.getDate()}
         </div>
 
@@ -261,7 +246,7 @@ export function Calendar() {
         )}
       </div>
     );
-  }
+  }, [getUnavailableNames, isAllView]);
 
   const sortedCleaners = useMemo(
     () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
@@ -291,9 +276,10 @@ export function Calendar() {
                   ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
                   : 'border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:border-white/30'}
               `}
+              title="Alle Cleaner anzeigen"
             >
               <div className="text-sm font-medium text-white">Alle</div>
-              <div className="text-xs text-white/60">Gesamtübersicht</div>
+              <div className="text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
             </button>
 
             {/* Einzelne */}
@@ -311,6 +297,7 @@ export function Calendar() {
                       ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
                       : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}
                   `}
+                  title={`Nur ${label} anzeigen`}
                 >
                   <div className="flex items-center gap-2">
                     <div className={`h-7 w-7 rounded-lg flex items-center justify-center
@@ -332,7 +319,9 @@ export function Calendar() {
           <div className="mt-3 text-xs text-white/60">
             {isAllView
               ? 'Ansicht: Alle Reinigungskräfte'
-              : `Ansicht gefiltert auf: ${sortedCleaners.find(x => x.id === selectedCleanerId)?.name ?? getCleanerLabel(sortedCleaners.find(x => x.id === selectedCleanerId) as Cleaner)}`}
+              : `Ansicht gefiltert auf: ${
+                  getCleanerLabel(sortedCleaners.find(x => x.id === selectedCleanerId) as Cleaner)
+                }`}
           </div>
         </div>
       )}
