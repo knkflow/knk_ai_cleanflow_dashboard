@@ -13,6 +13,7 @@ import { Apartments as CleanerApartments } from './routes/cleaner/Apartments';
 import { Tasks as CleanerTasks } from './routes/cleaner/Tasks';
 import { Calendar as CleanerCalendar } from './routes/cleaner/Calendar';
 
+// Lucide icons (inherit currentColor → white on dark header)
 import {
   Building2,
   Users,
@@ -21,7 +22,6 @@ import {
   Settings as SettingsIcon,
 } from 'lucide-react';
 
-// ✅ Pass icon *components*, not elements
 const hostTabs = [
   { to: '/host/apartments', label: 'Apartments', icon: Building2 },
   { to: '/host/cleaners', label: 'Reinigungskräfte', icon: Users },
@@ -43,10 +43,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
 
-        <Route
-          path="/host"
-          element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}
-        >
+        <Route path="/host" element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}>
           <Route index element={<DashboardHost />} />
           <Route path="apartments" element={<HostApartments />} />
           <Route path="cleaners" element={<HostCleaners />} />
@@ -55,10 +52,7 @@ function App() {
           <Route path="settings" element={<HostSettings />} />
         </Route>
 
-        <Route
-          path="/cleaner"
-          element={<GuardedLayout requiredRole="Cleaner" tabs={cleanerTabs} />}
-        >
+        <Route path="/cleaner" element={<GuardedLayout requiredRole="Cleaner" tabs={cleanerTabs} />}>
           <Route index element={<DashboardCleaner />} />
           <Route path="apartments" element={<CleanerApartments />} />
           <Route path="tasks" element={<CleanerTasks />} />
