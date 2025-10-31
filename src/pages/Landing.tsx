@@ -54,7 +54,7 @@ export function Landing() {
 {/* Mittig – Logo */}
 <div className="absolute left-1/2 -translate-x-1/2">
   <img
-    src="/brand/logo.png"
+    src="public/brand/logo.png"
     alt="CleanFlow Logo"
     className="h-12 md:h-14 w-auto select-none rounded-full border-2 border-white/70
                shadow-[0_0_10px_rgba(255,255,255,0.25)] transition-all duration-500 ease-out
