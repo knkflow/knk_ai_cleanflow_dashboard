@@ -13,12 +13,12 @@ import {
 } from "lucide-react";
 
 /**
- * Onboarding component with state from localStorage (read-only here)
+ * Onboarding component with state persistence (localStorage)
  * - Dark, professional look (black background, white text)
  * - Green check for done, red icon for not done
- * - Progress bar shows % complete (derived from localStorage)
- * - Button only redirects to the corresponding sub-route (no toggling here)
- * - State stays in localStorage and is read on mount + via storage events
+ * - Progress bar shows % complete and updates when clicking "Erledigen"
+ * - Redirect to proper sub-routes on click
+ * - Persists state so returning to Onboard shows the latest status
  *
  * Steps:
  *  1) Unternehmensprofil vervollständigen → /host/settings#profil
@@ -26,10 +26,6 @@ import {
  *  3) PMS-Verbindung verknüpfen → /host/settings#verbindungen-und-apis
  *  4) Reinigungskräfte hinzufügen → /host/cleaners
  *  5) Reinigung planen → /host/tasks
- *
- * Hinweis:
- * Das Setzen/Ändern des Done-Status (z. B. { id, done: true }) erfolgt von den
- * jeweiligen Sub-Routes aus, indem sie den gleichen localStorage-Key schreiben.
  */
 export function Onboard() {
   const LS_KEY = "host_onboard_steps_v1"; // bump version if steps structure changes
@@ -89,51 +85,31 @@ export function Onboard() {
 
   const [steps, setSteps] = useState<Step[]>(defaultSteps);
 
-  // Helper: read and merge steps from localStorage
-  const readStepsFromStorage = (): Step[] => {
+  // Load from localStorage on mount
+  useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
-      if (!raw) return defaultSteps;
-      const parsed = JSON.parse(raw) as Partial<Step>[];
-      // Merge with default to be resilient to structure changes
-      const merged = defaultSteps.map((d) => {
-        const match = parsed.find((p) => p?.id === d.id);
-        return match ? { ...d, done: !!match.done } : d;
-      });
-      return merged;
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<Step>[];
+        // Merge with default to be resilient to structure changes
+        const merged = defaultSteps.map((d) => {
+          const match = parsed.find((p) => p?.id === d.id);
+          return match ? { ...d, done: !!match.done } : d;
+        });
+        setSteps(merged);
+      }
     } catch {
       // ignore parse errors and keep defaults
-      return defaultSteps;
     }
-  };
-
-  // Load once on mount
-  useEffect(() => {
-    setSteps(readStepsFromStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen to cross-tab / cross-route updates to localStorage
-  useEffect(() => {
-    const handler = (e: StorageEvent) => {
-      if (e.key === LS_KEY) {
-        setSteps(readStepsFromStorage());
-      }
-    };
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // (Optional safety) Persist if our merged defaults changed something structurbedingt.
+  // Persist to localStorage whenever steps change
   useEffect(() => {
     try {
-      localStorage.setItem(
-        LS_KEY,
-        JSON.stringify(
-          steps.map(({ id, done }) => ({ id, done })) // only persist minimal shape
-        )
-      );
+      // nur Minimalform speichern
+      const minimal = steps.map(({ id, done }) => ({ id, done }));
+      localStorage.setItem(LS_KEY, JSON.stringify(minimal));
     } catch {
       // storage might be unavailable; fail silently
     }
@@ -143,8 +119,20 @@ export function Onboard() {
   const total = steps.length || 1;
   const percent = useMemo(() => Math.round((completed / total) * 100), [completed, total]);
 
-  const handleNavigate = (step: Step) => {
-    if (step.redirect) {
+  const handleClick = (step: Step) => {
+    // Toggle im State
+    const newSteps = steps.map((s) => (s.id === step.id ? { ...s, done: !s.done } : s));
+    setSteps(newSteps);
+
+    // Sofort persistieren (falls direkt navigiert wird)
+    try {
+      const minimal = newSteps.map(({ id, done }) => ({ id, done }));
+      localStorage.setItem(LS_KEY, JSON.stringify(minimal));
+    } catch {}
+
+    // Wenn jetzt erledigt, weiterleiten
+    const nowDone = !step.done;
+    if (nowDone && step.redirect) {
       navigate(step.redirect);
     }
   };
@@ -222,15 +210,26 @@ export function Onboard() {
                   {/* spacer */}
                   <div className="ml-auto" />
 
-                  {/* action button (redirect only) */}
+                  {/* action button */}
                   <button
-                    onClick={() => handleNavigate(step)}
-                    className="group inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    onClick={() => handleClick(step)}
+                   className={`group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+  isDone
+    ? "bg-emerald-600 text-white hover:bg-emerald-500"
+    : "bg-blue-600 text-white hover:bg-blue-500"
+}`}
+ ${
+                      isDone
+                        ? "border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                        : "bg-blue-600 text-white hover:bg-blue-500"
+                    }`}
                   >
-                    {isDone ? "Ansehen" : "Jetzt erledigen"}
-                    <span className="-mr-1 inline-block rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] leading-none">
-                      →
-                    </span>
+                    {isDone ? "Rückgängig" : "Erledigen"}
+                    {!isDone && (
+                      <span className="-mr-1 inline-block rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] leading-none">
+                        →
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
