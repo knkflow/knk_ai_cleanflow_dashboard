@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent, useCallback } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import {
@@ -29,6 +29,12 @@ export function Cleaners() {
 
   const [submitting, setSubmitting] = useState(false);
 
+  // ❗ Neues Error-Popup (z.B. wenn Email schon existiert)
+  const [errorModal, setErrorModal] = useState<{ open: boolean; message: string }>({
+    open: false,
+    message: '',
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -40,7 +46,7 @@ export function Cleaners() {
     loadData();
   }, [user.id]);
 
-  const loadData = useCallback(async () => {
+  async function loadData() {
     setLoading(true);
     try {
       const data = await getCleaners(user.id);
@@ -50,10 +56,9 @@ export function Cleaners() {
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }
 
   function openCreateModal() {
-    console.log('[Cleaners] openCreateModal clicked');
     setEditingId(null);
     setFormData({ name: '', email: '', phone: '', hourly_rate: '' });
     setIsModalOpen(true);
@@ -86,6 +91,7 @@ export function Cleaners() {
       };
 
       if (editingId) {
+        // normales Update direkt in cleaners
         await updateCleaner(editingId, {
           name: payload.name,
           email: payload.email,
@@ -93,16 +99,45 @@ export function Cleaners() {
           hourly_rate: payload.hourly_rate,
         });
       } else {
-        // Edge Function (Name = "smart-function")
-        const data = await createCleanerAndInvite(payload);
-        console.log('✅ Cleaner created via Edge Function:', data);
+        // Edge Function (Slug = "smart-function") für Create + Invite
+        try {
+          const data = await createCleanerAndInvite(payload);
+
+          // Falls Function “already exists” zurückgibt → Popup
+          if (data?.error && /already exists|duplicate/i.test(String(data.error))) {
+            setErrorModal({
+              open: true,
+              message: `Ein Cleaner mit der E-Mail "${payload.email ?? ''}" existiert bereits.`,
+            });
+            return;
+          }
+
+          console.log('✅ Cleaner created via Edge Function:', data);
+        } catch (err: any) {
+          const msg = String(err?.message ?? '').toLowerCase();
+          if (msg.includes('already exists') || msg.includes('duplicate')) {
+            setErrorModal({
+              open: true,
+              message: `Ein Cleaner mit der E-Mail "${payload.email ?? ''}" existiert bereits.`,
+            });
+          } else {
+            setErrorModal({
+              open: true,
+              message: 'Fehler beim Erstellen des Cleaners.',
+            });
+          }
+          return; // nicht weiter schließen/reloaden
+        }
       }
 
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
       console.error('[Cleaners] handleSubmit error:', err);
-      alert(err?.message ?? 'Unbekannter Fehler beim Speichern');
+      setErrorModal({
+        open: true,
+        message: err?.message ?? 'Unbekannter Fehler beim Speichern',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -116,12 +151,16 @@ export function Cleaners() {
   async function handleDeleteConfirmed() {
     if (!selectedCleaner) return;
     try {
+      // Edge Function (Slug = "quick-task") für das Löschen inkl. Kaskade
       await deleteCleanerCascade(selectedCleaner.id);
       setIsConfirmOpen(false);
       await loadData();
     } catch (error: any) {
       console.error('[Cleaners] delete error:', error);
-      alert(error.message ?? 'Löschen fehlgeschlagen');
+      setErrorModal({
+        open: true,
+        message: error?.message ?? 'Löschen fehlgeschlagen',
+      });
     }
   }
 
@@ -129,33 +168,19 @@ export function Cleaners() {
 
   return (
     <div>
-      {/* Header – mit hohem z-index und gesichert klickbarem Button */}
+      {/* Header */}
       <div className="relative z-[50] flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Reinigungskräfte</h2>
         <button
           type="button"
           onClick={openCreateModal}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openCreateModal(); }}
           className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md focus:outline-none focus:ring focus:ring-white/50"
-          style={{ position: 'relative', zIndex: 50, pointerEvents: 'auto' }}
           aria-label="Add Cleaner"
         >
           <Plus className="w-5 h-5" />
           Add Cleaner
         </button>
       </div>
-
-      {/* (Optional) Floating FAB, falls doch irgendwo ein Overlay Klicks blockiert */}
-      <button
-        type="button"
-        onClick={openCreateModal}
-        className="fixed bottom-6 right-6 md:hidden rounded-full w-14 h-14 bg-white text-black shadow-lg focus:outline-none focus:ring focus:ring-white/50"
-        style={{ zIndex: 60 }}
-        aria-label="Add Cleaner (floating)"
-      >
-        <span className="sr-only">Add Cleaner</span>
-        <Plus className="w-6 h-6 m-auto" />
-      </button>
 
       {/* Info Box */}
       <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
@@ -198,7 +223,8 @@ export function Cleaners() {
                   </p>
                 )}
                 <p className="text-white/40 text-xs mt-2">
-                  Unavailable days: {Array.isArray(cleaner.availability) ? cleaner.availability.length : 0}
+                  Unavailable days:{' '}
+                  {Array.isArray(cleaner.availability) ? cleaner.availability.length : 0}
                 </p>
               </div>
 
@@ -317,6 +343,25 @@ export function Cleaners() {
                 className="px-5 py-2 bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors rounded-md"
               >
                 Löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Popup */}
+      {errorModal.open && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-xl font-semibold mb-3">Hinweis</h3>
+            <p className="text-white/80 mb-6">{errorModal.message}</p>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setErrorModal({ open: false, message: '' })}
+                className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg-white/80 transition-colors"
+              >
+                OK
               </button>
             </div>
           </div>
