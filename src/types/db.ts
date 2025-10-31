@@ -1,43 +1,39 @@
+// src/types/db.ts
 export interface User {
   id: string;
-  auth_id: string;
-  email: string;
-  role: 'Host' | 'Cleaner';
+  auth_id: string | null;
+  role: 'Host' | 'Cleaner' | string;
   name: string | null;
+  email: string;
   phone: string | null;
-  created_at: string; // ISO
 }
 
 export interface Cleaner {
   id: string;
-  host_id: string;
-  user_id: string | null; // auth.users.id
+  host_id: string;       // -> public.users.id
+  user_id: string | null; // -> auth.users.id
   name: string;
   email: string | null;
   phone: string | null;
   hourly_rate: number | null;
-  availability: string[] | null; // <— WICHTIG: nullable!
-  created_at: string; // ISO
+  availability: string[] | null; // jsonb
 }
 
 export interface Apartment {
-  id: string;
-  owner_id: string;
-  listing_id: string;
+  listing_id: string;           // PK
+  owner_id: string;             // -> public.users.id
+  default_cleaner_id: string | null; // -> public.cleaners.id
   name: string;
   address: string | null;
-  default_cleaner_id: string | null;
-  created_at: string; // ISO
 }
 
 export interface CleaningTask {
   id: string;
-  listing_id: string;
-  cleaner_id: string | null;
-  date: string; // ISO Date (YYYY-MM-DD?) oder Timestamp (ISO) — vereinheitlichen!
-  deadline: string | null; // ISO
+  listing_id: string;          // -> apartments.listing_id
+  cleaner_id: string | null;   // -> cleaners.id
+  date: string;                // 'YYYY-MM-DD'
   note: string | null;
-  created_at: string; // ISO
+  deadline: string | null;
 }
 
 export interface ApartmentWithCleaner extends Apartment {
@@ -45,6 +41,6 @@ export interface ApartmentWithCleaner extends Apartment {
 }
 
 export interface CleaningTaskWithDetails extends CleaningTask {
-  apartment?: Apartment;
+  apartment?: Apartment | null;
   cleaner?: Cleaner | null;
 }
