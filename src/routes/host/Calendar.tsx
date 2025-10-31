@@ -8,49 +8,163 @@ import type { MonthDay } from '../../lib/dates';
 
 interface ContextType { user: User; }
 
-/* ---------------- Helpers: String-basierter Abgleich ---------------- */
+/* -------------------------- ROBUSTE NORMALISIERUNG -------------------------- */
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
 
-/** Normalisiert zu 'YYYY-MM-DD' (ohne Zeit, tolerant für 'YYYY-M-D' und '...T...') */
-function normalizeYMD(input: string | Date | undefined | null): string {
-  if (!input) return '';
+/** Baut ein YMD aus UTC-Komponenten (vermeidet Off-by-One durch Zeitzonen). */
+function ymdFromUTC(y: number, m1: number, d: number): string {
+  return `${y}-${pad2(m1)}-${pad2(d)}`;
+}
+
+/** Prüft Plausibilität eines gregorianischen Datums. */
+function isValidYMD(y: number, m1: number, d: number): boolean {
+  if (!Number.isInteger(y) || !Number.isInteger(m1) || !Number.isInteger(d)) return false;
+  if (m1 < 1 || m1 > 12) return false;
+  if (d < 1 || d > 31) return false;
+  // Schnellcheck: Date.UTC und Rückprüfung
+  const t = Date.UTC(y, m1 - 1, d);
+  const dt = new Date(t);
+  return (
+    dt.getUTCFullYear() === y &&
+    dt.getUTCMonth() === m1 - 1 &&
+    dt.getUTCDate() === d
+  );
+}
+
+/** Versucht, eine Eingabe zu 'YYYY-MM-DD' zu normalisieren (leer = nicht erkennbar). */
+function normalizeYMD(input: unknown): string {
+  if (input == null) return '';
+  // Falls es bereits ein Date ist: UTC-extrahiert
   if (input instanceof Date) {
-    const y = input.getFullYear();
-    const m = pad2(input.getMonth() + 1);
-    const d = pad2(input.getDate());
-    return `${y}-${m}-${d}`;
+    return ymdFromUTC(input.getUTCFullYear(), input.getUTCMonth() + 1, input.getUTCDate());
   }
   let s = String(input).trim();
   if (!s) return '';
-  if (s.includes('T')) s = s.split('T')[0]; // '2025-10-31T...' -> '2025-10-31'
-  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (m) return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`;
 
-  // Fallback: Date-parse (nur wenn kein Y-M-D)
-  const d = new Date(s);
-  if (!isNaN(d.getTime())) return normalizeYMD(d);
-  return '';
-}
+  // Falls sehr häufig: ISO mit Zeitanteil -> über Date (UTC) parsen
+  if (s.includes('T')) {
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime())) {
+      return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+    }
+    // Wenn Date failt, weiter unten andere Pfade probieren
+  }
 
-/** availability(jsonb) -> Set<'YYYY-MM-DD'> (nur echte Arrays berücksichtigen) */
-function availabilityToSet(av: unknown): Set<string> {
-  const set = new Set<string>();
-  if (Array.isArray(av)) {
-    for (const v of av) {
-      const ymd = normalizeYMD(String(v));
-      if (ymd) set.add(ymd);
+  // 1) YYYY-M-D oder YYYY-MM-DD
+  {
+    const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) {
+      const y = +m[1], mo = +m[2], d = +m[3];
+      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
+      return '';
     }
   }
+
+  // 2) YYYY/MM/DD
+  {
+    const m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+    if (m) {
+      const y = +m[1], mo = +m[2], d = +m[3];
+      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
+      return '';
+    }
+  }
+
+  // 3) DD.MM.YYYY (europäisch)
+  {
+    const m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (m) {
+      const d = +m[1], mo = +m[2], y = +m[3];
+      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
+      return '';
+    }
+  }
+
+  // 4) MM/DD/YYYY (US)
+  {
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const mo = +m[1], d = +m[2], y = +m[3];
+      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
+      return '';
+    }
+  }
+
+  // 5) YYYYMMDD (8-stellig)
+  {
+    const m = s.match(/^(\d{4})(\d{2})(\d{2})$/);
+    if (m) {
+      const y = +m[1], mo = +m[2], d = +m[3];
+      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
+      return '';
+    }
+  }
+
+  // 6) Letzter Versuch: Date-Parse der reinen Zeichenkette (kann lokal sein → deshalb wieder UTC extrahieren)
+  {
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime())) {
+      return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+    }
+  }
+
+  return ''; // nicht erkennbar
+}
+
+/** Spaltet "Listen" in Strings sicher auf: Komma, Semikolon, Whitespace/Zeilenumbrüche. */
+function splitLooseList(s: string): string[] {
+  return s
+    .split(/[,;\s]+/g)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+/** availability(jsonb) in *beliebigen* Formen → Set<'YYYY-MM-DD'> */
+function availabilityToSet(av: unknown): Set<string> {
+  const set = new Set<string>();
+
+  const pushNormalized = (v: unknown) => {
+    const ymd = normalizeYMD(v);
+    if (ymd) set.add(ymd);
+  };
+
+  const walk = (val: unknown) => {
+    if (val == null) return;
+    if (Array.isArray(val)) {
+      for (const x of val) walk(x); // flatten
+      return;
+    }
+    if (val instanceof Date) {
+      pushNormalized(val);
+      return;
+    }
+    const s = String(val).trim();
+    if (!s) return;
+
+    // Klassische JSONB-Array-Strings sind bereits mit Kommas; aber wenn jemand
+    // "2025-10-31,2025-11-02" speichert, splitten wir defensiv:
+    if (s.includes(',') || s.includes(';') || /\s/.test(s)) {
+      for (const piece of splitLooseList(s)) pushNormalized(piece);
+      return;
+    }
+
+    // Einzelwert als String/Zahl
+    pushNormalized(s);
+  };
+
+  walk(av);
   return set;
 }
 
-/** Prüft, ob Cleaner am Tag (ymd) NICHT verfügbar ist */
-function isCleanerUnavailableForDate(cleaner: Cleaner, ymd: string): boolean {
-  if (!ymd) return false;
-  const set = availabilityToSet((cleaner as any).availability);
-  return set.has(ymd);
+/** Ermittelt 'YYYY-MM-DD' eines Day-Objekts (sicher & robust). */
+function dayToYMD(day: MonthDay): string {
+  // MonthCalendar liefert idR day.dateStr === 'YYYY-MM-DD'. Falls nicht vorhanden, aus Date bauen.
+  const candidate = (day as any).dateStr ?? day.date;
+  return normalizeYMD(candidate);
 }
+
+/* -------------------------- KOMPONENTE -------------------------- */
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -95,7 +209,7 @@ export function Calendar() {
     return m;
   }, [cleaners]);
 
-  /** Wer ist an diesem Tag (ymd) NICHT verfügbar? */
+  /** Wer ist an diesem Tag NICHT verfügbar? */
   function getUnavailableNames(ymd: string): string[] {
     if (!ymd) return [];
 
@@ -115,8 +229,7 @@ export function Calendar() {
   }
 
   function renderDay(day: MonthDay) {
-    // Egal, ob day.dateStr vorhanden ist: wir normalisieren sicher auf 'YYYY-MM-DD'
-    const ymd = normalizeYMD((day as any).dateStr ?? day.date);
+    const ymd = dayToYMD(day);           // <- robustes, zeitzonenfreies 'YYYY-MM-DD'
     const unavailableNames = getUnavailableNames(ymd);
     const isUnavailable = unavailableNames.length > 0;
 
