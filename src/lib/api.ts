@@ -68,10 +68,19 @@ export async function createCleanerAndInvite(payload: {
 export async function deleteCleanerCascade(cleanerId: string) {
   const { data, error } = await supabase.functions.invoke('delete.cleaner-oncascade', {
     body: { cleaner_id: cleanerId },
-  })
+  });
 
-  if (error) throw new Error(error.message || 'Failed to delete cleaner cascade')
-  return data
+  if (error) {
+    console.error('❌ Supabase invoke error:', error);
+    throw new Error(error.message || 'Failed to invoke Edge Function');
+  }
+
+  if (data?.error) {
+    console.error('❌ Function logic error:', data.error);
+    throw new Error(data.error || 'Edge Function returned an error');
+  }
+
+  return data;
 }
 
 /**
