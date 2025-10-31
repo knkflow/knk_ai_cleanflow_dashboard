@@ -49,14 +49,21 @@ export async function updateCleaner(id: string, updates: Partial<Cleaner>): Prom
   return data;
 }
 
-export async function deleteCleaner(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('cleaners')
-    .delete()
-    .eq('id', id);
-
-  if (error) throw error;
+export async function deleteCleanerCascade(cleanerId: string) {
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-cleaner-cascade`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // kein Bearer Service-Key hier! Die Function läuft serverseitig mit Service-Role.
+    },
+    body: JSON.stringify({ cleaner_id: cleanerId }),
+  })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json?.error || 'Failed to delete cleaner')
+  return json
 }
+
 
 export async function getApartments(ownerId: string): Promise<ApartmentWithCleaner[]> {
   const { data, error } = await supabase
