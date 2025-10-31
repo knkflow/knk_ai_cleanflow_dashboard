@@ -13,6 +13,8 @@ import { Settings as HostSettings } from './routes/host/Settings';
 import { Apartments as CleanerApartments } from './routes/cleaner/Apartments';
 import { Tasks as CleanerTasks } from './routes/cleaner/Tasks';
 import { Calendar as CleanerCalendar } from './routes/cleaner/Calendar';
+import { Routes, Route } from 'react-router-dom';
+import SetPassword from './routes/cleaner/SetPassword';
 
 // Lucide icons (inherit currentColor → white on dark header)
 import {
