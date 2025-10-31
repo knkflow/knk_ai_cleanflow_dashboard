@@ -44,12 +44,15 @@ export async function getCleaners(hostId: string): Promise<Cleaner[]> {
  * Diese Function legt automatisch Auth, User & Cleaner an.
  */
 export async function createCleanerAndInvite(payload: {
-  host_id: string
-  name: string
-  email?: string | null
-  phone?: string | null
-  hourly_rate?: number | null
-  send_magic_link?: boolean
+  body: {
+    host_id: user.id,
+    name: formData.name,
+    email: formData.email,
+    phone: formData.phone,
+    hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+  },
+});
+
 }) {
   const { data, error } = await supabase.functions.invoke('create_initial_users', {
     body: payload,
