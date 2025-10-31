@@ -61,13 +61,31 @@ export async function createCleanerAndInvite(payload: {
 }
 
 /** Cleaner + zugehörige Daten löschen (Edge Function: quick-task) */
+// Cleaner erstellen + Einladung senden
+export async function createCleanerAndInvite(payload: {
+  host_id: string
+  name: string
+  email?: string | null
+  phone?: string | null
+  hourly_rate?: number | null
+  send_magic_link?: boolean
+}) {
+  const { data, error } = await supabase.functions.invoke('smart-function', {
+    body: payload,
+  });
+  if (error) throw new Error(error.message || 'Edge Function call failed');
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+// Cleaner + zugehörige Daten löschen (Cascade)
 export async function deleteCleanerCascade(cleanerId: string) {
   const { data, error } = await supabase.functions.invoke('quick-task', {
     body: { cleaner_id: cleanerId },
-  })
-  if (error) throw new Error(error.message || 'Failed to invoke delete-cleaner-cascade')
-  if ((data as any)?.error) throw new Error((data as any).error)
-  return data
+  });
+  if (error) throw new Error(error.message || 'Failed to invoke delete-cleaner-cascade');
+  if (data?.error) throw new Error(data.error);
+  return data;
 }
 
 /** Cleaner lokal updaten (direkt in DB) */
