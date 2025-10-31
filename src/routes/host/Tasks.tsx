@@ -144,15 +144,25 @@ export function Tasks() {
     return cleaners.find((c) => c.id === id);
   }
 
-  // Prüft, ob der Cleaner an diesem Tag unavailable ist (über cleaner_id -> Cleaner laden)
+  // Prüft, ob der Cleaner an diesem Tag UNavailable ist (Datenfeld enthält gesperrte Tage)
+  function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
+    if (!dateStr) return false;
+    const availability = (cleaner as any)?.availability;
+    return Array.isArray(availability) && availability.includes(dateStr);
+  }
+
+  // Umkehrung: verfügbar, wenn nicht als unavailable markiert
+  function isCleanerAvailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
+    if (!dateStr || !isValidDateString(dateStr)) return true; // solange kein Datum gesetzt ist, alle zeigen
+    return !isCleanerUnavailableForDate(cleaner, dateStr);
+  }
+
+  // Prüft für Badge auf der Karte
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner_id) return false;
     const cleaner = getCleanerById(task.cleaner_id);
-    console.log(cleaner);
     if (!cleaner) return false;
-    const availability = (cleaner as any).availability;
-    console.log("Av: " + availability);
-    return Array.isArray(availability) && availability.includes(task.date);
+    return isCleanerUnavailableForDate(cleaner, task.date);
   }
 
   // === Filter ===
@@ -216,6 +226,14 @@ export function Tasks() {
   }
 
   if (loading) return <div className="text-white">Loading...</div>;
+
+  // Cleaner-Optionen im Modal: nur Verfügbare für formData.date
+  const cleanerOptionsForDate = [
+    { value: '', label: 'Use default cleaner' },
+    ...cleaners
+      .filter((c) => isCleanerAvailableForDate(c, formData.date))
+      .map((c) => ({ value: c.id, label: c.name })),
+  ];
 
   return (
     <div>
@@ -304,12 +322,23 @@ export function Tasks() {
           return (
             <div
               key={task.id}
-              className={`p-6 rounded-2xl transition-all duration-500 ${
+              className={`p-6 rounded-2xl transition-all duration-500 relative ${
                 unavailable
                   ? 'border-2 border-red-500 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,80,80,0.45)]'
                   : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
               }`}
             >
+              {/* Deadline Badge */}
+              {task.deadline && (
+                <span
+                  className="absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full
+                             bg-red-600/20 text-red-300 border border-red-500/60"
+                  title="Deadline"
+                >
+                  Deadline: {task.deadline}
+                </span>
+              )}
+
               {unavailable && (
                 <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
                   <AlertCircle className="w-4 h-4" />
@@ -381,22 +410,30 @@ export function Tasks() {
             ]}
           />
 
+          <Input
+            label="Date (yyyy-mm-dd)"
+            value={formData.date}
+            onChange={(e) => {
+              const nextDate = e.target.value;
+              // Wenn der aktuelle Cleaner für neues Datum blockiert ist, zurücksetzen
+              const selectedCleaner = cleaners.find(c => c.id === formData.cleaner_id);
+              const stillAvailable =
+                !selectedCleaner || isCleanerAvailableForDate(selectedCleaner, nextDate);
+              setFormData({
+                ...formData,
+                date: nextDate,
+                cleaner_id: stillAvailable ? formData.cleaner_id : '', // reset, falls nicht mehr verfügbar
+              });
+            }}
+            required
+            placeholder="2025-12-31"
+          />
+
           <Select
             label="Cleaner (optional - uses default if empty)"
             value={formData.cleaner_id}
             onChange={(e) => setFormData({ ...formData, cleaner_id: e.target.value })}
-            options={[
-              { value: '', label: 'Use default cleaner' },
-              ...cleaners.map((c) => ({ value: c.id, label: c.name })),
-            ]}
-          />
-
-          <Input
-            label="Date (yyyy-mm-dd)"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            required
-            placeholder="2025-12-31"
+            options={cleanerOptionsForDate}
           />
 
           <Input
