@@ -1,31 +1,29 @@
-import { useState, FormEvent } from 'react';
+// src/pages/Settings/Settings.tsx
+import { useState, ChangeEvent } from 'react';
 import { Settings as SettingsIcon, User, Link2 } from 'lucide-react';
-import { Input } from '../../components/forms/Input';
+import { Input } from '../../components/forms/Input'; // nutzt eure bestehende Input-Komponente
 
-type SectionKey = 'general' | 'profile' | 'integrations';
+type SectionKey = 'general' | 'profile' | 'apis';
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ElementType }[] = [
   { key: 'general', label: 'Allgemein', icon: SettingsIcon },
   { key: 'profile', label: 'Profil', icon: User },
-  { key: 'integrations', label: 'Verbindungen & APIs', icon: Link2 },
+  { key: 'apis', label: 'Verbindungen & APIs', icon: Link2 },
 ];
 
-export function Settings() {
+export default function Settings() {
   const [active, setActive] = useState<SectionKey>('general');
-
-  // Dummy-Form-States je Bereich (nur Beispiel-Feld)
-  const [forms, setForms] = useState<Record<SectionKey, string>>({
+  // Für den Dummy: pro Bereich genau EIN Textfeld
+  const [values, setValues] = useState<Record<SectionKey, string>>({
     general: '',
     profile: '',
-    integrations: '',
+    apis: '',
   });
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    // Hier später echte Save-Logik (API-Call) einbauen
-    console.log(`[${active}] gespeichert:`, forms[active]);
-    alert(`Gespeichert: ${forms[active] || '(leer)'}`);
-  }
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setValues((prev) => ({ ...prev, [active]: val }));
+  };
 
   return (
     <div className="w-full">
@@ -35,9 +33,8 @@ export function Settings() {
 
       {/* Zentrierte Kachel */}
       <div className="mx-auto max-w-5xl bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-        {/* Responsive Grid: links Menü, rechts Inhalt */}
         <div className="grid grid-cols-1 md:grid-cols-[240px_1fr]">
-          {/* Linke Spalte: Menü */}
+          {/* Linkes Menü */}
           <aside className="border-b md:border-b-0 md:border-r border-white/10">
             <nav className="p-2 md:p-4">
               <ul className="space-y-1">
@@ -65,47 +62,26 @@ export function Settings() {
             </nav>
           </aside>
 
-          {/* Rechte Spalte: Inhalt */}
+          {/* Rechter Inhalt */}
           <section className="p-4 md:p-6">
-            {/* Headline des aktiven Bereichs */}
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-white">
-                {SECTIONS.find(s => s.key === active)?.label}
+                {SECTIONS.find((s) => s.key === active)?.label}
               </h3>
               <p className="text-white/60 text-sm">
-                Beispielinhalt – hier später die echten Einstellungen einfügen.
+                Dummy-Beispiel – hier kommt später der echte Inhalt.
               </p>
             </div>
 
-            {/* Dummy-Formular */}
-            <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+            {/* Ein einziges Textfeld als Dummy */}
+            <div className="max-w-lg">
               <Input
                 label="Beispiel-Textfeld"
                 placeholder="Gib hier etwas ein…"
-                value={forms[active]}
-                onChange={(e) =>
-                  setForms((prev) => ({ ...prev, [active]: e.target.value }))
-                }
+                value={values[active]}
+                onChange={handleChange}
               />
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium rounded-md"
-                >
-                  Speichern
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setForms((prev) => ({ ...prev, [active]: '' }))
-                  }
-                  className="px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
-                >
-                  Zurücksetzen
-                </button>
-              </div>
-            </form>
+            </div>
           </section>
         </div>
       </div>
