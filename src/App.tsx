@@ -13,7 +13,6 @@ import { Apartments as CleanerApartments } from './routes/cleaner/Apartments';
 import { Tasks as CleanerTasks } from './routes/cleaner/Tasks';
 import { Calendar as CleanerCalendar } from './routes/cleaner/Calendar';
 
-// Lucide Icons (weiße Icons)
 import {
   Building2,
   Users,
@@ -22,18 +21,19 @@ import {
   Settings as SettingsIcon,
 } from 'lucide-react';
 
+// ✅ Pass icon *components*, not elements
 const hostTabs = [
-  { to: '/host/apartments', label: 'Apartments', icon: <Building2 size={18} color="white" /> },
-  { to: '/host/cleaners', label: 'Reinigungskräfte', icon: <Users size={18} color="white" /> },
-  { to: '/host/tasks', label: 'Reinigungsplan', icon: <ClipboardList size={18} color="white" /> },
-  { to: '/host/calendar', label: 'Kalender', icon: <CalendarDays size={18} color="white" /> },
-  { to: '/host/settings', label: 'Einstellungen', icon: <SettingsIcon size={18} color="white" /> },
+  { to: '/host/apartments', label: 'Apartments', icon: Building2 },
+  { to: '/host/cleaners', label: 'Reinigungskräfte', icon: Users },
+  { to: '/host/tasks', label: 'Reinigungsplan', icon: ClipboardList },
+  { to: '/host/calendar', label: 'Kalender', icon: CalendarDays },
+  { to: '/host/settings', label: 'Einstellungen', icon: SettingsIcon },
 ];
 
 const cleanerTabs = [
-  { to: '/cleaner/apartments', label: 'Apartments', icon: <Building2 size={18} color="white" /> },
-  { to: '/cleaner/tasks', label: 'Reinigungsaufträge', icon: <ClipboardList size={18} color="white" /> },
-  { to: '/cleaner/calendar', label: 'Kalender', icon: <CalendarDays size={18} color="white" /> },
+  { to: '/cleaner/apartments', label: 'Apartments', icon: Building2 },
+  { to: '/cleaner/tasks', label: 'Reinigungsaufträge', icon: ClipboardList },
+  { to: '/cleaner/calendar', label: 'Kalender', icon: CalendarDays },
 ];
 
 function App() {
