@@ -382,7 +382,7 @@ export function Tasks() {
 
                   {taskCleaner && (
                     <p className="text-white/70 text-sm mb-1">
-                      Cleaner: {taskCleaner.name}
+                      Reinigungskraft: {taskCleaner.name}
                     </p>
                   )}
 
