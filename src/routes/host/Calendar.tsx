@@ -1,6 +1,6 @@
 // src/routes/.../Calendar.tsx
 import { useEffect, useMemo, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useLocation, useOutletContext } from 'react-router-dom';
 import { MonthCalendar } from '../../components/calendar/MonthCalendar';
 import { getCleaners } from '../../lib/api';
 import type { User, Cleaner } from '../../types/db';
@@ -17,149 +17,107 @@ function ymdFromUTC(y: number, m1: number, d: number): string {
   return `${y}-${pad2(m1)}-${pad2(d)}`;
 }
 
-/** Prüft Plausibilität eines gregorianischen Datums. */
+/** Prüft Plausibilität eines Datums. */
 function isValidYMD(y: number, m1: number, d: number): boolean {
   if (!Number.isInteger(y) || !Number.isInteger(m1) || !Number.isInteger(d)) return false;
   if (m1 < 1 || m1 > 12) return false;
   if (d < 1 || d > 31) return false;
-  // Schnellcheck: Date.UTC und Rückprüfung
   const t = Date.UTC(y, m1 - 1, d);
   const dt = new Date(t);
-  return (
-    dt.getUTCFullYear() === y &&
-    dt.getUTCMonth() === m1 - 1 &&
-    dt.getUTCDate() === d
-  );
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m1 - 1 && dt.getUTCDate() === d;
 }
 
 /** Versucht, eine Eingabe zu 'YYYY-MM-DD' zu normalisieren (leer = nicht erkennbar). */
 function normalizeYMD(input: unknown): string {
   if (input == null) return '';
-  // Falls es bereits ein Date ist: UTC-extrahiert
   if (input instanceof Date) {
     return ymdFromUTC(input.getUTCFullYear(), input.getUTCMonth() + 1, input.getUTCDate());
   }
   let s = String(input).trim();
   if (!s) return '';
-
-  // Falls sehr häufig: ISO mit Zeitanteil -> über Date (UTC) parsen
   if (s.includes('T')) {
     const dt = new Date(s);
     if (!isNaN(dt.getTime())) {
       return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
     }
-    // Wenn Date failt, weiter unten andere Pfade probieren
   }
-
-  // 1) YYYY-M-D oder YYYY-MM-DD
+  // YYYY-M-D oder YYYY-MM-DD
   {
     const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
     if (m) {
       const y = +m[1], mo = +m[2], d = +m[3];
-      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
-      return '';
+      return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
     }
   }
-
-  // 2) YYYY/MM/DD
+  // YYYY/MM/DD
   {
     const m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
     if (m) {
       const y = +m[1], mo = +m[2], d = +m[3];
-      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
-      return '';
+      return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
     }
   }
-
-  // 3) DD.MM.YYYY (europäisch)
+  // DD.MM.YYYY
   {
     const m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
     if (m) {
       const d = +m[1], mo = +m[2], y = +m[3];
-      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
-      return '';
+      return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
     }
   }
-
-  // 4) MM/DD/YYYY (US)
+  // MM/DD/YYYY
   {
     const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (m) {
       const mo = +m[1], d = +m[2], y = +m[3];
-      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
-      return '';
+      return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
     }
   }
-
-  // 5) YYYYMMDD (8-stellig)
+  // YYYYMMDD
   {
     const m = s.match(/^(\d{4})(\d{2})(\d{2})$/);
     if (m) {
       const y = +m[1], mo = +m[2], d = +m[3];
-      if (isValidYMD(y, mo, d)) return ymdFromUTC(y, mo, d);
-      return '';
+      return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
     }
   }
-
-  // 6) Letzter Versuch: Date-Parse der reinen Zeichenkette (kann lokal sein → deshalb wieder UTC extrahieren)
-  {
-    const dt = new Date(s);
-    if (!isNaN(dt.getTime())) {
-      return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
-    }
-  }
-
-  return ''; // nicht erkennbar
+  // Fallback
+  const dt = new Date(s);
+  return isNaN(dt.getTime())
+    ? ''
+    : ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
 }
 
 /** Spaltet "Listen" in Strings sicher auf: Komma, Semikolon, Whitespace/Zeilenumbrüche. */
 function splitLooseList(s: string): string[] {
-  return s
-    .split(/[,;\s]+/g)
-    .map((x) => x.trim())
-    .filter(Boolean);
+  return s.split(/[,;\s]+/g).map(x => x.trim()).filter(Boolean);
 }
 
 /** availability(jsonb) in *beliebigen* Formen → Set<'YYYY-MM-DD'> */
 function availabilityToSet(av: unknown): Set<string> {
   const set = new Set<string>();
-
-  const pushNormalized = (v: unknown) => {
+  const push = (v: unknown) => {
     const ymd = normalizeYMD(v);
     if (ymd) set.add(ymd);
   };
-
   const walk = (val: unknown) => {
     if (val == null) return;
-    if (Array.isArray(val)) {
-      for (const x of val) walk(x); // flatten
-      return;
-    }
-    if (val instanceof Date) {
-      pushNormalized(val);
-      return;
-    }
+    if (Array.isArray(val)) { for (const x of val) walk(x); return; }
+    if (val instanceof Date) { push(val); return; }
     const s = String(val).trim();
     if (!s) return;
-
-    // Klassische JSONB-Array-Strings sind bereits mit Kommas; aber wenn jemand
-    // "2025-10-31,2025-11-02" speichert, splitten wir defensiv:
     if (s.includes(',') || s.includes(';') || /\s/.test(s)) {
-      for (const piece of splitLooseList(s)) pushNormalized(piece);
-      return;
+      for (const piece of splitLooseList(s)) push(piece);
+    } else {
+      push(s);
     }
-
-    // Einzelwert als String/Zahl
-    pushNormalized(s);
   };
-
   walk(av);
   return set;
 }
 
 /** Ermittelt 'YYYY-MM-DD' eines Day-Objekts (sicher & robust). */
 function dayToYMD(day: MonthDay): string {
-  // MonthCalendar liefert idR day.dateStr === 'YYYY-MM-DD'. Falls nicht vorhanden, aus Date bauen.
   const candidate = (day as any).dateStr ?? day.date;
   return normalizeYMD(candidate);
 }
@@ -168,6 +126,7 @@ function dayToYMD(day: MonthDay): string {
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
+  const location = useLocation();
 
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,24 +140,46 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
+  // 1) Initial + bei Benutzerwechsel
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setErrorMsg(null);
-      try {
-        const data = await getCleaners(user.id);
-        setCleaners(data ?? []);
-        if (!data || data.length === 0) {
-          setErrorMsg('Sie haben noch keine Cleaner erstellt.');
-        }
-      } catch (e: any) {
-        setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
-      } finally {
-        setLoading(false);
-      }
-    })();
+    void loadCleaners();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
+
+  // 2) Bei Navigation ins Kalender-Menü (jede Location-Änderung)
+  useEffect(() => {
+    void loadCleaners();
+  }, [location.key]);
+
+  // 3) Reload bei Fokus
+  useEffect(() => {
+    const onFocus = () => { void loadCleaners(); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
+
+  // 4) Reload, wenn Tab wieder sichtbar
+  useEffect(() => {
+    const onVis = () => { if (!document.hidden) void loadCleaners(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
+  async function loadCleaners() {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const data = await getCleaners(user.id); // enthält availability(jsonb)
+      setCleaners(data ?? []);
+      if (!data || data.length === 0) {
+        setErrorMsg('Sie haben noch keine Cleaner erstellt.');
+      }
+    } catch (e: any) {
+      setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   /** Map<cleanerId, Set<'YYYY-MM-DD'>> für O(1)-Lookups */
   const unavailableIndex = useMemo(() => {
@@ -212,7 +193,6 @@ export function Calendar() {
   /** Wer ist an diesem Tag NICHT verfügbar? */
   function getUnavailableNames(ymd: string): string[] {
     if (!ymd) return [];
-
     if (isAllView) {
       const names: string[] = [];
       for (const c of cleaners) {
@@ -229,7 +209,7 @@ export function Calendar() {
   }
 
   function renderDay(day: MonthDay) {
-    const ymd = dayToYMD(day);           // <- robustes, zeitzonenfreies 'YYYY-MM-DD'
+    const ymd = dayToYMD(day);                 // 'YYYY-MM-DD'
     const unavailableNames = getUnavailableNames(ymd);
     const isUnavailable = unavailableNames.length > 0;
 
