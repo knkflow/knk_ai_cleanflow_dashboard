@@ -53,7 +53,7 @@ export async function createCleanerAndInvite(payload: {
 
   // Rückgabe immer konsistent
   return { data, error }
-}
+};
 
 /**
  * Cleaner + zugehörige Daten löschen (Edge Function)
