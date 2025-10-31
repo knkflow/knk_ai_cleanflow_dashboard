@@ -54,12 +54,12 @@ export function Calendar() {
   function getUnavailableNames(dateStr: string): string[] {
     if (isAllView) {
       return cleaners
-        .filter(c => toDateArray((c as any).available).includes(dateStr))
+        .filter(c => toDateArray((c as any).availability).includes(dateStr))
         .map(c => c.name);
     } else {
       const c = cleaners.find(x => x.id === selectedCleanerId);
       if (!c) return [];
-      return toDateArray((c as any).available).includes(dateStr) ? [c.name] : [];
+      return toDateArray((c as any).availability).includes(dateStr) ? [c.name] : [];
     }
   }
 
