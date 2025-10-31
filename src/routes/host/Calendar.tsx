@@ -194,15 +194,12 @@ export function Calendar() {
       ? 'bg-red-500/20 text-red-300 border-red-500/40'
       : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
-    // In Rot: KEIN Text „Nicht verfügbar“ mehr
-    // In Grün: weiterhin „Alle verfügbar“ / „Verfügbar“
-    const showText = !isUnavailable;
-
+    // ⚠️ Kein "(>1)" mehr – immer nur "Nicht verfügbar"
     const primaryText = isAllView
-      ? 'Alle verfügbar'
-      : 'Verfügbar';
+      ? (isUnavailable ? 'Nicht verfügbar' : 'Alle verfügbar')
+      : (isUnavailable ? 'Nicht verfügbar' : 'Verfügbar');
 
-    // Namen bei „Alle“-Ansicht & wenn abwesend → zweispaltig, top-to-bottom flow
+    // Wer-Liste nur in "Alle"-Ansicht und nur wenn mind. 1 abwesend
     const showNamesList = isAllView && isUnavailable;
 
     return (
@@ -217,25 +214,20 @@ export function Calendar() {
 
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
-            {/* Nur im grünen Kasten Text anzeigen */}
-            {showText && (
-              <div className="truncate">{primaryText}</div>
-            )}
+            {/* Haupttext */}
+            <div className="truncate">{primaryText}</div>
 
-            {/* Im roten Kasten: NUR Namen, in zwei Spalten (top→bottom, dann rechts) */}
+            {/* „Wer“ direkt darunter anzeigen */}
             {showNamesList && (
-              <div className="mt-0.5">
-                <div className="columns-2 gap-2 pr-1">
-                  {unavailableNames.map((n, i) => (
-                    <div
-                      key={i}
-                      className="break-inside-avoid whitespace-nowrap overflow-hidden text-ellipsis"
-                      title={n}
-                    >
-                      {n}
-                    </div>
-                  ))}
+              <div className="mt-1 text-[11px] text-red-200">
+                <div className="font-semibold uppercase tracking-wider mb-0.5 text-[10px]">
+                  Wer:
                 </div>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  {unavailableNames.map((n, i) => (
+                    <li key={i} className="leading-tight">{n}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
