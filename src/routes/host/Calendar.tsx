@@ -8,7 +8,9 @@ import type { MonthDay } from '../../lib/dates';
 
 interface ContextType { user: User; }
 
-// jsonb -> string[]
+// ---------------- Helpers ----------------
+
+// jsonb -> string[] (auch "2025-10-31T00:00:00Z" => "2025-10-31")
 const toDateArray = (val: unknown): string[] =>
   Array.isArray(val)
     ? val.map((v) => String(v)).map((s) => (s.includes('T') ? s.split('T')[0] : s))
@@ -22,6 +24,22 @@ function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr?: string | null):
 }
 
 function pad2(n: number) { return n.toString().padStart(2, '0'); }
+
+// Für Debug-Ausgaben
+const DEBUG = true;
+function logAvailabilitySnapshot(where: string, cleaners: Cleaner[]) {
+  if (!DEBUG) return;
+  // Gruppiertes Logging, gut lesbar
+  // eslint-disable-next-line no-console
+  console.group(`[Calendar] Availability Snapshot @ ${where}`);
+  cleaners.forEach((c) => {
+    const arr = toDateArray((c as any).availability);
+    // eslint-disable-next-line no-console
+    console.log(`- ${c.name} (${c.id}) -> availability:`, arr);
+  });
+  // eslint-disable-next-line no-console
+  console.groupEnd();
+}
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -52,6 +70,8 @@ export function Calendar() {
       if (!data || data.length === 0) {
         setErrorMsg('Sie haben noch keine Cleaner erstellt.');
       }
+      // **Konsole**: Availability direkt nach Laden loggen
+      logAvailabilitySnapshot('loadCleaners()', data ?? []);
     } catch (e: any) {
       setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
     } finally {
@@ -59,23 +79,39 @@ export function Calendar() {
     }
   }
 
+  // Bei Monatswechsel erneut eine Availability-Übersicht loggen
+  useEffect(() => {
+    logAvailabilitySnapshot(`monthChange -> ${year}-${pad2(month + 1)}`, cleaners);
+  }, [year, month, cleaners]);
+
   function dateStrOf(d: Date) {
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
 
   /** Liste der Namen, die an diesem Tag NICHT verfügbar sind – abhängig vom Filter */
   function getUnavailableNames(dateStr: string): string[] {
-  if (isAllView) {
-    return cleaners
-      // !!! WICHTIG: availability (nicht "available")
-      .filter((c) => toDateArray((c as any).availability).includes(dateStr))
-      .map((c) => c.name);
-  } else {
-    const c = cleaners.find((x) => x.id === selectedCleanerId);
-    if (!c) return [];
-    return toDateArray((c as any).availability).includes(dateStr) ? [c.name] : [];
+    if (isAllView) {
+      const res = cleaners
+        .filter((c) => isCleanerUnavailableForDate(c, dateStr))
+        .map((c) => c.name);
+
+      // **Konsole**: Für den konkreten Tag zeigen, wer blockiert ist
+      if (DEBUG && res.length > 0) {
+        // eslint-disable-next-line no-console
+        console.debug(`[Calendar] ${dateStr} -> unavailable (ALL):`, res);
+      }
+      return res;
+    } else {
+      const c = cleaners.find((x) => x.id === selectedCleanerId);
+      if (!c) return [];
+      const isUn = isCleanerUnavailableForDate(c, dateStr);
+      if (DEBUG && isUn) {
+        // eslint-disable-next-line no-console
+        console.debug(`[Calendar] ${dateStr} -> unavailable (${c.name})`);
+      }
+      return isUn ? [c.name] : [];
+    }
   }
-}
 
   function renderDay(day: MonthDay) {
     const unavailableNames = getUnavailableNames(day.dateStr);
@@ -159,7 +195,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Filter-Kacheln: Alle + einzelne Cleaner (Hover-Glow) */}
+      {/* Filter-Kacheln: Alle + einzelne Cleaner */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
