@@ -48,7 +48,7 @@ function App() {
 
         <Route path="/host" element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}>
           <Route index element={<DashboardHost />} />
-           <Route path="onboard" element={<HostOnboard />} />
+          <Route path="onboard" element={<HostOnboard />} />
           <Route path="apartments" element={<HostApartments />} />
           <Route path="cleaners" element={<HostCleaners />} />
           <Route path="tasks" element={<HostTasks />} />
