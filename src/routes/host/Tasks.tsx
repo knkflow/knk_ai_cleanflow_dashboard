@@ -44,22 +44,27 @@ export function Tasks() {
     return dt;
   }
 
-  // Anzeigeformat: "Di, 20.06.2025"
+  // Anzeigeformat exakt: "Mi, 20.05.2025" (ohne Punkt nach Wochentag, mit Komma)
   function formatDisplayDate(dateStr?: string | null): string {
     if (!dateStr) return '';
     const dt = parseISODateYMD(dateStr);
     if (!dt) return dateStr;
 
-    const formatted = new Intl.DateTimeFormat('de-DE', {
+    const parts = new Intl.DateTimeFormat('de-DE', {
       weekday: 'short',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       timeZone: 'Europe/Berlin',
-    }).format(dt); // z.B. "Di., 20.06.2025"
+    }).formatToParts(dt);
 
-    // Punkt nach Wochentag entfernen: "Di., ..." -> "Di, ..."
-    return formatted.replace(/^([^.]+)\.\s*/, '$1 ');
+    let wd = parts.find(p => p.type === 'weekday')?.value ?? '';
+    wd = wd.replace(/\.$/, ''); // Punkt am Ende entfernen (z.B. "Mi." -> "Mi")
+    const day = parts.find(p => p.type === 'day')?.value ?? '';
+    const month = parts.find(p => p.type === 'month')?.value ?? '';
+    const year = parts.find(p => p.type === 'year')?.value ?? '';
+
+    return `${wd}, ${day}.${month}.${year}`;
   }
 
   function startOfWeek(d = new Date()) {
@@ -155,23 +160,26 @@ export function Tasks() {
     }
   }
 
-  // Helper
+  // Helper: Cleaner per ID holen
   function getCleanerById(id?: string | null) {
     if (!id) return undefined;
     return cleaners.find((c) => c.id === id);
   }
 
+  // Prüft, ob der Cleaner an diesem Tag UNavailable ist (Datenfeld enthält gesperrte Tage)
   function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
     if (!dateStr) return false;
     const availability = (cleaner as any)?.availability;
     return Array.isArray(availability) && availability.includes(dateStr);
   }
 
+  // Umkehrung: verfügbar, wenn nicht als unavailable markiert
   function isCleanerAvailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
     if (!dateStr || !isValidDateString(dateStr)) return true; // solange kein Datum gesetzt ist, alle zeigen
     return !isCleanerUnavailableForDate(cleaner, dateStr);
   }
 
+  // Prüft für Badge auf der Karte
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner_id) return false;
     const cleaner = getCleanerById(task.cleaner_id);
@@ -241,7 +249,7 @@ export function Tasks() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
-  // Cleaner-Optionen im Modal: nur verfügbare für formData.date
+  // Cleaner-Optionen im Modal: nur Verfügbare für formData.date
   const cleanerOptionsForDate = [
     { value: '', label: 'Use default cleaner' },
     ...cleaners
@@ -333,7 +341,7 @@ export function Tasks() {
           const unavailable = isCleanerUnavailable(task);
           const taskCleaner = getCleanerById(task.cleaner_id);
 
-          return (
+        return (
             <div
               key={task.id}
               className={`p-6 rounded-2xl transition-all duration-500 ${
