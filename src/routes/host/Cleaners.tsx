@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import {
   getCleaners,
-  getCleanerByUserId,   // <-- NEU import
+  getCleanerByUserId,
   updateCleaner,
   deleteCleanerCascade,
   createCleanerAndInvite,
@@ -12,23 +12,21 @@ import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import type { User, Cleaner } from '../../types/db';
 
-interface ContextType { user: User; }
+interface ContextType {
+  user: User;
+}
 
 export function Cleaners() {
   const { user } = useOutletContext<ContextType>();
 
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedCleaner, setSelectedCleaner] = useState<Cleaner | null>(null);
-
   const [submitting, setSubmitting] = useState(false);
 
-  // Popup (Fehler/Hinweis)
   const [errorModal, setErrorModal] = useState<{ open: boolean; message: string }>({
     open: false,
     message: '',
@@ -42,43 +40,44 @@ export function Cleaners() {
   });
 
   useEffect(() => {
-  loadData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [user.id, user.role, user.auth_id]);
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id, user.role, user.auth_id]);
 
-async function loadData() {
-  setLoading(true);
-  try {
-    if (user.role === 'Cleaner') {
-      // WICHTIG: über AUTH-ID laden (cleaners.user_id -> auth.users.id)
-      const me = await getCleanerByUserId(user.auth_id);
-      setCleaners(me ? [me] : []);
-      if (!me) {
-        setErrorModal({
-          open: true,
-          message:
-            'Kein Cleaner-Datensatz gefunden. Prüfe, ob cleaners.user_id auf auth.users.id (auth_id) zeigt.',
-        });
+  async function loadData() {
+    setLoading(true);
+    try {
+      if (user.role === 'Cleaner') {
+        // Cleaner sieht nur sich selbst (über auth.users.id)
+        const me = await getCleanerByUserId(user.auth_id);
+        setCleaners(me ? [me] : []);
+        if (!me) {
+          setErrorModal({
+            open: true,
+            message: 'Kein persönlicher Cleaner-Datensatz gefunden.',
+          });
+        }
+      } else {
+        // Host sieht alle seine Cleaner
+        const data = await getCleaners(user.id);
+        setCleaners(data);
+        if (data.length === 0) {
+          // Freundliche Benutzer-Nachricht, keine technische Meldung
+          setErrorModal({
+            open: true,
+            message: 'Sie haben noch keine Cleaner erstellt.',
+          });
+        }
       }
-    } else {
-      // Host: alle Cleaner laden, deren host_id = users.id des Hosts
-      const data = await getCleaners(user.id);
-      setCleaners(data);
-      if (data.length === 0) {
-        setErrorModal({
-          open: true,
-          message:
-            'Für diesen Host wurden keine Cleaner gefunden. Prüfe in Supabase, ob cleaners.host_id auf users.id des Hosts zeigt.',
-        });
-      }
+    } catch (e: any) {
+      setErrorModal({
+        open: true,
+        message: e?.message ?? 'Fehler beim Laden der Cleaner',
+      });
+    } finally {
+      setLoading(false);
     }
-  } catch (e: any) {
-    setErrorModal({ open: true, message: e?.message ?? 'Fehler beim Laden der Cleaner' });
-  } finally {
-    setLoading(false);
   }
-}
-
 
   function openCreateModal() {
     setEditingId(null);
@@ -116,27 +115,26 @@ async function loadData() {
         send_magic_link: true,
       };
 
-      // Lokale Duplikat-Prüfung (Name / Email) nur beim Anlegen
+      // Duplikatprüfung nur bei Neuanlage
       if (!editingId) {
         const nameKey = normalize(payload.name);
         const emailKey = normalize(payload.email ?? '');
         const duplicate =
-          cleaners.some(c => normalize(c.name) === nameKey) ||
-          (!!emailKey && cleaners.some(c => normalize(c.email || '') === emailKey));
+          cleaners.some((c) => normalize(c.name) === nameKey) ||
+          (!!emailKey && cleaners.some((c) => normalize(c.email || '') === emailKey));
 
         if (duplicate) {
           setErrorModal({
             open: true,
             message: payload.email
-              ? `Cleaner mit Name "${payload.name}" oder E-Mail "${payload.email}" existiert bereits.`
-              : `Cleaner mit Name "${payload.name}" existiert bereits.`,
+              ? `Cleaner "${payload.name}" oder "${payload.email}" existiert bereits.`
+              : `Cleaner "${payload.name}" existiert bereits.`,
           });
           return;
         }
       }
 
       if (editingId) {
-        // Update in cleaners
         await updateCleaner(editingId, {
           name: payload.name,
           email: payload.email,
@@ -144,17 +142,18 @@ async function loadData() {
           hourly_rate: payload.hourly_rate,
         });
       } else {
-        // Edge Function (Slug "smart-function") – Bearer-Auth passiert in api.ts
         try {
           const res = await createCleanerAndInvite(payload);
           const msg = String((res as any)?.message ?? '').toLowerCase();
           const err = String((res as any)?.error ?? '').toLowerCase();
-          if (msg.includes('already exists') || err.includes('already exists') || err.includes('duplicate')) {
+          if (
+            msg.includes('already exists') ||
+            err.includes('already exists') ||
+            err.includes('duplicate')
+          ) {
             setErrorModal({
               open: true,
-              message: payload.email
-                ? `Cleaner "${payload.name}" / "${payload.email}" existiert bereits.`
-                : `Cleaner "${payload.name}" existiert bereits.`,
+              message: `Cleaner "${payload.name}" / "${payload.email}" existiert bereits.`,
             });
             return;
           }
@@ -163,9 +162,7 @@ async function loadData() {
           setErrorModal({
             open: true,
             message: m.includes('already exists') || m.includes('duplicate')
-              ? (payload.email
-                  ? `Cleaner "${payload.name}" / "${payload.email}" existiert bereits.`
-                  : `Cleaner "${payload.name}" existiert bereits.`)
+              ? `Cleaner "${payload.name}" existiert bereits.`
               : 'Fehler beim Erstellen des Cleaners.',
           });
           return;
@@ -205,13 +202,11 @@ async function loadData() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
-  // Availability-Länge robust aus jsonb (kann null, string[] oder anderes sein)
   const getAvailCount = (c: Cleaner) => {
     const a: any = (c as any).availability;
     return Array.isArray(a) ? a.length : 0;
   };
 
-  // Host darf neue Cleaner anlegen, Cleaner nicht (optional)
   const canCreate = user.role === 'Host';
 
   return (
@@ -227,7 +222,6 @@ async function loadData() {
             type="button"
             onClick={openCreateModal}
             className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md focus:outline-none focus:ring focus:ring-white/50"
-            aria-label="Add Cleaner"
           >
             <Plus className="w-5 h-5" />
             Add Cleaner
@@ -241,9 +235,9 @@ async function loadData() {
           <p className="font-medium mb-2">How Cleaner Invitations Work:</p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Add a cleaner with their email address (or phone).</li>
-            <li>A magic link (email) is sent for first-time login.</li>
-            <li>Role is set to <b>Cleaner</b> automatically.</li>
-            <li>Cleaner can then access assignments and set a password.</li>
+            <li>A magic link is sent for first-time login.</li>
+            <li>Role is automatically set to <b>Cleaner</b>.</li>
+            <li>Cleaner can then log in and set their password.</li>
           </ol>
         </div>
       )}
@@ -278,7 +272,6 @@ async function loadData() {
                   </p>
                 )}
 
-                {/* Nur informativ – falls availability-jsonb bei dir noch genutzt wird */}
                 <p className="text-white/40 text-xs mt-2">
                   Unavailable days: {getAvailCount(cleaner)}
                 </p>
@@ -289,18 +282,15 @@ async function loadData() {
                   type="button"
                   onClick={() => openEditModal(cleaner)}
                   className="p-2 rounded-md hover:bg-white/10 transition-colors"
-                  title="Edit"
                 >
                   <Edit className="w-5 h-5 text-white" />
                 </button>
 
-                {/* Löschen nur für Host */}
                 {canCreate && (
                   <button
                     type="button"
                     onClick={() => handleDelete(cleaner)}
                     className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
-                    title="Delete"
                   >
                     <Trash2 className="w-5 h-5 text-red-500" />
                   </button>
@@ -312,7 +302,7 @@ async function loadData() {
 
         {cleaners.length === 0 && (
           <div className="text-center py-12 text-white/50">
-            Keine Einträge gefunden.
+            Sie haben noch keine Cleaner erstellt.
           </div>
         )}
       </div>
@@ -332,7 +322,6 @@ async function loadData() {
               required
               placeholder="Full name"
             />
-
             <Input
               label="Email"
               type="email"
@@ -340,7 +329,6 @@ async function loadData() {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="email@example.com"
             />
-
             <Input
               label="Phone"
               type="tel"
@@ -348,7 +336,6 @@ async function loadData() {
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="+49 123 456789"
             />
-
             <Input
               label="Hourly Rate (€)"
               type="number"
@@ -358,7 +345,6 @@ async function loadData() {
               onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
               placeholder="15.00"
             />
-
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
@@ -390,7 +376,6 @@ async function loadData() {
               <span className="text-white font-semibold">{selectedCleaner.name}</span>{' '}
               wirklich dauerhaft löschen?
             </p>
-
             <div className="flex justify-end gap-3">
               <button
                 type="button"
