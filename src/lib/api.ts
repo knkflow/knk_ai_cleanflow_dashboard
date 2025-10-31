@@ -1,3 +1,4 @@
+// src/lib/api.ts
 import { supabase } from './supabase'
 import type {
   User,
@@ -29,7 +30,7 @@ export async function getCurrentUser(): Promise<User | null> {
     .from('users')
     .select('*')
     .eq('auth_id', user.id)
-    .maybeSingle()
+  .maybeSingle()
 
   if (error) throw error
   return data
@@ -39,31 +40,31 @@ export async function getCurrentUser(): Promise<User | null> {
  * CLEANERS
  * ========================= */
 export async function getCleaners(hostUserId: string): Promise<Cleaner[]> {
-  // Holt alle Cleaner, deren host_id auf users.id des Hosts zeigt
   const { data, error } = await supabase
     .from('cleaners')
     .select('*')
-    .eq('host_id', hostUserId)
-    .order('name');
+    .eq('host_id', hostUserId) // Host: public.users.id
+    .order('name')
 
-  if (error) throw error;
-  return data || [];
+  if (error) throw error
+  return data || []
 }
 
 /**
- * Holt den Cleaner-Datensatz über die AUTH-ID (auth.users.id).
- * WICHTIG: cleaners.user_id -> auth.users.id
+ * Cleaner über AUTH-ID laden.
+ * WICHTIG: cleaners.user_id -> auth.users.id  (== users.auth_id)
  */
 export async function getCleanerByUserId(authId: string): Promise<Cleaner | null> {
   const { data, error } = await supabase
     .from('cleaners')
     .select('*')
-    .eq('user_id', authId) // <-- auth.users.id, NICHT public.users.id
-    .maybeSingle();
+    .eq('user_id', authId) // auth.users.id
+    .maybeSingle()
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
+
 /** Cleaner erstellen + Einladung senden (Edge Function: smart-function) */
 export async function createCleanerAndInvite(payload: {
   host_id: string
@@ -142,7 +143,7 @@ export async function createApartment(
   const { data, error } = await supabase
     .from('apartments')
     .insert([apartment])
-  .select()
+    .select()
     .single()
 
   if (error) throw error
@@ -258,4 +259,3 @@ export async function getCleanerById(cleanerId: string): Promise<Cleaner | null>
   if (error) throw error
   return data
 }
-
