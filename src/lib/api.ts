@@ -41,14 +41,6 @@ export async function getCurrentUser(): Promise<User | null> {
   return data
 }
 
-/* =========================
- * CLEANERS
- * ========================= */
-/**
- * Holt alle Cleaner eines Hosts (host_id = users.id) inkl. availability (jsonb).
- * availability wird zu string[] normalisiert.
- */
-// src/lib/api.ts
 export async function getCleaners(hostUserId: string): Promise<Cleaner[]> {
   const { data, error } = await supabase
     .from('cleaners')
