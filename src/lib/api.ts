@@ -10,13 +10,18 @@ import type {
 } from '../types/db'
 
 /* =========================
- * Helpers (Bearer für Edge Functions)
+ * Helpers
  * ========================= */
 async function getAuthBearer(): Promise<string | undefined> {
   const { data, error } = await supabase.auth.getSession()
   if (error) return undefined
   const token = data?.session?.access_token
   return token ? `Bearer ${token}` : undefined
+}
+
+// jsonb -> string[]
+function toStringArray(val: unknown): string[] {
+  return Array.isArray(val) ? val.map(String) : []
 }
 
 /* =========================
@@ -30,7 +35,7 @@ export async function getCurrentUser(): Promise<User | null> {
     .from('users')
     .select('*')
     .eq('auth_id', user.id)
-  .maybeSingle()
+    .maybeSingle()
 
   if (error) throw error
   return data
@@ -39,30 +44,40 @@ export async function getCurrentUser(): Promise<User | null> {
 /* =========================
  * CLEANERS
  * ========================= */
+/**
+ * Holt alle Cleaner eines Hosts (host_id = users.id) inkl. availability (jsonb).
+ * availability wird zu string[] normalisiert.
+ */
 export async function getCleaners(hostUserId: string): Promise<Cleaner[]> {
   const { data, error } = await supabase
     .from('cleaners')
-    .select('*')
-    .eq('host_id', hostUserId) // Host: public.users.id
+    .select('id, host_id, user_id, name, email, phone, hourly_rate, availability')
+    .eq('host_id', hostUserId)
     .order('name')
 
   if (error) throw error
-  return data || []
+
+  return (data ?? []).map((row: any) => ({
+    ...row,
+    availability: toStringArray(row.availability),
+  })) as Cleaner[]
 }
 
 /**
- * Cleaner über AUTH-ID laden.
- * WICHTIG: cleaners.user_id -> auth.users.id  (== users.auth_id)
+ * Holt einen Cleaner über die AUTH-ID (cleaners.user_id -> auth.users.id).
+ * availability wird zu string[] normalisiert.
  */
 export async function getCleanerByUserId(authId: string): Promise<Cleaner | null> {
   const { data, error } = await supabase
     .from('cleaners')
-    .select('*')
-    .eq('user_id', authId) // auth.users.id
+    .select('id, host_id, user_id, name, email, phone, hourly_rate, availability')
+    .eq('user_id', authId)
     .maybeSingle()
 
   if (error) throw error
   return data
+    ? ({ ...data, availability: toStringArray((data as any).availability) } as Cleaner)
+    : null
 }
 
 /** Cleaner erstellen + Einladung senden (Edge Function: smart-function) */
@@ -106,7 +121,9 @@ export async function updateCleaner(id: string, updates: Partial<Cleaner>): Prom
     .single()
 
   if (error) throw error
-  return data
+  // availability im Rückgabewert ebenfalls normalisieren
+  const row: any = data
+  return { ...row, availability: toStringArray(row.availability) } as Cleaner
 }
 
 /* =========================
@@ -131,7 +148,7 @@ export async function getApartmentsForCleaner(cleanerId: string): Promise<Apartm
     .from('apartments')
     .select('*')
     .eq('default_cleaner_id', cleanerId)
-    .order('name')
+  .order('name')
 
   if (error) throw error
   return data || []
@@ -252,10 +269,12 @@ export async function deleteTask(id: string): Promise<void> {
 export async function getCleanerById(cleanerId: string): Promise<Cleaner | null> {
   const { data, error } = await supabase
     .from('cleaners')
-    .select('*')
+    .select('id, host_id, user_id, name, email, phone, hourly_rate, availability')
     .eq('id', cleanerId)
     .maybeSingle()
 
   if (error) throw error
   return data
+    ? ({ ...data, availability: toStringArray((data as any).availability) } as Cleaner)
+    : null
 }
