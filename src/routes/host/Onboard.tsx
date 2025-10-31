@@ -213,16 +213,11 @@ export function Onboard() {
                   {/* action button */}
                   <button
                     onClick={() => handleClick(step)}
-                   className={`group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                    className={`group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
   isDone
     ? "bg-emerald-600 text-white hover:bg-emerald-500"
     : "bg-blue-600 text-white hover:bg-blue-500"
 }`}
- ${
-                      isDone
-                        ? "border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                        : "bg-blue-600 text-white hover:bg-blue-500"
-                    }`}
                   >
                     {isDone ? "Rückgängig" : "Erledigen"}
                     {!isDone && (
