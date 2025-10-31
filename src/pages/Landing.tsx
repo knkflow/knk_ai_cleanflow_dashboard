@@ -66,7 +66,7 @@ export function Landing() {
     onClick={() => navigate('/')}
   />
 </div>
->
+<section>
 
           {/* Navigation rechts */}
           <nav className="flex items-center gap-6 md:gap-8">
