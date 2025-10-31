@@ -4,10 +4,9 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 import {
   getCleaners,
   updateCleaner,
-  deleteCleanerCascade, // 🧩 geändert – richtige Delete-Funktion
-  createCleanerAndInvite, // 🧩 neu hinzugefügt – aus lib/api.ts
-} from '../../lib/api'; // ✅ importiere beide aus deiner API
-
+  deleteCleanerCascade,
+  createCleanerAndInvite,
+} from '../../lib/api';
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import type { User, Cleaner } from '../../types/db';
@@ -86,14 +85,9 @@ export function Cleaners() {
           hourly_rate: payload.hourly_rate,
         });
       } else {
-        // 🧩 richtiger Funktionsname laut Supabase Dashboard:
-        const result = await createCleanerAndInvite(payload);
-
-        if (!result?.ok) {
-          throw new Error(result?.error || 'Edge Function error');
-        }
-
-        console.log('✅ Cleaner created:', result);
+        const { data, error } = await createCleanerAndInvite(payload);
+        if (error) throw new Error(error.message || 'Edge Function error');
+        console.log('✅ Cleaner created via Edge Function:', data);
       }
 
       setIsModalOpen(false);
@@ -111,9 +105,7 @@ export function Cleaners() {
   async function handleDeleteConfirmed() {
     if (!selectedCleaner) return;
     try {
-      // 🧩 Aufruf deiner Edge Function
       await deleteCleanerCascade(selectedCleaner.id);
-
       setIsConfirmOpen(false);
       await loadData();
     } catch (error: any) {
@@ -178,7 +170,7 @@ export function Cleaners() {
                   </p>
                 )}
                 <p className="text-white/40 text-xs mt-2">
-                  Unavailable days: {cleaner.availability.length}
+                  Unavailable days: {cleaner.availability?.length ?? 0}
                 </p>
               </div>
 
