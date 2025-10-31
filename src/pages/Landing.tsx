@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
-import logoPng from '/brand/logo.png'; // liegt in public/brand/logo.png
-
 
 export function Landing() {
   const navigate = useNavigate();
@@ -53,20 +51,19 @@ export function Landing() {
             CleanFlow
           </span>
 
-{/* Mittig – Logo */}
-<div className="absolute left-1/2 -translate-x-1/2 z-[60] pointer-events-auto">
-  <img
-    src={logoPng}
-    alt="CleanFlow Logo"
-    className="h-14 md:h-16 w-auto object-contain select-none rounded-full
-               border-2 border-white/60 shadow-[0_0_10px_rgba(255,255,255,0.25)]
-               transition-all duration-500 ease-out cursor-pointer
-               hover:scale-105 hover:border-[#d4af37] hover:shadow-[0_0_40px_rgba(212,175,55,0.65)]
-               active:scale-[1.02]"
-    onClick={() => navigate('/')}
-  />
-</div>
-<section>
+          {/* Mittig – Logo (aus /public, kein Import notwendig) */}
+          <div className="absolute left-1/2 -translate-x-1/2 z-[60] pointer-events-auto">
+            <img
+              src="/brand/logo.png"
+              alt="CleanFlow Logo"
+              className="h-14 md:h-16 w-auto object-contain select-none rounded-full
+                         border-2 border-white/60 shadow-[0_0_10px_rgba(255,255,255,0.25)]
+                         transition-all duration-500 ease-out cursor-pointer
+                         hover:scale-105 hover:border-[#d4af37] hover:shadow-[0_0_40px_rgba(212,175,55,0.65)]
+                         active:scale-[1.02]"
+              onClick={() => navigate('/')}
+            />
+          </div>
 
           {/* Navigation rechts */}
           <nav className="flex items-center gap-6 md:gap-8">
@@ -110,19 +107,18 @@ export function Landing() {
                          hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
                          transition-all duration-500 ease-out"
             >
-    {/* Feiner, neutral-weißer Glow-Hintergrund */}
-<span
-  aria-hidden
-  className="absolute -inset-x-6 -inset-y-3 rounded-full 
-             bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.15)_70%,transparent_100%)]
-             blur-[24px] opacity-80"
-></span>
-
-{/* Text */}
-<p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-[#D4AF37] drop-shadow-[0_0_6px_rgba(212,175,55,0.35)]">
-  Short-Term Rental · Operations
-</p>
-
+              {/* Feiner, neutral-weißer Glow-Hintergrund */}
+              <span
+                aria-hidden
+                className="absolute -inset-x-6 -inset-y-3 rounded-full 
+                           bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.15)_70%,transparent_100%)]
+                           blur-[24px] opacity-80"
+              />
+              {/* Text */}
+              <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-[#D4AF37] drop-shadow-[0_0_6px_rgba(212,175,55,0.35)]">
+                Short-Term Rental · Operations
+              </p>
+            </div>
 
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Effortless</span>{' '}
@@ -132,7 +128,7 @@ export function Landing() {
             </h1>
 
             <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
-             Verwalten Sie Apartments, koordinieren Sie Reinigungskräfte und planen Sie Aufgaben mit Präzision. Entwickelt für Gastgeber, die Wert auf Effizienz legen.
+              Verwalten Sie Apartments, koordinieren Sie Reinigungskräfte und planen Sie Aufgaben mit Präzision. Entwickelt für Gastgeber, die Wert auf Effizienz legen.
             </p>
 
             <div className="mt-10 flex items-center justify-center gap-4">
@@ -217,10 +213,6 @@ export function Landing() {
                   Funktionen, die überzeugen
                 </span>
               </h2>
-              <div className="w-24 h-px bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mx-auto mt-6 mb-6 opacity-80" />
-              <p className="text-white/70 max-w-3xl mx-auto">
-                Alles, was Sie für professionelles Reinigungsmanagement brauchen.
-              </p>
             </div>
 
             <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6">
