@@ -1,10 +1,11 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { getCleaners, createCleaner, updateCleaner, deleteCleaner } from '../../lib/api';
+import { getCleaners, updateCleaner, deleteCleaner } from '../../lib/api';
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import type { User, Cleaner } from '../../types/db';
+import { useSupabase } from '../../lib/supabaseClient'; // <<— wichtig: Supabase-Client
 
 interface ContextType {
   user: User;
@@ -12,10 +13,14 @@ interface ContextType {
 
 export function Cleaners() {
   const { user } = useOutletContext<ContextType>();
+  const { supabase } = useSupabase();
+
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedCleaner, setSelectedCleaner] = useState<Cleaner | null>(null);
 
@@ -26,7 +31,6 @@ export function Cleaners() {
     hourly_rate: '',
   });
 
-  // Lade Daten beim Mount
   useEffect(() => {
     loadData();
   }, [user.id]);
@@ -59,28 +63,47 @@ export function Cleaners() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
     try {
-      const data = {
-        name: formData.name,
-        email: formData.email || null,
-        phone: formData.phone || null,
+      // Gemeinsame Felder aufbereiten
+      const payload = {
+        host_id: user.id,
+        name: formData.name.trim(),
+        email: formData.email.trim() || null,
+        phone: formData.phone.trim() || null,
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+        send_magic_link: true, // Magic-Link direkt senden (falls Email vorhanden)
       };
 
       if (editingId) {
-        await updateCleaner(editingId, data);
-      } else {
-        await createCleaner({
-          ...data,
-          host_id: user.id,
-          user_id: null,
-          availability: [],
+        // ✅ UPDATE bleibt wie bisher in deiner API
+        await updateCleaner(editingId, {
+          name: payload.name,
+          email: payload.email,
+          phone: payload.phone,
+          hourly_rate: payload.hourly_rate,
         });
+      } else {
+        // ✅ NEUANLAGE: Edge Function aufrufen (Auth + users.role=Cleaner + cleaners + Magic-Link)
+        const { data, error } = await supabase.functions.invoke(
+          'create-cleaner-and-invite',
+          { body: payload }
+        );
+
+        if (error) {
+          // Fehler sauber zeigen
+          throw new Error(error.message || 'Edge Function error');
+        }
+
+        // Optional: Response inspizieren (z. B. data.ok, data.cleaner, data.auth_user_id)
+        // console.log('create-cleaner-and-invite =>', data);
       }
+
       setIsModalOpen(false);
-      loadData();
-    } catch (error: any) {
-      alert(error.message);
+      await loadData();
+    } catch (err: any) {
+      // Zeig den Fehler freundlich an – hier simple alert, gerne gegen Toast ersetzen
+      alert(err.message ?? 'Unbekannter Fehler beim Speichern');
     }
   }
 
@@ -94,15 +117,13 @@ export function Cleaners() {
     try {
       await deleteCleaner(selectedCleaner.id);
       setIsConfirmOpen(false);
-      loadData();
+      await loadData();
     } catch (error: any) {
-      alert(error.message);
+      alert(error.message ?? 'Löschen fehlgeschlagen');
     }
   }
 
-  if (loading) {
-    return <div className="text-white">Loading...</div>;
-  }
+  if (loading) return <div className="text-white">Loading...</div>;
 
   return (
     <div>
@@ -122,10 +143,10 @@ export function Cleaners() {
       <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
         <p className="font-medium mb-2">How Cleaner Invitations Work:</p>
         <ol className="list-decimal list-inside space-y-1">
-          <li>Add a cleaner with their email address</li>
-          <li>The cleaner signs up using that same email</li>
-          <li>Their account is automatically linked</li>
-          <li>They can access assignments and manage availability</li>
+          <li>Add a cleaner with their email address (or phone).</li>
+          <li>A magic link (email) is sent for first-time login.</li>
+          <li>Role is set to <b>Cleaner</b> automatically.</li>
+          <li>Cleaner can then access assignments and set a password.</li>
         </ol>
       </div>
 
