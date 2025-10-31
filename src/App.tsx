@@ -75,7 +75,7 @@ return (
       {/* ... deine bisherigen Routen ... */}
 
       {/* Magic-Link-Route */}
-      <Route path="/cleaner/set-password" element={<SetPassword />} />
+      <Route path="/cleaner/Set-Password" element={<SetPassword />} />
 
       {/* Optional: Catch-All 404 */}
       <Route path="*" element={<div>404 - Seite nicht gefunden</div>} />
