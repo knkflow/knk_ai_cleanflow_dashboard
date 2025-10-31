@@ -194,41 +194,51 @@ export function Calendar() {
       ? 'bg-red-500/20 text-red-300 border-red-500/40'
       : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
-    // ⚠️ Kein "(>1)" mehr – immer nur "Nicht verfügbar"
-    const primaryText = isAllView
-      ? (isUnavailable ? 'Nicht verfügbar' : 'Alle verfügbar')
-      : (isUnavailable ? 'Nicht verfügbar' : 'Verfügbar');
+    // Einzellansicht: Text im Kasten; Alle-Ansicht: kein Text im roten Kasten
+    const showTextInsideBox = !isAllView || !isUnavailable;
 
-    // Wer-Liste nur in "Alle"-Ansicht und nur wenn mind. 1 abwesend
+    const primaryText = isAllView ? 'Alle verfügbar' : (isUnavailable ? 'Nicht verfügbar' : 'Verfügbar');
+
     const showNamesList = isAllView && isUnavailable;
 
     return (
       <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-        <div className={`text-xs mb-1 ${
-          day.isToday ? 'font-bold text-white'
-          : day.isCurrentMonth ? 'text-white/70'
-          : 'text-white/40'
-        }`}>
-          {day.date.getDate()}
+        {/* Kopfzeile: Datum + rotes Badge in der "Alle"-Ansicht */}
+        <div className="text-xs mb-1 flex items-center gap-2">
+          <span className={
+            day.isToday
+              ? 'font-bold text-white'
+              : day.isCurrentMonth
+              ? 'text-white/70'
+              : 'text-white/40'
+          }>
+            {day.date.getDate()}
+          </span>
+
+          {/* Badge nur in "Alle" + wenn abwesend */}
+          {isAllView && isUnavailable && (
+            <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
+              Nicht verfügbar
+            </span>
+          )}
         </div>
 
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
-            {/* Haupttext */}
-            <div className="truncate">{primaryText}</div>
+            {/* Text nur, wenn erlaubt (siehe oben) */}
+            {showTextInsideBox && (
+              <div className="truncate">{primaryText}</div>
+            )}
 
-            {/* „Wer“ direkt darunter anzeigen */}
+            {/* In "Alle": Liste der Namen untereinander */}
             {showNamesList && (
-              <div className="mt-1 text-[11px] text-red-200">
-                <div className="font-semibold uppercase tracking-wider mb-0.5 text-[10px]">
-                  Wer:
-                </div>
-                <ul className="list-disc pl-4 space-y-0.5">
-                  {unavailableNames.map((n, i) => (
-                    <li key={i} className="leading-tight">{n}</li>
-                  ))}
-                </ul>
-              </div>
+              <ul className="mt-1 space-y-0.5 pl-4 list-disc">
+                {unavailableNames.map((n, i) => (
+                  <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={n}>
+                    {n}
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         )}
