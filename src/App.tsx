@@ -4,6 +4,7 @@ import { Login } from './pages/Login';
 import { DashboardHost } from './pages/DashboardHost';
 import { DashboardCleaner } from './pages/DashboardCleaner';
 import { GuardedLayout } from './components/layout/GuardedLayout';
+import { Onboard as HostOnboard } from './routes/host/Onboard';
 import { Apartments as HostApartments } from './routes/host/Apartments';
 import { Cleaners as HostCleaners } from './routes/host/Cleaners';
 import { Tasks as HostTasks } from './routes/host/Tasks';
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 const hostTabs = [
+  { to: '/host/onboard', label: 'Onboard', icon: Building2 },
   { to: '/host/apartments', label: 'Apartments', icon: Building2 },
   { to: '/host/cleaners', label: 'Reinigungskräfte', icon: Users },
   { to: '/host/tasks', label: 'Reinigungsplan', icon: ClipboardList },
