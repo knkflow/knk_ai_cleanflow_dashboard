@@ -52,17 +52,19 @@ export function Landing() {
           </span>
 
 {/* Mittig – Logo */}
-<div className="absolute left-1/2 -translate-x-1/2">
+<div className="absolute left-1/2 -translate-x-1/2 z-50">
   <img
     src="/brand/logo.png"
     alt="CleanFlow Logo"
-    className="h-12 md:h-14 w-auto object-contain select-none
-               rounded-full border-2 border-white/70 shadow-[0_0_10px_rgba(255,255,255,0.25)]
-               transition-all duration-500 ease-out
-               hover:shadow-[0_0_25px_rgba(255,255,255,0.55)] hover:border-white"
+    className="h-14 md:h-16 w-auto object-contain select-none rounded-full
+               border-2 border-white/60 shadow-[0_0_10px_rgba(255,255,255,0.25)]
+               transition-all duration-500 ease-out cursor-pointer
+               hover:scale-105 hover:border-[#d4af37] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)]"
+    onClick={() => navigate('/')}
     onError={(e) => (e.currentTarget.style.display = 'none')}
   />
 </div>
+
 
           {/* Navigation rechts */}
           <nav className="flex items-center gap-6 md:gap-8">
