@@ -106,11 +106,7 @@ export function Landing() {
                          hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
                          transition-all duration-500 ease-out"
             >
-    {/* Feiner, neutral-weißer Glow-Hintergrund */}
-{/* Entfernt: kein Glow-Hintergrund mehr, clean look */}
-<span aria-hidden className="hidden"></span>
-
-
+ 
 {/* Text */}
 <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]">
   Short-Term Rental · Operations
