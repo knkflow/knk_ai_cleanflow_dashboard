@@ -140,7 +140,7 @@ export function Tasks() {
 
   // Prüft, ob der Cleaner an diesem Tag unavailable ist
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
-    console.log("Cleaner name: " + task.cleaner.name);
+    console.log("Cleaner name: " + task.cleaner_id);
     if (!task.cleaner || !isValidDateString(task.date)) return false;
     return Array.isArray(task.cleaner.availability) && task.cleaner.availability.includes(task.date);
   }
