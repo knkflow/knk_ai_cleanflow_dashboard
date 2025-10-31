@@ -1,23 +1,34 @@
 // src/pages/Settings/Settings.tsx
 import { useState, ChangeEvent } from 'react';
-import { Settings as SettingsIcon, User, Link2 } from 'lucide-react';
+import {
+  Settings as SettingsIcon,
+  User,
+  Link2,
+  FileText,
+  MoreHorizontal,
+} from 'lucide-react';
 import { Input } from '../../components/forms/Input'; // nutzt eure bestehende Input-Komponente
 
-type SectionKey = 'general' | 'profile' | 'apis';
+type SectionKey = 'general' | 'profile' | 'apis' | 'invoices' | 'other';
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ElementType }[] = [
   { key: 'general', label: 'Allgemein', icon: SettingsIcon },
   { key: 'profile', label: 'Profil', icon: User },
   { key: 'apis', label: 'Verbindungen & APIs', icon: Link2 },
+  { key: 'invoices', label: 'Rechnungen', icon: FileText },
+  { key: 'other', label: 'Sonstiges', icon: MoreHorizontal },
 ];
 
 export function Settings() {
   const [active, setActive] = useState<SectionKey>('general');
-  // Für den Dummy: pro Bereich genau EIN Textfeld
+
+  // Dummy Input-Werte nur für die ersten drei Bereiche
   const [values, setValues] = useState<Record<SectionKey, string>>({
     general: '',
     profile: '',
     apis: '',
+    invoices: '',
+    other: '',
   });
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -25,16 +36,18 @@ export function Settings() {
     setValues((prev) => ({ ...prev, [active]: val }));
   };
 
+  const currentSection = SECTIONS.find((s) => s.key === active);
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Einstellungen</h2>
       </div>
 
-      {/* Zentrierte Kachel */}
+      {/* Hauptkachel */}
       <div className="mx-auto max-w-5xl bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-[240px_1fr]">
-          {/* Linkes Menü */}
+          {/* Seitenmenü */}
           <aside className="border-b md:border-b-0 md:border-r border-white/10">
             <nav className="p-2 md:p-4">
               <ul className="space-y-1">
@@ -62,26 +75,30 @@ export function Settings() {
             </nav>
           </aside>
 
-          {/* Rechter Inhalt */}
+          {/* Rechter Inhaltsbereich */}
           <section className="p-4 md:p-6">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-white">
-                {SECTIONS.find((s) => s.key === active)?.label}
+                {currentSection?.label}
               </h3>
               <p className="text-white/60 text-sm">
-                Dummy-Beispiel – hier kommt später der echte Inhalt.
+                {['general', 'profile', 'apis'].includes(active)
+                  ? 'Dummy-Beispiel – hier kommt später der echte Inhalt.'
+                  : 'Diese Funktionalität ist noch in Arbeit.'}
               </p>
             </div>
 
-            {/* Ein einziges Textfeld als Dummy */}
-            <div className="max-w-lg">
-              <Input
-                label="Beispiel-Textfeld"
-                placeholder="Gib hier etwas ein…"
-                value={values[active]}
-                onChange={handleChange}
-              />
-            </div>
+            {/* Nur die ersten 3 Tabs haben Eingabefelder */}
+            {['general', 'profile', 'apis'].includes(active) && (
+              <div className="max-w-lg">
+                <Input
+                  label="Beispiel-Textfeld"
+                  placeholder="Gib hier etwas ein…"
+                  value={values[active]}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
           </section>
         </div>
       </div>
