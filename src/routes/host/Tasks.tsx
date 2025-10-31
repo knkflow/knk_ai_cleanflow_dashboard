@@ -387,10 +387,10 @@ export function Tasks() {
                   )}
 
                   {task.note && (
-                    <div className="mt-3 inline-block rounded-md border border-white/40 text-white font-medium text-sm px-3 py-2 max-w-full break-words">
-                      {task.note}
-                    </div>
-                  )}
+  <div className="mt-3 inline-block rounded-md border border-white/15 text-white/65 font-medium text-sm px-3 py-2 backdrop-blur-sm shadow-inner shadow-white/5 max-w-full break-words">
+    {task.note}
+  </div>
+)}
                 </div>
 
                 <div className="flex gap-2">
