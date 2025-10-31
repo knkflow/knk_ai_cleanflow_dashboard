@@ -44,7 +44,7 @@ export function Tasks() {
     return dt;
   }
 
-  // 🟢 NEU: Für Anzeigeformatierung (Di, 20.06.2025)
+  // Anzeigeformat: "Di, 20.06.2025"
   function formatDisplayDate(dateStr?: string | null): string {
     if (!dateStr) return '';
     const dt = parseISODateYMD(dateStr);
@@ -56,8 +56,9 @@ export function Tasks() {
       month: '2-digit',
       year: 'numeric',
       timeZone: 'Europe/Berlin',
-    }).format(dt);
+    }).format(dt); // z.B. "Di., 20.06.2025"
 
+    // Punkt nach Wochentag entfernen: "Di., ..." -> "Di, ..."
     return formatted.replace(/^([^.]+)\.\s*/, '$1 ');
   }
 
@@ -154,6 +155,7 @@ export function Tasks() {
     }
   }
 
+  // Helper
   function getCleanerById(id?: string | null) {
     if (!id) return undefined;
     return cleaners.find((c) => c.id === id);
@@ -166,7 +168,7 @@ export function Tasks() {
   }
 
   function isCleanerAvailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
-    if (!dateStr || !isValidDateString(dateStr)) return true;
+    if (!dateStr || !isValidDateString(dateStr)) return true; // solange kein Datum gesetzt ist, alle zeigen
     return !isCleanerUnavailableForDate(cleaner, dateStr);
   }
 
@@ -191,6 +193,7 @@ export function Tasks() {
     if (!d) return false;
 
     const checks: boolean[] = [];
+
     if (quickFilters.includes('TODAY')) {
       checks.push(d.getTime() === today.getTime());
     }
@@ -238,6 +241,7 @@ export function Tasks() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
+  // Cleaner-Optionen im Modal: nur verfügbare für formData.date
   const cleanerOptionsForDate = [
     { value: '', label: 'Use default cleaner' },
     ...cleaners
@@ -464,3 +468,70 @@ export function Tasks() {
               rows={3}
               className="w-full px-4 py-2 bg-white/10 border border-white/20 text-white focus:border-white focus:outline-none"
               placeholder="Additional instructions..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
+            >
+              {editingId ? 'Update' : 'Create'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Modal */}
+      {taskToDelete && (
+        <div
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setTaskToDelete(null)}
+          />
+          <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4">Task löschen?</h3>
+
+            <p className="text-white/80 mb-6">
+              Möchten Sie die Reinigung für{' '}
+              <span className="font-semibold text-white">
+                {taskToDelete.apartment?.name || 'Unbekanntes Apartment'}
+              </span>{' '}
+              am{' '}
+              <span className="font-semibold text-white">
+                {formatDisplayDate(taskToDelete.date) || 'Unbekanntes Datum'}
+              </span>{' '}
+              wirklich entfernen?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
+              >
+                Löschen
+              </button>
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
