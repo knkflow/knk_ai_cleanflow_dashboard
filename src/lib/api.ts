@@ -1,4 +1,3 @@
-// src/lib/api.ts
 import { supabase } from './supabase'
 import type {
   User,
@@ -10,14 +9,22 @@ import type {
 } from '../types/db'
 
 /* =========================
+ * Helpers (Bearer für Edge Functions)
+ * ========================= */
+async function getAuthBearer(): Promise<string | undefined> {
+  const { data, error } = await supabase.auth.getSession()
+  if (error) return undefined
+  const token = data?.session?.access_token
+  return token ? `Bearer ${token}` : undefined
+}
+
+/* =========================
  * USER
  * ========================= */
-
 export async function getCurrentUser(): Promise<User | null> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Dein Schema: users.auth_id referenziert auth.users.id
   const { data, error } = await supabase
     .from('users')
     .select('*')
@@ -31,7 +38,6 @@ export async function getCurrentUser(): Promise<User | null> {
 /* =========================
  * CLEANERS
  * ========================= */
-
 export async function getCleaners(hostId: string): Promise<Cleaner[]> {
   const { data, error } = await supabase
     .from('cleaners')
@@ -44,7 +50,6 @@ export async function getCleaners(hostId: string): Promise<Cleaner[]> {
 }
 
 /** Cleaner erstellen + Einladung senden (Edge Function: smart-function) */
-
 export async function createCleanerAndInvite(payload: {
   host_id: string
   name: string
@@ -53,25 +58,29 @@ export async function createCleanerAndInvite(payload: {
   hourly_rate?: number | null
   send_magic_link?: boolean
 }) {
+  const auth = await getAuthBearer()
   const { data, error } = await supabase.functions.invoke('smart-function', {
     body: payload,
-  });
-  if (error) throw new Error(error.message || 'Edge Function call failed');
-  if (data?.error) throw new Error(data.error);
-  return data;
+    headers: auth ? { Authorization: auth } : undefined,
+  })
+  if (error) throw new Error(error.message || 'Edge Function call failed')
+  if ((data as any)?.error) throw new Error((data as any).error)
+  return data
 }
 
-// Cleaner + zugehörige Daten löschen (Cascade)
+/** Cleaner + zugehörige Daten löschen (Edge Function: quick-task – Cascade) */
 export async function deleteCleanerCascade(cleanerId: string) {
+  const auth = await getAuthBearer()
   const { data, error } = await supabase.functions.invoke('quick-task', {
     body: { cleaner_id: cleanerId },
-  });
-  if (error) throw new Error(error.message || 'Failed to invoke delete-cleaner-cascade');
-  if (data?.error) throw new Error(data.error);
-  return data;
+    headers: auth ? { Authorization: auth } : undefined,
+  })
+  if (error) throw new Error(error.message || 'Failed to invoke delete-cleaner-cascade')
+  if ((data as any)?.error) throw new Error((data as any).error)
+  return data
 }
 
-/** Cleaner lokal updaten (direkt in DB) */
+/** Cleaner direkt in DB updaten */
 export async function updateCleaner(id: string, updates: Partial<Cleaner>): Promise<Cleaner> {
   const { data, error } = await supabase
     .from('cleaners')
@@ -87,7 +96,6 @@ export async function updateCleaner(id: string, updates: Partial<Cleaner>): Prom
 /* =========================
  * APARTMENTS
  * ========================= */
-
 export async function getApartments(ownerId: string): Promise<ApartmentWithCleaner[]> {
   const { data, error } = await supabase
     .from('apartments')
@@ -102,7 +110,6 @@ export async function getApartments(ownerId: string): Promise<ApartmentWithClean
   return data || []
 }
 
-/** Apartments für einen bestimmten Cleaner (wenn in UI benötigt) */
 export async function getApartmentsForCleaner(cleanerId: string): Promise<Apartment[]> {
   const { data, error } = await supabase
     .from('apartments')
@@ -120,7 +127,7 @@ export async function createApartment(
   const { data, error } = await supabase
     .from('apartments')
     .insert([apartment])
-    .select()
+  .select()
     .single()
 
   if (error) throw error
@@ -134,7 +141,7 @@ export async function updateApartment(
   const { data, error } = await supabase
     .from('apartments')
     .update(updates)
-    .eq('listing_id', id) // bei dir ist listing_id der PK dieser Tabelle
+    .eq('listing_id', id)
     .select()
     .single()
 
@@ -154,12 +161,10 @@ export async function deleteApartment(id: string): Promise<void> {
 /* =========================
  * TASKS
  * ========================= */
-
 export async function getTasks(
   ownerId: string,
   filters?: { dateFrom?: string; dateTo?: string; cleanerId?: string }
 ): Promise<CleaningTaskWithDetails[]> {
-  // Join mit Alias "apartment" (inner), damit wir auf apartment.owner_id filtern können
   let query = supabase
     .from('cleaning_tasks')
     .select(`
@@ -181,12 +186,11 @@ export async function getTasks(
 export async function createTask(task: Omit<CleaningTask, 'id' | 'created_at'>) {
   const taskData: any = { ...task }
 
-  // Fallback: wenn kein cleaner_id angegeben, verwende default_cleaner des Apartments
   if (!taskData.cleaner_id && taskData.listing_id) {
     const { data: apartment, error: aErr } = await supabase
       .from('apartments')
       .select('default_cleaner_id')
-      .eq('listing_id', taskData.listing_id) // wichtig: listing_id, nicht name
+      .eq('listing_id', taskData.listing_id)
       .maybeSingle()
 
     if (aErr) throw aErr
@@ -227,9 +231,8 @@ export async function deleteTask(id: string): Promise<void> {
 }
 
 /* =========================
- * LOOKUPS (optional)
+ * LOOKUPS
  * ========================= */
-
 export async function getCleanerById(cleanerId: string): Promise<Cleaner | null> {
   const { data, error } = await supabase
     .from('cleaners')
