@@ -1,11 +1,16 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { getCleaners, updateCleaner, deleteCleaner } from '../../lib/api';
+import {
+  getCleaners,
+  updateCleaner,
+  deleteCleanerCascade, // 🧩 geändert – richtige Delete-Funktion
+  createCleanerAndInvite, // 🧩 neu hinzugefügt – aus lib/api.ts
+} from '../../lib/api'; // ✅ importiere beide aus deiner API
+
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import type { User, Cleaner } from '../../types/db';
-import { useSupabase } from '../../lib/supabase';
 
 interface ContextType {
   user: User;
@@ -13,7 +18,6 @@ interface ContextType {
 
 export function Cleaners() {
   const { user } = useOutletContext<ContextType>();
-  const { supabase } = useSupabase();
 
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,18 +69,16 @@ export function Cleaners() {
     e.preventDefault();
 
     try {
-      // Gemeinsame Felder aufbereiten
       const payload = {
         host_id: user.id,
         name: formData.name.trim(),
         email: formData.email.trim() || null,
         phone: formData.phone.trim() || null,
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-        send_magic_link: true, // Magic-Link direkt senden (falls Email vorhanden)
+        send_magic_link: true,
       };
 
       if (editingId) {
-        // ✅ UPDATE bleibt wie bisher in deiner API
         await updateCleaner(editingId, {
           name: payload.name,
           email: payload.email,
@@ -84,25 +86,19 @@ export function Cleaners() {
           hourly_rate: payload.hourly_rate,
         });
       } else {
-        // ✅ NEUANLAGE: Edge Function aufrufen (Auth + users.role=Cleaner + cleaners + Magic-Link)
-        const { data, error } = await supabase.functions.invoke(
-          'create-cleaner-and-invite',
-          { body: payload }
-        );
+        // 🧩 richtiger Funktionsname laut Supabase Dashboard:
+        const result = await createCleanerAndInvite(payload);
 
-        if (error) {
-          // Fehler sauber zeigen
-          throw new Error(error.message || 'Edge Function error');
+        if (!result?.ok) {
+          throw new Error(result?.error || 'Edge Function error');
         }
 
-        // Optional: Response inspizieren (z. B. data.ok, data.cleaner, data.auth_user_id)
-        // console.log('create-cleaner-and-invite =>', data);
+        console.log('✅ Cleaner created:', result);
       }
 
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      // Zeig den Fehler freundlich an – hier simple alert, gerne gegen Toast ersetzen
       alert(err.message ?? 'Unbekannter Fehler beim Speichern');
     }
   }
@@ -115,7 +111,8 @@ export function Cleaners() {
   async function handleDeleteConfirmed() {
     if (!selectedCleaner) return;
     try {
-await deleteCleanerCascade(selectedCleaner.id);
+      // 🧩 Aufruf deiner Edge Function
+      await deleteCleanerCascade(selectedCleaner.id);
 
       setIsConfirmOpen(false);
       await loadData();
@@ -156,8 +153,7 @@ await deleteCleanerCascade(selectedCleaner.id);
         {cleaners.map((cleaner) => (
           <div
             key={cleaner.id}
-            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500
-                       hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
+            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -212,94 +208,6 @@ await deleteCleanerCascade(selectedCleaner.id);
           </div>
         )}
       </div>
-
-      {/* Create/Edit Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingId ? 'Edit Cleaner' : 'Add Cleaner'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            placeholder="Full name"
-          />
-
-          <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="email@example.com"
-          />
-
-          <Input
-            label="Phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="+49 123 456789"
-          />
-
-          <Input
-            label="Hourly Rate (€)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.hourly_rate}
-            onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-            placeholder="15.00"
-          />
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
-            >
-              {editingId ? 'Update' : 'Create'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Delete Confirm Popup */}
-      {isConfirmOpen && selectedCleaner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-xl font-semibold mb-3">Wirklich entfernen?</h3>
-            <p className="text-white/70 mb-6">
-              Möchten Sie den Cleaner{' '}
-              <span className="text-white font-semibold">{selectedCleaner.name}</span>{' '}
-              wirklich dauerhaft löschen?
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setIsConfirmOpen(false)}
-                className="px-4 py-2 border border-white/30 text-white hover:border-white/60 transition-colors rounded-md"
-              >
-                Abbrechen
-              </button>
-              <button
-                onClick={handleDeleteConfirmed}
-                className="px-5 py-2 bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors rounded-md"
-              >
-                Löschen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
