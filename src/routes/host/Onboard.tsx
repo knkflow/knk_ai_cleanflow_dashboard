@@ -13,14 +13,13 @@ import {
 } from "lucide-react";
 
 /**
- * Onboarding component with state persistence (localStorage)
- * - Dark, professional look (black background, white text)
- * - Green check for done, red icon for not done
- * - Progress bar shows % complete and updates when clicking "Erledigen"
- * - Redirect to proper sub-routes on click
- * - Persists state so returning to Onboard shows the latest status
+ * Onboarding component with string status persistence (localStorage)
+ * - Für jeden Step wird im localStorage eine Map { [id]: "erledigt" | "" } gespeichert.
+ * - Nur Steps mit Wert "erledigt" sind grün und zählen zum Fortschritt.
+ * - Fortschritt wird beim Laden aus localStorage berechnet (persistenter Fortschritt).
+ * - Klick auf "Erledigen" toggelt den Status; wenn neu erledigt, wird redirectet.
  *
- * Steps:
+ * Schritte:
  *  1) Unternehmensprofil vervollständigen → /host/settings#profil
  *  2) Objekt/Apartment hinzufügen → /host/apartments
  *  3) PMS-Verbindung verknüpfen → /host/settings#verbindungen-und-apis
@@ -28,17 +27,19 @@ import {
  *  5) Reinigung planen → /host/tasks
  */
 export function Onboard() {
-  const LS_KEY = "host_onboard_steps_v1"; // bump version if steps structure changes
+  const LS_KEY = "host_onboard_steps_v1"; // Key bleibt, Inhalt jetzt Map { [id]: "erledigt" | "" }
   const navigate = useNavigate();
 
   type Step = {
     id: string;
     title: string;
     description: string;
-    done: boolean;
+    done: boolean; // abgeleitet aus storageMap[id] === "erledigt"
     icon: React.ComponentType<{ className?: string }>;
     redirect?: string;
   };
+
+  type StatusMap = Record<string, "erledigt" | "">;
 
   const defaultSteps: Step[] = [
     {
@@ -85,54 +86,120 @@ export function Onboard() {
 
   const [steps, setSteps] = useState<Step[]>(defaultSteps);
 
-  // Load from localStorage on mount
-  useEffect(() => {
+  /** Liest Map aus localStorage. Migriert alte Array-Struktur falls nötig. */
+  const readStatusMap = (): StatusMap => {
     try {
       const raw = localStorage.getItem(LS_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<Step>[];
-        // Merge with default to be resilient to structure changes
-        const merged = defaultSteps.map((d) => {
-          const match = parsed.find((p) => p?.id === d.id);
-          return match ? { ...d, done: !!match.done } : d;
-        });
-        setSteps(merged);
+      if (!raw) {
+        // initial: leere Map mit allen Keys als ""
+        const empty: StatusMap = Object.fromEntries(defaultSteps.map(s => [s.id, ""]));
+        return empty;
       }
+
+      const parsed = JSON.parse(raw);
+
+      // Fall A: bereits Map-Format { [id]: "erledigt" | "" }
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        // sicherstellen, dass alle default-IDs existieren
+        const map: StatusMap = { ...parsed };
+        for (const s of defaultSteps) {
+          if (map[s.id] !== "erledigt" && map[s.id] !== "") {
+            map[s.id] = ""; // normalisieren
+          }
+          if (!(s.id in map)) {
+            map[s.id] = "";
+          }
+        }
+        return map;
+      }
+
+      // Fall B: Legacy-Array [{id, done:boolean}]
+      if (Array.isArray(parsed)) {
+        const map: StatusMap = Object.fromEntries(
+          defaultSteps.map(s => [s.id, ""])
+        );
+        for (const item of parsed) {
+          if (item && typeof item === "object" && "id" in item) {
+            const id = (item as any).id;
+            const doneBool = !!(item as any).done;
+            if (typeof id === "string") {
+              map[id] = doneBool ? "erledigt" : "";
+            }
+          }
+        }
+        // direkt im neuen Format zurückschreiben (Migration)
+        try {
+          localStorage.setItem(LS_KEY, JSON.stringify(map));
+        } catch {}
+        return map;
+      }
+
+      // Unbekanntes Format → auf leer zurückfallen
+      const empty: StatusMap = Object.fromEntries(defaultSteps.map(s => [s.id, ""]));
+      return empty;
     } catch {
-      // ignore parse errors and keep defaults
+      const empty: StatusMap = Object.fromEntries(defaultSteps.map(s => [s.id, ""]));
+      return empty;
     }
+  };
+
+  /** Speichert Map minimal zurück. */
+  const writeStatusMap = (map: StatusMap) => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(map));
+    } catch {
+      // Ignorieren, wenn Storage nicht verfügbar
+    }
+  };
+
+  /** Leitet aus Map die Steps (done-Flags) ab. */
+  const mapToSteps = (map: StatusMap): Step[] => {
+    return defaultSteps.map(s => ({
+      ...s,
+      done: map[s.id] === "erledigt",
+    }));
+  };
+
+  // Initial laden
+  useEffect(() => {
+    const map = readStatusMap();
+    setSteps(mapToSteps(map));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persist to localStorage whenever steps change
+  // Cross-Tab/Route-Änderungen live übernehmen
   useEffect(() => {
-    try {
-      // nur Minimalform speichern
-      const minimal = steps.map(({ id, done }) => ({ id, done }));
-      localStorage.setItem(LS_KEY, JSON.stringify(minimal));
-    } catch {
-      // storage might be unavailable; fail silently
-    }
-  }, [steps]);
+    const handler = (e: StorageEvent) => {
+      if (e.key === LS_KEY) {
+        const map = readStatusMap();
+        setSteps(mapToSteps(map));
+      }
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const completed = useMemo(() => steps.filter((s) => s.done).length, [steps]);
+  /** Prozent aus "erledigt"-Werten berechnen */
+  const completed = useMemo(() => steps.filter(s => s.done).length, [steps]);
   const total = steps.length || 1;
   const percent = useMemo(() => Math.round((completed / total) * 100), [completed, total]);
 
+  /** Toggle + Persist + optional Redirect */
   const handleClick = (step: Step) => {
-    // Toggle im State
-    const newSteps = steps.map((s) => (s.id === step.id ? { ...s, done: !s.done } : s));
-    setSteps(newSteps);
+    const currentMap = readStatusMap();
+    const wasDone = currentMap[step.id] === "erledigt";
+    const nextValue: "erledigt" | "" = wasDone ? "" : "erledigt";
+    const nextMap: StatusMap = { ...currentMap, [step.id]: nextValue };
 
-    // Sofort persistieren (falls direkt navigiert wird)
-    try {
-      const minimal = newSteps.map(({ id, done }) => ({ id, done }));
-      localStorage.setItem(LS_KEY, JSON.stringify(minimal));
-    } catch {}
+    // Persistieren
+    writeStatusMap(nextMap);
 
-    // Wenn jetzt erledigt, weiterleiten
-    const nowDone = !step.done;
-    if (nowDone && step.redirect) {
+    // UI sofort aktualisieren
+    setSteps(mapToSteps(nextMap));
+
+    // Wenn jetzt erledigt → redirect
+    if (!wasDone && step.redirect) {
       navigate(step.redirect);
     }
   };
@@ -148,7 +215,7 @@ export function Onboard() {
               {completed} von {total} Schritten abgeschlossen
             </p>
           </div>
-          <div className="text-right">
+        <div className="text-right">
             <div className="text-3xl font-bold tabular-nums">{percent}%</div>
             <div className="text-xs text-neutral-400">Vollständig</div>
           </div>
@@ -214,10 +281,10 @@ export function Onboard() {
                   <button
                     onClick={() => handleClick(step)}
                     className={`group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
-  isDone
-    ? "bg-emerald-600 text-white hover:bg-emerald-500"
-    : "bg-blue-600 text-white hover:bg-blue-500"
-}`}
+                      isDone
+                        ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                        : "bg-blue-600 text-white hover:bg-blue-500"
+                    }`}
                   >
                     {isDone ? "Rückgängig" : "Erledigen"}
                     {!isDone && (
