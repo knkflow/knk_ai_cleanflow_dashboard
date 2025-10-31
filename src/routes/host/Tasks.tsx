@@ -386,7 +386,11 @@ export function Tasks() {
                     </p>
                   )}
 
-                  {task.note && <p className="text-white/50 text-sm mt-2">{task.note}</p>}
+                  {task.note && (
+  <div className="mt-3 rounded-md bg-white/90 text-black text-sm px-3 py-2 shadow-sm border border-white/20">
+    {task.note}
+  </div>
+)}
                 </div>
 
                 <div className="flex gap-2">
