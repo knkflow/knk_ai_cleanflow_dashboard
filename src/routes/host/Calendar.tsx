@@ -108,7 +108,6 @@ export function Calendar() {
   const isAllView = selectedCleanerId === null;
   const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
 
-  // NEW: modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState<string>('');
   const [modalItems, setModalItems] = useState<AssignmentDetail[]>([]);
@@ -307,12 +306,20 @@ export function Calendar() {
                     </button>
                   </div>
                 ) : (
-                  // Wenn keine getTasks: rotes X Symbol
+                  // --- Neues dunkles rotes X ---
                   <div className="flex items-center justify-center mt-2">
-                    <X
-                      className="w-5 h-5 text-red-500 drop-shadow-[0_0_8px_rgba(255,0,0,0.5)] animate-pulse"
-                      title="Keine geplanten Einsätze"
-                    />
+                    <span
+                      className="inline-flex items-center justify-center h-7 w-7 rounded-full
+                                 bg-red-900/40 border border-red-700/60
+                                 shadow-[0_0_16px_rgba(185,28,28,0.55)] ring-1 ring-red-800/50"
+                    >
+                      <X
+                        className="w-5 h-5 text-red-400 sm:text-red-500"
+                        strokeWidth={2.75}
+                        title="Keine geplanten Einsätze"
+                        aria-label="Keine geplanten Einsätze"
+                      />
+                    </span>
                   </div>
                 )
               )}
@@ -397,9 +404,9 @@ export function Calendar() {
         />
       </div>
 
-      {/* ===== MODALS (neu) ===== */}
+      {/* ===== MODALS ===== */}
 
-      {/* Modal: Geplante Einsätze (Einzel-Ansicht) */}
+      {/* Modal: Geplante Einsätze */}
       {modalOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div
@@ -464,7 +471,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Modal: Nicht verfügbare Cleaner (Alle-Ansicht, Mobile) */}
+      {/* Modal: Nicht verfügbare Cleaner */}
       {peopleModalOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div
