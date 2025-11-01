@@ -110,7 +110,7 @@ export function Landing() {
 
       {/* Text */}
       <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]">
-        Short-Term Rental · Operations
+        Kurzzeitvermietung. Reinigungsteams. Hausverwaltungen.
       </p>
     </div>
 
