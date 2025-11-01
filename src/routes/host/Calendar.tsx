@@ -365,13 +365,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Kopf: Monat + Legende */}
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              const d = new Date(year, month - 1, 1);
-              setYear(d.getFullYear()); setMonth(d.getMonth());
+     
             }}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
             aria-label="Vorheriger Monat"
