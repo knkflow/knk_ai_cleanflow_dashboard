@@ -2,9 +2,10 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocation, useOutletContext } from 'react-router-dom';
 import { MonthCalendar } from '../../components/calendar/MonthCalendar';
-import { getCleaners, getTasks } from '../../lib/api'; // <-- NEU: getTasks
+import { getCleaners, getTasks } from '../../lib/api';
 import type { User, Cleaner } from '../../types/db';
 import type { MonthDay } from '../../lib/dates';
+import { Building2, MapPin, Calendar as CalendarIcon, X } from 'lucide-react';
 
 interface ContextType { user: User; }
 
@@ -96,7 +97,8 @@ function getCleanerLabel(c: Cleaner): string {
 
 /* ---------------- Component ---------------- */
 
-type AssignmentIndex = Map<string, Map<string, string[]>>; // cleanerId -> ymd -> [apartment names]
+type AssignmentDetail = { name: string; address?: string | null; date: string };
+type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>; // cleanerId -> ymd -> details[]
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -113,8 +115,13 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
-  // NEU: Index für Aufgaben nach Cleaner/Datum
-  const [assignmentsIndex, setAssignmentsIndex] = useState<AssignmentIndex>(new Map());
+  // Index: Aufgaben-Details (für Popup + Kurzliste)
+  const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
+
+  // Modal-State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalDate, setModalDate] = useState<string>('');
+  const [modalItems, setModalItems] = useState<AssignmentDetail[]>([]);
 
   // Throttle/Guards fürs Laden
   const inFlightRef = useRef(false);
@@ -172,32 +179,33 @@ export function Calendar() {
     return m;
   }, [cleaners]);
 
-  /** NEU: Tasks des Monats laden und indexieren (Cleaner → Datum → Apartments[]) */
+  /** Tasks des Monats laden und indexieren (Cleaner → Datum → Details[]) */
   const loadAssignments = useCallback(async () => {
     try {
-      // Spannweite des aktuellen Monats
       const startYMD = ymdFromUTC(year, month + 1, 1);
       const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
       const endYMD = ymdFromUTC(year, month + 1, lastDay);
 
       const rows: any[] = await getTasks(user.id, { dateFrom: startYMD, dateTo: endYMD });
 
-      const idx: AssignmentIndex = new Map();
+      const idx: DetailIndex = new Map();
       for (const t of rows ?? []) {
         const ymd = normalizeYMD(t?.date);
         const cleanerId = t?.cleaner_id as string | undefined;
         const aptName = t?.apartment?.name as string | undefined;
+        const address = t?.apartment?.address as string | undefined;
         if (!ymd || !cleanerId || !aptName) continue;
 
-        const byDate = idx.get(cleanerId) ?? new Map<string, string[]>();
+        const detail: AssignmentDetail = { name: aptName, address: address ?? null, date: ymd };
+        const byDate = idx.get(cleanerId) ?? new Map<string, AssignmentDetail[]>();
         const list = byDate.get(ymd) ?? [];
-        list.push(aptName);
+        list.push(detail);
         byDate.set(ymd, list);
         idx.set(cleanerId, byDate);
       }
-      setAssignmentsIndex(idx);
+      setDetailsIndex(idx);
     } catch {
-      // optional: Logging
+      // optional: logging
     }
   }, [user.id, year, month]);
 
@@ -221,11 +229,11 @@ export function Calendar() {
     }
   }, [cleaners, isAllView, selectedCleanerId, unavailableIndex]);
 
-  /** NEU: Apartments für ausgewählten Cleaner am Tag */
-  const getAssignedAptsForSelected = useCallback((ymd: string): string[] => {
+  /** Apartments (Details) für ausgewählten Cleaner am Tag */
+  const getAssignedDetailsForSelected = useCallback((ymd: string): AssignmentDetail[] => {
     if (!selectedCleanerId) return [];
-    return assignmentsIndex.get(selectedCleanerId)?.get(ymd) ?? [];
-  }, [assignmentsIndex, selectedCleanerId]);
+    return detailsIndex.get(selectedCleanerId)?.get(ymd) ?? [];
+  }, [detailsIndex, selectedCleanerId]);
 
   const renderDay = useCallback((day: MonthDay) => {
     const ymd = dayToYMD(day);
@@ -236,22 +244,27 @@ export function Calendar() {
       ? 'bg-red-500/20 text-red-300 border-red-500/40'
       : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
-    // Einzellansicht: Text im Kasten; Alle-Ansicht: kein Text im roten Kasten
-    const showTextInsideBox = !isAllView || !isUnavailable;
-
-    // Text-Logik:
-    // - Grün (nicht unavailable): überall "Verfügbar"
-    // - Rot:
-    //    • Alle: kein Text (nur Namensliste)
-    //    • Einzel: kein Text (wir zeigen stattdessen die Apartmentliste)
+    // Textanzeige:
+    // - Grün: "Verfügbar"
+    // - Rot: kein Text (Alle → Namenliste; Einzel → Kurzliste Apartments)
     const primaryText = isUnavailable ? '' : 'Verfügbar';
 
     const showNamesList = isAllView && isUnavailable;
-    const assignedApts = !isAllView && isUnavailable ? getAssignedAptsForSelected(ymd) : [];
+    const assignedDetails = !isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : [];
+    const shortNames = assignedDetails.slice(0, 4).map(d => d.name);
+
+    // Header-Button „Alle Anzeigen“ (nur Einzel + rot + wenn es Apartments gibt)
+    const showAllBtn = !isAllView && isUnavailable && assignedDetails.length > 0;
+
+    const openModal = () => {
+      setModalDate(ymd);
+      setModalItems(assignedDetails);
+      setModalOpen(true);
+    };
 
     return (
       <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-        {/* Kopfzeile: Datum + rotes Badge nur in Einzelansicht */}
+        {/* Kopfzeile: Datum + optionaler Button */}
         <div className="text-xs mb-1 flex items-center gap-2">
           <span className={
             day.isToday
@@ -263,18 +276,23 @@ export function Calendar() {
             {day.date.getDate()}
           </span>
 
-          {/* Badge nur in Einzelansicht + wenn abwesend */}
-          {!isAllView && isUnavailable && (
-            <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
-              Nicht verfügbar
-            </span>
+          {showAllBtn && (
+            <button
+              type="button"
+              onClick={openModal}
+              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-white text-black hover:bg-white/90 transition-colors border border-white/60"
+              title="Alle Wohnungen anzeigen"
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              Alle Anzeigen
+            </button>
           )}
         </div>
 
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
-            {/* Text nur, wenn erlaubt (siehe oben) */}
-            {showTextInsideBox && !!primaryText && (
+            {/* Grün → "Verfügbar"; Rot → kein Text */}
+            {!!primaryText && (
               <div className="truncate">{primaryText}</div>
             )}
 
@@ -289,12 +307,12 @@ export function Calendar() {
               </ul>
             )}
 
-            {/* In "Einzel + rot": Liste der Apartments (mit Bindestrich) */}
-            {!isAllView && isUnavailable && assignedApts.length > 0 && (
+            {/* In "Einzel + rot": max. 4 Wohnungsnamen */}
+            {!isAllView && isUnavailable && shortNames.length > 0 && (
               <ul className="mt-1 space-y-0.5 pl-4 list-disc">
-                {assignedApts.map((name, i) => (
-                  <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={name}>
-                    - {name}
+                {shortNames.map((n, i) => (
+                  <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={n}>
+                    - {n}
                   </li>
                 ))}
               </ul>
@@ -303,7 +321,7 @@ export function Calendar() {
         )}
       </div>
     );
-  }, [getUnavailableNames, isAllView, getAssignedAptsForSelected]);
+  }, [getUnavailableNames, isAllView, getAssignedDetailsForSelected]);
 
   const sortedCleaners = useMemo(
     () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
@@ -397,7 +415,7 @@ export function Calendar() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
-            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (zeigt Wohnungen)'}
+            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (Wohnungen sichtbar)'}
           </div>
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded border bg-emerald-500/15 border-emerald-500/35"></div>
@@ -405,6 +423,68 @@ export function Calendar() {
           </div>
         </div>
       </div>
+
+      {/* Modal: Alle Wohnungen am Tag (Einzelansicht) */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-6 h-6" />
+                <h4 className="text-lg font-semibold">Wohnungen am {modalDate}</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="p-2 rounded-md hover:bg-white/10"
+                aria-label="Schließen"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              {modalItems.length === 0 ? (
+                <div className="text-white/60 text-sm">Keine Einträge.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {modalItems
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((it, i) => (
+                      <li key={i} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-5 h-5" />
+                          <div className="font-medium text-white">{it.name}</div>
+                        </div>
+                        {it.address && (
+                          <div className="mt-1 flex items-center gap-2 text-white/70 text-xs">
+                            <MapPin className="w-4 h-4" />
+                            <span className="truncate">{it.address}</span>
+                          </div>
+                        )}
+                        <div className="mt-1 flex items-center gap-2 text-white/60 text-xs">
+                          <CalendarIcon className="w-4 h-4" />
+                          <span>{it.date}</span>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
