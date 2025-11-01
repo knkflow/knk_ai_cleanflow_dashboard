@@ -114,9 +114,9 @@ export function Landing() {
     </div>
 
     <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
-      <span className="text-white">Effortless</span>{' '}
+      <span className="text-white">Reinigungsmanagement</span>{' '}
       <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
-        Cleaning Coordination
+        Verwalten. Planen. 
       </span>
     </h1>
 
