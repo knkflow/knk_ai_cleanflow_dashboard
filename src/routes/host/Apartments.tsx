@@ -160,7 +160,7 @@ export function Apartments() {
 
                 {apartment.address && (
                   <p className="text-white/60 text-sm mb-2 flex items-center gap-2">
-                    <MapPinHouse className="w-4 h-4 text-white/50" />
+                    <MapPin className="w-4 h-4 text-white/50" />
                     <span>{apartment.address}</span>
                   </p>
                 )}
