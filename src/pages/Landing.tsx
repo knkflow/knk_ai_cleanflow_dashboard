@@ -136,7 +136,7 @@ export function Landing() {
         onClick={handleLearnMore}
         className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors rounded-full"
       >
-        Learn More
+        Mehr erfahren
       </button>
     </div>
 
