@@ -234,7 +234,7 @@ export function Landing() {
               className="mt-14 mx-auto max-w-5xl rounded-3xl overflow-hidden border border-gray-200 bg-white"
             >
               <img
-                src="https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?q=80&w=1600&auto=format&fit=crop"
+                src="/Photo1.png"
                 alt="Dashboard Vorschau"
                 className="w-full h-auto object-cover"
               />
