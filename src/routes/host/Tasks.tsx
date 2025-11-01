@@ -292,7 +292,6 @@ return (
   <ol className="list-decimal list-inside space-y-1">
     <li>Im Hintergrund ist Cleanflow mit dem PMS (Property Management System) ihrer Wahl verbunden (z. B. Guesty).</li>
     <li>Neue, geänderte und stornierte Reservierungen werden in Echtzeit mit Cleanflow synchronisiert und entsprechende Reinigungen hinzugefügt oder gelöscht. </li>
-    <li>Hier im Reinigungsplan finden Sie alle geplanten Reinigungen. </li>
     <li>Ordnen Sie geplanten Reinigungen eine andere Reinigungskraft zu oder geben Sie der Reinigungskraft spezifische Anweisungen als Notiz mit.</li>
   </ol>
 </div>
