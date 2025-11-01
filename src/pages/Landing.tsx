@@ -276,13 +276,13 @@ export function Landing() {
                 onClick={() => navigate('/login')}
                 className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 transition-colors rounded-full"
               >
-                Start Now
+                Jetzt starten
               </button>
               <button
                 onClick={openContact}
                 className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors rounded-full"
               >
-                Talk to Sales
+                Kontaktieren Sie uns.
               </button>
             </div>
           </div>
