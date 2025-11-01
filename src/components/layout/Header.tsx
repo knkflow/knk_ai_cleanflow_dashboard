@@ -1,3 +1,4 @@
+// src/components/layout/Header.tsx
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -16,47 +17,41 @@ export function Header({ user }: HeaderProps) {
   }
 
   return (
-<header className="bg-black border-b border-white/10">
-  <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      <img
-        src="/brand/logo.jpg"
-        alt="KNK-AI"
-        className="h-10 w-auto"
-        onError={(e) => {
-          e.currentTarget.style.display = 'none';
-        }}
-      />
-      <div>
-        {/* Greeting */}
-        <h1 className="text-xl font-semibold text-white">
-          Guten Tag, {user.name || user.email}
-        </h1>
+    <header className="bg-white/90 backdrop-blur border-b border-gray-200">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img
+            src="/brand/logo.jpg"
+            alt="KNK-AI"
+            className="h-10 w-auto"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">
+              Guten Tag, {user.name || user.email}
+            </h1>
 
-        {/* Role badge */}
-        <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-green-400/15 px-3 py-1 text-xs font-medium text-green-300 ring-1 ring-inset ring-green-400/20">
-  <span className="text-green-200/80">Deine Rolle in Cleanflow:</span>
-  <span className="font-semibold text-green-300">{user.role}</span>
-</div>
+            <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+              <span className="text-emerald-700/80">Rolle:</span>
+              <span className="font-semibold">{user.role}</span>
+            </div>
+          </div>
+        </div>
 
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-sm text-gray-900">{user.name || user.email}</p>
+            <p className="text-xs text-gray-500">{user.email}</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </div>
-    </div>
-
-    <div className="flex items-center gap-4">
-      <div className="text-right">
-        <p className="text-sm text-white">{user.name || user.email}</p>
-        <p className="text-xs text-white/50">{user.email}</p>
-      </div>
-      <button
-        onClick={handleLogout}
-        className="p-2 hover:bg-white/10 transition-colors rounded-md"
-        title="Logout"
-      >
-        <LogOut className="w-5 h-5 text-white" />
-      </button>
-    </div>
-  </div>
-</header>
-
+    </header>
   );
 }
