@@ -1,5 +1,6 @@
 // src/routes/host/Calendar.tsx
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import type { TouchEvent } from 'react';
 import { useLocation, useOutletContext } from 'react-router-dom';
 import { MonthCalendar } from '../../components/calendar/MonthCalendar';
 import { getCleaners, getTasks } from '../../lib/api';
@@ -17,7 +18,6 @@ import {
   X as CloseIcon,
   ChevronLeft,
   ChevronRight,
-  Info,
 } from 'lucide-react';
 
 interface ContextType {
@@ -30,14 +30,12 @@ const pad2 = (n: number) => n.toString().padStart(2, '0');
 function ymdFromUTC(y: number, m1: number, d: number): string {
   return `${y}-${pad2(m1)}-${pad2(d)}`;
 }
-
 function isValidYMD(y: number, m1: number, d: number): boolean {
   if (!Number.isInteger(y) || !Number.isInteger(m1) || !Number.isInteger(d)) return false;
   if (m1 < 1 || m1 > 12 || d < 1 || d > 31) return false;
   const dt = new Date(Date.UTC(y, m1 - 1, d));
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m1 - 1 && dt.getUTCDate() === d;
 }
-
 function normalizeYMD(input: unknown): string {
   if (input == null) return '';
   if (input instanceof Date)
@@ -63,7 +61,6 @@ function normalizeYMD(input: unknown): string {
     return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
   return '';
 }
-
 function availabilityToSet(av: unknown): Set<string> {
   const set = new Set<string>();
   const add = (x: unknown) => {
@@ -80,11 +77,9 @@ function availabilityToSet(av: unknown): Set<string> {
   walk(av);
   return set;
 }
-
 function dayToYMD(day: MonthDay): string {
   return normalizeYMD((day as any).dateStr ?? day.date);
 }
-
 function getCleanerLabel(c: Cleaner): string {
   const n = (c as any)?.name;
   if (typeof n === 'string' && n.trim()) return n.trim();
@@ -196,7 +191,6 @@ export function Calendar() {
     () => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()),
     [year, month]
   );
-
   const isInVisibleMonth = useCallback((ymd: string) => ymd >= monthStart && ymd <= monthEnd, [monthStart, monthEnd]);
 
   const monthUnavailableAll = useMemo(() => {
@@ -242,19 +236,17 @@ export function Calendar() {
   const openModalFor = useCallback((ymd: string, items: AssignmentDetail[]) => {
     setModalDate(ymd); setModalItems(items); setModalOpen(true);
   }, []);
-
   const openPeopleModal = useCallback((ymd: string, people: Cleaner[]) => {
     setPeopleModalDate(ymd); setPeopleList(people); setPeopleModalOpen(true);
   }, []);
-
   const closeModals = useCallback(() => { setModalOpen(false); setPeopleModalOpen(false); }, []);
 
   // --- Mobile: Swipe-Gesten zum Monatswechsel ---
   const touchStartX = useRef<number | null>(null);
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.changedTouches[0].clientX;
   };
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = (e: TouchEvent) => {
     if (touchStartX.current === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     if (Math.abs(dx) > 50) {
@@ -296,8 +288,10 @@ export function Calendar() {
           </div>
 
           {day.isCurrentMonth && (
-            <div className={`$1 min-h-[84px] md:min-h-[110px] ${availabilityClass} ${weekend ? 'ring-1 ring-gray-200/70' : ''} shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6)]`}
-                 title={isUnavailable ? 'Nicht verfügbar' : 'Verfügbar'}>
+            <div
+              className={`relative text-xs p-2 rounded-lg border min-h-[84px] md:min-h-[110px] ${availabilityClass} ${weekend ? 'ring-1 ring-gray-200/70' : ''} shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6)]`}
+              title={isUnavailable ? 'Nicht verfügbar' : 'Verfügbar'}
+            >
               {!isUnavailable && (
                 <div className="truncate text-center font-medium">Verfügbar</div>
               )}
@@ -355,7 +349,10 @@ export function Calendar() {
     [getUnavailableNames, isAllView, getAssignedDetailsForSelected, getUnavailableCleaners, openModalFor]
   );
 
-  const sortedCleaners = useMemo(() => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))), [cleaners]);
+  const sortedCleaners = useMemo(
+    () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
+    [cleaners]
+  );
 
   if (loading) return <div className="text-gray-900">Loading...</div>;
 
@@ -400,23 +397,6 @@ export function Calendar() {
           >
             Heute
           </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-emerald-50">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Verfügbar
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-red-50">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Nicht verfügbar
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
-            <span className="h-2.5 w-2.5 rounded-full bg-gray-300" /> Wochenende
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" /> Heute
-          </span>
-        </div>
-      </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
@@ -484,7 +464,11 @@ export function Calendar() {
       )}
 
       {/* Kalender */}
-      <div className=\"rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 ring-1 ring-gray-100 shadow-sm\" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <div
+        className="rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 ring-1 ring-gray-100 shadow-sm"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <MonthCalendar
           year={year}
           month={month}
