@@ -114,7 +114,7 @@ function getCleanerLabel(c: Cleaner): string {
 /* ---------------- Component ---------------- */
 
 type AssignmentDetail = { name: string; address?: string | null; date: string };
-type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>;
+type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>; // cleanerId -> ymd -> details[]
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -131,11 +131,15 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
+  // Index: Aufgaben-Details (für Popup)
   const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
+
+  // Modal-State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState<string>('');
   const [modalItems, setModalItems] = useState<AssignmentDetail[]>([]);
 
+  // Throttle/Guards fürs Laden
   const inFlightRef = useRef(false);
   const lastFetchTsRef = useRef(0);
   const initialLoadDone = useRef(false);
@@ -433,4 +437,144 @@ export function Calendar() {
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
               const label = getCleanerLabel(c);
-              const initials = label.split(' ').map((p) => p[0]).slice(0, 2
+              const initials =
+                label
+                  .split(' ')
+                  .map((p) => p[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase() || 'C';
+
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCleanerId(c.id)}
+                  className={`rounded-xl px-3 py-3 border transition
+                    ${active
+                      ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}
+                  `}
+                  title={`Nur ${label} anzeigen`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-7 w-7 rounded-lg flex items-center justify-center
+                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}
+                    >
+                      <span className="text-xs font-bold">{initials}</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white truncate">{label}</div>
+                      <div className="text-[11px] text-white/60">
+                        {active ? 'Ausgewählt' : 'Klicken zum Anzeigen'}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 text-xs text-white/60">
+            {isAllView
+              ? 'Ansicht: Alle Reinigungskräfte'
+              : `Ansicht gefiltert auf: ${
+                  getCleanerLabel(sortedCleaners.find((x) => x.id === selectedCleanerId) as Cleaner)
+                }`}
+          </div>
+        </div>
+      )}
+
+      {/* Kalender */}
+      <MonthCalendar
+        year={year}
+        month={month}
+        onMonthChange={(y, m) => {
+          setYear(y);
+          setMonth(m);
+        }}
+        renderDay={renderDay}
+      />
+
+      {/* Legende */}
+      <div className="mt-6 bg-white/5 border border-white/10 p-4 rounded-lg text-sm text-white/80">
+        <h3 className="font-semibold mb-3 text-white">Legende</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
+            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (Details über Button)'}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded border bg-emerald-500/15 border-emerald-500/35"></div>
+            {isAllView ? 'Alle verfügbar' : 'Cleaner verfügbar'}
+          </div>
+        </div>
+      </div>
+
+      {/* Modal: Geplante Einsätze (Einzelansicht) */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-6 h-6" />
+                <h4 className="text-lg font-semibold">Geplante Einsätze am {modalDate}</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="p-2 rounded-md hover:bg-white/10"
+                aria-label="Schließen"
+              >
+                {/* Schließen-Icon als Text, falls du kein X willst */}
+                <span className="text-lg leading-none">×</span>
+              </button>
+            </div>
+
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              {modalItems.length === 0 ? (
+                <div className="text-white/60 text-sm">Keine Einträge.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {modalItems
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((it, i) => (
+                      <li key={i} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-5 h-5" />
+                          <div className="font-medium text-white">{it.name}</div>
+                        </div>
+                        {it.address && (
+                          <div className="mt-1 flex items-center gap-2 text-white/70 text-xs">
+                            <MapPin className="w-4 h-4" />
+                            <span className="truncate">{it.address}</span>
+                          </div>
+                        )}
+                        <div className="mt-1 flex items-center gap-2 text-white/60 text-xs">
+                          <CalendarIcon className="w-4 h-4" />
+                          <span>{it.date}</span>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default Calendar;
