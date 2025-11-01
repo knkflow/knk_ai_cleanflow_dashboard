@@ -87,66 +87,62 @@ export function Landing() {
       </header>
 
       <main>
-        {/* HERO */}
-        <section className="relative overflow-hidden">
-          {/* Präsentierende Stage-Fläche */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[560px] w-[880px] rounded-[36px] bg-[rgba(255,255,255,0.07)] blur-[70px]" />
-          </div>
+{/* HERO */}
+<section className="relative overflow-hidden bg-black">
+  <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
+    {/* Unterzeile mit ovaler Fassung + Glow */}
+    <div
+      className="relative inline-flex items-center justify-center px-6 py-2 rounded-full
+                 border border-white/25 bg-white/[0.06] backdrop-blur-[2px]
+                 shadow-[0_4px_20px_rgba(255,255,255,0.1),inset_0_0_12px_rgba(255,255,255,0.08)]
+                 before:content-[''] before:absolute before:inset-0 before:rounded-full before:border before:border-white/40 before:opacity-30
+                 hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
+                 transition-all duration-500 ease-out"
+    >
+      {/* Feiner, neutral-weißer Glow-Hintergrund */}
+      <span
+        aria-hidden
+        className="absolute -inset-x-6 -inset-y-3 rounded-full 
+                   bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.15)_70%,transparent_100%)]
+                   blur-[24px] opacity-80"
+      ></span>
 
-          <div className="container mx-auto px-6 lg:px-8 py-28 md:py-36 text-center">
-            {/* Unterzeile mit ovaler Fassung + Glow */}
-            <div
-              className="relative inline-flex items-center justify-center px-6 py-2 rounded-full
-                         border border-white/25 bg-white/[0.06] backdrop-blur-[2px]
-                         shadow-[0_4px_20px_rgba(255,255,255,0.1),inset_0_0_12px_rgba(255,255,255,0.08)]
-                         before:content-[''] before:absolute before:inset-0 before:rounded-full before:border before:border-white/40 before:opacity-30
-                         hover:shadow-[0_6px_30px_rgba(255,255,255,0.18),inset_0_0_15px_rgba(255,255,255,0.1)]
-                         transition-all duration-500 ease-out"
-            >
-    {/* Feiner, neutral-weißer Glow-Hintergrund */}
-<span
-  aria-hidden
-  className="absolute -inset-x-6 -inset-y-3 rounded-full 
-             bg-[radial-gradient(80%_80%_at_50%_50%,rgba(255,255,255,0.55),rgba(255,255,255,0.15)_70%,transparent_100%)]
-             blur-[24px] opacity-80"
-></span>
+      {/* Text */}
+      <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]">
+        Short-Term Rental · Operations
+      </p>
+    </div>
 
-{/* Text */}
-<p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]">
-  Short-Term Rental · Operations
-</p>
-</div>
+    <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+      <span className="text-white">Effortless</span>{' '}
+      <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
+        Cleaning Coordination
+      </span>
+    </h1>
 
-            <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
-              <span className="text-white">Effortless</span>{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 via-white to-neutral-200">
-                Cleaning Coordination
-              </span>
-            </h1>
+    <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
+      Verwalten Sie Apartments, koordinieren Sie Reinigungskräfte und planen Sie Aufgaben mit Präzision. Entwickelt für Gastgeber, die Wert auf Effizienz legen.
+    </p>
 
-            <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
-             Verwalten Sie Apartments, koordinieren Sie Reinigungskräfte und planen Sie Aufgaben mit Präzision. Entwickelt für Gastgeber, die Wert auf Effizienz legen.
-            </p>
+    <div className="mt-10 flex items-center justify-center gap-4">
+      <button
+        onClick={() => navigate('/login')}
+        className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 transition-colors rounded-full"
+      >
+        Get Started
+      </button>
+      <button
+        onClick={handleLearnMore}
+        className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors rounded-full"
+      >
+        Learn More
+      </button>
+    </div>
 
-            <div className="mt-10 flex items-center justify-center gap-4">
-              <button
-                onClick={() => navigate('/login')}
-                className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 transition-colors"
-              >
-                Get Started
-              </button>
-              <button
-                onClick={handleLearnMore}
-                className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 transition-colors"
-              >
-                Learn More
-              </button>
-            </div>
+    <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
+  </div>
+</section>
 
-            <div className="mt-16 h-px w-32 mx-auto bg-white/10" />
-          </div>
-        </section>
 
         {/* SECTION – Was ist CleanFlow? */}
         <section ref={cleanflowRef} className="py-24 bg-white text-black">
