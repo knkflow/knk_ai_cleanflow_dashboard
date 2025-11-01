@@ -1,14 +1,11 @@
+// src/components/layout/GuardedLayout.tsx
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import { Header } from './Header';
 import { getCurrentUser } from '../../lib/api';
 import type { User } from '../../types/db';
 
-type TabItem = {
-  to: string;
-  label: string;
-  icon?: React.ElementType;
-};
+type TabItem = { to: string; label: string; icon?: React.ElementType; };
 
 interface GuardedLayoutProps {
   requiredRole: 'Host' | 'Cleaner';
@@ -32,7 +29,6 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-
   if (user.role !== requiredRole) {
     return <Navigate to={user.role === 'Host' ? '/host' : '/cleaner'} replace />;
   }
@@ -41,7 +37,6 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
     <div className="min-h-screen bg-white text-gray-900">
       <Header user={user} />
 
-      {/* Tabs */}
       <nav className="container mx-auto px-4">
         <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 py-3">
           {tabs.map(({ to, label, icon: Icon }) => (
