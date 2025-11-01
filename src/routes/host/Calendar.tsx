@@ -264,93 +264,93 @@ export function Calendar() {
   );
 
   const renderDay = useCallback(
-    (day: MonthDay) => {
-      const ymd = dayToYMD(day);
-      const unavailableNames = getUnavailableNames(ymd);
-      const isUnavailable = unavailableNames.length > 0;
+  (day: MonthDay) => {
+    const ymd = dayToYMD(day);
+    if (!ymd) return <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />;
 
-      const boxClass = isUnavailable
-        ? 'bg-red-500/20 text-red-300 border-red-500/40'
-        : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
+    const unavailableNames = getUnavailableNames(ymd) ?? [];
+    const isUnavailable = unavailableNames.length > 0;
 
-      const primaryText = isUnavailable ? '' : 'Verfügbar';
-      const showNamesList = isAllView && isUnavailable;
-      const assignedDetails = !isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : [];
+    const boxClass = isUnavailable
+      ? 'bg-red-500/20 text-red-300 border-red-500/40'
+      : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
-      const openModal = () => {
-        setModalDate(ymd);
-        setModalItems(assignedDetails);
-        setModalOpen(true);
-      };
+    const primaryText = isUnavailable ? '' : 'Verfügbar';
+    const showNamesList = isAllView && isUnavailable;
 
-      return (
-        <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-          <div className="text-xs mb-1 flex items-center gap-2">
-            <span
-              className={
-                day.isToday
-                  ? 'font-bold text-white'
-                  : day.isCurrentMonth
-                  ? 'text-white/70'
-                  : 'text-white/40'
-              }
-            >
-              {day.date.getDate()}
+    const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
+
+    const openModal = () => {
+      setModalDate(ymd);
+      setModalItems(assignedDetails);
+      setModalOpen(true);
+    };
+
+    return (
+      <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
+        {/* Kopfzeile */}
+        <div className="text-xs mb-1 flex items-center gap-2">
+          <span
+            className={
+              day.isToday
+                ? 'font-bold text-white'
+                : day.isCurrentMonth
+                ? 'text-white/70'
+                : 'text-white/40'
+            }
+          >
+            {day.date.getDate()}
+          </span>
+
+          {isUnavailable && (
+            <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
+              Nicht verfügbar
             </span>
-            {isUnavailable && (
-              <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
-                Nicht verfügbar
-              </span>
-            )}
-          </div>
-
-          {day.isCurrentMonth && (
-            <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
-              {!!primaryText && <div className="truncate text-center">{primaryText}</div>}
-
-              {showNamesList && (
-                <ul className="mt-1 space-y-0.5 pl-4 list-disc">
-                  {unavailableNames.map((n, i) => (
-                    <li
-                      key={i}
-                      className="whitespace-nowrap overflow-hidden text-ellipsis"
-                      title={n}
-                    >
-                      {n}
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {!isAllView && isUnavailable && (
-                assignedDetails.length > 0 ? (
-                  <div className="mt-1 flex items-center justify-center">
-                    <button
-                      type="button"
-                      onClick={openModal}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
-                      title="Geplante Einsätze ansehen"
-                    >
-                      <Building2 className="w-4 h-4" />
-                      <span className="text-[11px] font-semibold">Geplante Einsätze</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    className="mt-2 flex items-center justify-center"
-                    title="Keine Geplanten Einsätze"
-                  >
-                    <X className="w-5 h-5 text-emerald-400" />
-                  </div>
-                )
-              )}
-            </div>
           )}
         </div>
-      );
-    },
-    [getUnavailableNames, isAllView, getAssignedDetailsForSelected]
-  );
+
+        {day.isCurrentMonth && (
+          <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
+            {!!primaryText && <div className="truncate text-center">{primaryText}</div>}
+
+            {/* Alle + rot → Namensliste */}
+            {showNamesList && (
+              <ul className="mt-1 space-y-0.5 pl-4 list-disc">
+                {unavailableNames.map((n, i) => (
+                  <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={n}>
+                    {n}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Einzel + rot → Button oder grünes X */}
+            {!isAllView && isUnavailable && (
+              assignedDetails.length > 0 ? (
+                <div className="mt-1 flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={openModal}
+                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                    title="Geplante Einsätze ansehen"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span className="text-[11px] font-semibold">Geplante Einsätze</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-2 flex items-center justify-center" title="Keine Geplanten Einsätze">
+                  <X className="w-5 h-5 text-emerald-400" />
+                </div>
+              )
+            )}
+          </div>
+        )}
+      </div>
+    );
+  },
+  [getUnavailableNames, isAllView, getAssignedDetailsForSelected]
+);
 
   const sortedCleaners = useMemo(
     () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
