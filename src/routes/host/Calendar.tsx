@@ -298,26 +298,23 @@ export function Calendar() {
               </ul>
             )}
             {/* In "Einzel + rot": Button ODER grünes X, wenn keine Aufgaben */}
-+            {!isAllView && isUnavailable && (
-+              assignedDetails.length > 0 ? (
-+                <div className="mt-1 flex items-center justify-center">
-+                  <button
-+                    type="button"
-+                    onClick={openModal}
-+                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
-+                    title="Geplante Einsätze ansehen"
-+                  >
-+                    <Building2 className="w-4 h-4" />
-+                    <span className="text-[11px] font-semibold">Geplante Einsätze</span>
-+                  </button>
-+                </div>
-+              ) : (
-+                <div
-+                  className="mt-2 flex items-center justify-center"
-+                  title="Keine Geplanten Einsätze"
-+                >
-+                  <X className="w-5 h-5 text-emerald-400" />
-+                </div>
+            {!isAllView && isUnavailable && (
+           assignedDetails.length > 0 ? (
+              <div className="mt-1 flex items-center justify-center">
+               <button
+                  type="button"
+                  onClick={openModal}
+                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"                  title="Geplante Einsätze ansehen"                >
+                 <Building2 className="w-4 h-4" />                 <span className="text-[11px] font-semibold">Geplante Einsätze</span>
+</button>
+              </div>
+              ) : (
+               <div
+                 className="mt-2 flex items-center justify-center"
+                 title="Keine Geplanten Einsätze"
+              >
+                  <X className="w-5 h-5 text-emerald-400" />
+               </div>
         )}
       </div>
     );
