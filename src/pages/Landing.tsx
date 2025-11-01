@@ -1,4 +1,6 @@
+// src/pages/Landing.tsx
 import React, { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -14,11 +16,11 @@ import {
   Star,
 } from "lucide-react";
 
-export default function App() {
-  const heroRef = useRef(null);
-  const featuresRef = useRef(null);
-  const storyRef = useRef(null);
-  const pricingRef = useRef(null);
+export function Landing() {
+  const heroRef = useRef<HTMLDivElement | null>(null);
+  const featuresRef = useRef<HTMLDivElement | null>(null);
+  const storyRef = useRef<HTMLDivElement | null>(null);
+  const pricingRef = useRef<HTMLDivElement | null>(null);
 
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [contactName, setContactName] = useState("");
@@ -26,11 +28,12 @@ export default function App() {
   const [contactMessage, setContactMessage] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollTo = (ref: React.RefObject<HTMLDivElement>) =>
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   const openContact = () => setIsContactOpen(true);
   const closeContact = () => setIsContactOpen(false);
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const to = "knk.flow@web.de";
     const subject = `Kontaktanfrage von ${contactName || "CleanFlow Website"}`;
@@ -42,7 +45,9 @@ export default function App() {
       contactMessage || "",
     ].filter(Boolean);
     const body = bodyLines.join("\n");
-    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
     setIsContactOpen(false);
   };
@@ -55,23 +60,42 @@ export default function App() {
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-300 to-emerald-500 grid place-items-center shadow-sm">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm md:text-base tracking-[0.25em] uppercase font-semibold">CleanFlow</span>
+            <span className="text-sm md:text-base tracking-[0.25em] uppercase font-semibold">
+              CleanFlow
+            </span>
           </div>
+
           <nav className="hidden md:flex items-center gap-8 text-gray-600">
-            <button onClick={() => scrollTo(heroRef)} className="hover:text-gray-900">Start</button>
-            <button onClick={() => scrollTo(featuresRef)} className="hover:text-gray-900">Lösungen</button>
-            <button onClick={() => scrollTo(storyRef)} className="hover:text-gray-900">Über uns</button>
-            <button onClick={() => scrollTo(pricingRef)} className="hover:text-gray-900">Preise</button>
+            <button onClick={() => scrollTo(heroRef)} className="hover:text-gray-900">
+              Start
+            </button>
+            <button onClick={() => scrollTo(featuresRef)} className="hover:text-gray-900">
+              Lösungen
+            </button>
+            <button onClick={() => scrollTo(storyRef)} className="hover:text-gray-900">
+              Über uns
+            </button>
+            <button onClick={() => scrollTo(pricingRef)} className="hover:text-gray-900">
+              Preise
+            </button>
           </nav>
+
           <div className="hidden md:flex items-center gap-3">
-            <button onClick={openContact} className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50">
+            <button
+              onClick={openContact}
+              className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50"
+            >
               Kontakt
             </button>
-            <a href="#login" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-medium">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-medium"
+            >
               <LogIn className="w-4 h-4" />
               Anmelden
-            </a>
+            </Link>
           </div>
+
           <button
             aria-label="Navigation öffnen"
             onClick={() => setMobileOpen((v) => !v)}
@@ -81,29 +105,76 @@ export default function App() {
             Menü
           </button>
         </div>
+
         {mobileOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white">
             <div className="container mx-auto px-6 lg:px-10 py-4 grid gap-2">
-              <button onClick={() => { setMobileOpen(false); scrollTo(heroRef); }} className="py-2 text-left text-gray-700 hover:text-gray-900">Start</button>
-              <button onClick={() => { setMobileOpen(false); scrollTo(featuresRef); }} className="py-2 text-left text-gray-700 hover:text-gray-900">Lösungen</button>
-              <button onClick={() => { setMobileOpen(false); scrollTo(storyRef); }} className="py-2 text-left text-gray-700 hover:text-gray-900">Über uns</button>
-              <button onClick={() => { setMobileOpen(false); scrollTo(pricingRef); }} className="py-2 text-left text-gray-700 hover:text-gray-900">Preise</button>
-              <button onClick={() => { setMobileOpen(false); openContact(); }} className="py-2 text-left text-gray-700 hover:text-gray-900">Kontakt</button>
-              <a href="#login" onClick={() => setMobileOpen(false)} className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-medium">
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  scrollTo(heroRef);
+                }}
+                className="py-2 text-left text-gray-700 hover:text-gray-900"
+              >
+                Start
+              </button>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  scrollTo(featuresRef);
+                }}
+                className="py-2 text-left text-gray-700 hover:text-gray-900"
+              >
+                Lösungen
+              </button>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  scrollTo(storyRef);
+                }}
+                className="py-2 text-left text-gray-700 hover:text-gray-900"
+              >
+                Über uns
+              </button>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  scrollTo(pricingRef);
+                }}
+                className="py-2 text-left text-gray-700 hover:text-gray-900"
+              >
+                Preise
+              </button>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  openContact();
+                }}
+                className="py-2 text-left text-gray-700 hover:text-gray-900"
+              >
+                Kontakt
+              </button>
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-medium"
+              >
                 <LogIn className="w-4 h-4" />
                 Anmelden
-              </a>
+              </Link>
             </div>
           </div>
         )}
       </header>
 
       <main>
+        {/* HERO */}
         <section ref={heroRef} className="relative overflow-hidden">
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-emerald-200 blur-3xl" />
             <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-emerald-100 blur-3xl" />
           </div>
+
           <div className="container mx-auto px-6 lg:px-10 py-24 md:py-32 text-center">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -131,7 +202,8 @@ export default function App() {
               transition={{ duration: 0.6, ease: "easeOut", delay: 0.16 }}
               className="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto"
             >
-              Digitale Verwaltung aller Reinigungen, automatische und manuelle WhatsApp-Benachrichtigungen an Teams, zentrale Auftragsverwaltung mit lückenloser Dokumentation und ein Kalender, der Abwesenheiten und Planung im Blick behält.
+              Digitale Verwaltung aller Reinigungen, automatische und manuelle WhatsApp-Benachrichtigungen an Teams,
+              zentrale Auftragsverwaltung mit Dokumentation und ein Kalender, der Abwesenheiten und Planung im Blick behält.
             </motion.p>
 
             <motion.div
@@ -140,13 +212,13 @@ export default function App() {
               transition={{ duration: 0.6, ease: "easeOut", delay: 0.24 }}
               className="mt-10 flex items-center justify-center gap-4"
             >
-              <a
-                href="#login"
+              <Link
+                to="/login"
                 className="group inline-flex items-center gap-2 px-7 py-3 rounded-full bg-emerald-500 text-white font-semibold hover:bg-emerald-600"
               >
                 Jetzt starten
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-              </a>
+              </Link>
               <button
                 onClick={() => scrollTo(featuresRef)}
                 className="px-7 py-3 rounded-full border border-gray-200 text-gray-900 hover:bg-gray-50"
@@ -170,6 +242,7 @@ export default function App() {
           </div>
         </section>
 
+        {/* FEATURES */}
         <section ref={featuresRef} className="py-24 border-t border-gray-200">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center">
@@ -225,20 +298,35 @@ export default function App() {
           </div>
         </section>
 
+        {/* MISSION / STORY */}
         <section ref={storyRef} className="py-24 bg-gray-50">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.45 }}>
+            <motion.div
+              initial={{ opacity: 0, x: -16 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45 }}
+            >
               <img
                 src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1400&auto=format&fit=crop"
                 alt="Team bei der Einsatzplanung"
                 className="w-full rounded-3xl border border-gray-200"
               />
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.45 }}>
+
+            <motion.div
+              initial={{ opacity: 0, x: 16 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45 }}
+            >
               <p className="text-sm uppercase tracking-widest text-gray-500">Unsere Mission</p>
-              <h3 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight">Wir bringen Ruhe & Qualität in die Reinigung</h3>
+              <h3 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight">
+                Wir bringen Ruhe & Qualität in die Reinigung
+              </h3>
               <p className="mt-4 text-gray-700 leading-relaxed">
-                CleanFlow bündelt Planung, Kommunikation und Qualitätssicherung in einer Oberfläche. So wenig Klicks wie möglich, so viel Transparenz wie nötig – für verlässliche Abläufe und saubere Ergebnisse.
+                CleanFlow bündelt Planung, Kommunikation und Qualitätssicherung in einer Oberfläche.
+                So wenig Klicks wie möglich, so viel Transparenz wie nötig – für verlässliche Abläufe und saubere Ergebnisse.
               </p>
               <ul className="mt-6 space-y-3">
                 {[
@@ -268,36 +356,47 @@ export default function App() {
           </div>
         </section>
 
+        {/* TRUST / TESTIMONIALS */}
         <section className="py-24">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="grid md:grid-cols-2 gap-10 items-start">
               <div>
-                <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">Vertrauen entsteht durch Ergebnis</h3>
+                <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+                  Vertrauen entsteht durch Ergebnis
+                </h3>
                 <p className="mt-4 text-gray-600 max-w-xl">
-                  Weniger Koordination, mehr Verlässlichkeit: Unsere Kunden berichten von deutlicher Zeitersparnis, zuverlässigen Übergaben und transparenter Qualität.
+                  Weniger Koordination, mehr Verlässlichkeit: Unsere Kunden berichten von deutlicher Zeitersparnis,
+                  zuverlässigen Übergaben und transparenter Qualität.
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-6 opacity-90">
                   {["EU-Server", "SLA 99.9%", "Rollenbasierte Zugriffe", "Audit-Logs"].map((logo) => (
-                    <span key={logo} className="text-gray-600 text-sm border border-gray-200 rounded-full px-4 py-2">
+                    <span
+                      key={logo}
+                      className="text-gray-600 text-sm border border-gray-200 rounded-full px-4 py-2"
+                    >
                       {logo}
                     </span>
                   ))}
                 </div>
               </div>
+
               <div className="grid gap-6">
                 {[
                   {
-                    quote: "Seit CleanFlow sparen wir jede Woche Stunden – Planung und Rückmeldungen laufen zuverlässig.",
+                    quote:
+                      "Seit CleanFlow sparen wir jede Woche Stunden – Planung und Rückmeldungen laufen zuverlässig.",
                     name: "Lena M.",
                     role: "Host, 24 Apartments",
                   },
                   {
-                    quote: "Transparente Aufträge und klare Zuständigkeiten. Unser Team arbeitet ruhiger und fehlerfrei.",
+                    quote:
+                      "Transparente Aufträge und klare Zuständigkeiten. Unser Team arbeitet ruhiger und fehlerfrei.",
                     name: "Tobias K.",
                     role: "Hausverwaltung",
                   },
                   {
-                    quote: "Fotodoku und Checklisten erhöhen die Qualität – Beschwerden sind praktisch verschwunden.",
+                    quote:
+                      "Fotodoku und Checklisten erhöhen die Qualität – Beschwerden sind praktisch verschwunden.",
                     name: "Aylin S.",
                     role: "Reinigungsleiterin",
                   },
@@ -326,11 +425,16 @@ export default function App() {
           </div>
         </section>
 
+        {/* PRICING / CTA */}
         <section ref={pricingRef} className="py-24 border-t border-gray-200">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center max-w-2xl mx-auto">
-              <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">Einfaches, faires Preismodell</h3>
-              <p className="mt-3 text-gray-600">Skalierbar vom Solo-Host bis zur großen Verwaltung – mit Klarheit bei den Funktionen.</p>
+              <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+                Einfaches, faires Preismodell
+              </h3>
+              <p className="mt-3 text-gray-600">
+                Skalierbar vom Solo-Host bis zur großen Verwaltung – mit Klarheit bei den Funktionen.
+              </p>
             </div>
 
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -340,14 +444,24 @@ export default function App() {
                   price: "€19",
                   period: "/Monat",
                   highlight: false,
-                  features: ["Bis 10 Objekte", "WhatsApp-Benachrichtigungen", "Grundlegende Reports", "E-Mail Support"],
+                  features: [
+                    "Bis 10 Objekte",
+                    "WhatsApp-Benachrichtigungen",
+                    "Grundlegende Reports",
+                    "E-Mail Support",
+                  ],
                 },
                 {
                   name: "Pro",
                   price: "€49",
                   period: "/Monat",
                   highlight: true,
-                  features: ["Bis 50 Objekte", "Kalender & Abwesenheiten", "Checklisten & Fotodoku", "Priorisierter Support"],
+                  features: [
+                    "Bis 50 Objekte",
+                    "Kalender & Abwesenheiten",
+                    "Checklisten & Fotodoku",
+                    "Priorisierter Support",
+                  ],
                 },
                 {
                   name: "Enterprise",
@@ -366,7 +480,11 @@ export default function App() {
                 >
                   <div className="flex items-center justify-between">
                     <h4 className="text-xl font-semibold">{p.name}</h4>
-                    {p.highlight && <span className="text-xs px-2 py-1 rounded-full bg-emerald-500 text-white">Empfohlen</span>}
+                    {p.highlight && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-emerald-500 text-white">
+                        Empfohlen
+                      </span>
+                    )}
                   </div>
                   <div className="mt-4 flex items-end gap-1">
                     <span className="text-4xl font-extrabold">{p.price}</span>
@@ -389,12 +507,12 @@ export default function App() {
                         Angebot anfragen <ArrowRight className="w-4 h-4" />
                       </button>
                     ) : (
-                      <a
-                        href="#login"
+                      <Link
+                        to="/login"
                         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-semibold"
                       >
                         Jetzt starten <ArrowRight className="w-4 h-4" />
-                      </a>
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -402,7 +520,9 @@ export default function App() {
             </div>
 
             <div className="mt-12 text-center">
-              <p className="text-gray-500 text-sm">14 Tage kostenlos testen. Keine Kreditkarte erforderlich.</p>
+              <p className="text-gray-500 text-sm">
+                14 Tage kostenlos testen. Keine Kreditkarte erforderlich.
+              </p>
             </div>
           </div>
         </section>
@@ -410,25 +530,42 @@ export default function App() {
 
       <footer className="border-t border-gray-200">
         <div className="container mx-auto px-6 lg:px-10 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-500 text-sm">© {new Date().getFullYear()} CleanFlow. Alle Rechte vorbehalten.</p>
+          <p className="text-gray-500 text-sm">
+            © {new Date().getFullYear()} CleanFlow. Alle Rechte vorbehalten.
+          </p>
           <div className="flex items-center gap-6 text-sm">
-            <a href="#datenschutz" className="text-gray-500 hover:text-gray-700">Datenschutz</a>
-            <a href="#impressum" className="text-gray-500 hover:text-gray-700">Impressum</a>
-            <a href="#agb" className="text-gray-500 hover:text-gray-700">AGB</a>
+            <a href="#datenschutz" className="text-gray-500 hover:text-gray-700">
+              Datenschutz
+            </a>
+            <a href="#impressum" className="text-gray-500 hover:text-gray-700">
+              Impressum
+            </a>
+            <a href="#agb" className="text-gray-500 hover:text-gray-700">
+              AGB
+            </a>
           </div>
         </div>
       </footer>
 
       {isContactOpen && (
-        <div aria-modal="true" role="dialog" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={closeContact} />
           <div className="relative w-full max-w-2xl bg-white text-gray-900 border border-gray-200 shadow-xl rounded-2xl">
             <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
               <h4 className="text-xl font-semibold">Kontakt</h4>
-              <button onClick={closeContact} className="text-gray-500 hover:text-gray-700" aria-label="Close">
+              <button
+                onClick={closeContact}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close"
+              >
                 ✕
               </button>
             </div>
+
             <div className="p-6 grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
@@ -444,7 +581,9 @@ export default function App() {
                   </a>
                 </div>
                 <div className="h-px bg-gray-200 my-2" />
-                <p className="text-gray-600 text-sm">Schreiben Sie uns eine Nachricht – wir melden uns zeitnah.</p>
+                <p className="text-gray-600 text-sm">
+                  Schreiben Sie uns eine Nachricht – wir melden uns zeitnah.
+                </p>
               </div>
 
               <form onSubmit={handleContactSubmit} className="space-y-4">
@@ -479,6 +618,7 @@ export default function App() {
                     required
                   />
                 </div>
+
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="button"
