@@ -80,10 +80,10 @@ return (
           }}
         />
         <h1 className="text-2xl md:text-3xl font-bold mb-2">
-          {isSignUp ? 'Konto erstellen' : 'Willkommen zurück'}
+          Willkommen zurück
         </h1>
         <p className="text-white/70">
-          {isSignUp ? 'Registrieren und loslegen' : 'Melden Sie sich an, um fortzufahren'}
+          Melden Sie sich an, um fortzufahren
         </p>
       </div>
 
@@ -121,24 +121,6 @@ return (
           />
         </div>
 
-        {isSignUp && (
-          <div>
-            <label htmlFor="role" className="block text-sm font-medium mb-2 text-white/90">
-              Ich bin
-            </label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value as 'Host' | 'Cleaner')}
-              className="w-full px-4 py-3 rounded-full bg-white/10 border border-white/15 text-white/90
-                         focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent"
-            >
-              <option value="Host" className="bg-black">Gastgeber</option>
-              <option value="Cleaner" className="bg-black">Reinigungskraft</option>
-            </select>
-          </div>
-        )}
-
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 text-sm rounded-2xl">
             {error}
@@ -153,18 +135,9 @@ return (
                      flex items-center justify-center gap-2"
         >
           <LogIn className="w-5 h-5" />
-          {loading ? 'Bitte warten …' : isSignUp ? 'Registrieren' : 'Anmelden'}
+          {loading ? 'Bitte warten …' : 'Anmelden'}
         </button>
       </form>
-
-      <div className="px-6 pb-6 text-center">
-        <button
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="text-white/70 hover:text-white transition-colors text-sm"
-        >
-          {isSignUp ? 'Schon ein Konto? Anmelden' : 'Noch kein Konto? Registrieren'}
-        </button>
-      </div>
 
       <div className="px-6 pb-8 text-center">
         <button
@@ -177,5 +150,6 @@ return (
     </div>
   </div>
 );
+
 
 }
