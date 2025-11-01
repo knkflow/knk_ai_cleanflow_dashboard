@@ -6,7 +6,7 @@ import {
   Trash2,
   Building2,
   KeyRound,
-  MapPinHouse,
+  MapPin,
   User as User_Icon,
 } from 'lucide-react';
 import { getApartments, createApartment, updateApartment, deleteApartment, getCleaners } from '../../lib/api';
