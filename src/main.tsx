@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App"; // .tsx-Endung im Import weglassen ist ok
+import App from "./App"; // keine Endung nötig
 import "./index.css";
 
 const rootEl = document.getElementById("root");
