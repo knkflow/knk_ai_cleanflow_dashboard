@@ -13,6 +13,8 @@ export function Landing() {
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
+
 
   const handleLearnMore = () =>
     cleanflowRef.current?.scrollIntoView({ behavior: 'smooth' });
