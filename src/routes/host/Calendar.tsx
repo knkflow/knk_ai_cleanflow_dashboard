@@ -198,12 +198,11 @@ export function Calendar() {
     const showTextInsideBox = !isAllView || !isUnavailable;
 
 const primaryText = isAllView
-  ? '' // In "Alle": kein Text (nur Namen)
-  : isUnavailable
-    ? 'Nicht verfügbar' // In Einzelansicht + nicht verfügbar
-    : ''; // In Einzelansicht + verfügbar → nichts anzeigen
+  ? (isUnavailable ? '' : 'Verfügbar')        // Alle: rot -> kein Text, grün -> "Verfügbar"
+  : (isUnavailable ? 'Nicht verfügbar' : 'Verfügbar'); // Einzel: rot -> "Nicht verfügbar", grün -> "Verfügbar"
 
-    const showNamesList = isAllView && isUnavailable;
+
+    const showNamesList = !isAllView || !isUnavailable;
 
     return (
       <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
