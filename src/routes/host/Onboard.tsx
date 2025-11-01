@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  // status icons
   CheckCircle2,
   XCircle,
-  // feature icons (choose per step)
   ClipboardList,
   Building2,
   Plug,
@@ -13,28 +11,20 @@ import {
 } from "lucide-react";
 
 /**
- * Onboarding component with string status persistence (localStorage)
- * - Für jeden Step wird im localStorage eine Map { [id]: "erledigt" | "" } gespeichert.
- * - Nur Steps mit Wert "erledigt" sind grün und zählen zum Fortschritt.
- * - Fortschritt wird beim Laden aus localStorage berechnet (persistenter Fortschritt).
- * - Klick auf "Erledigen" toggelt den Status; wenn neu erledigt, wird redirectet.
- *
- * Schritte:
- *  1) Unternehmensprofil vervollständigen → /host/settings#profil
- *  2) Objekt/Apartment hinzufügen → /host/apartments
- *  3) PMS-Verbindung verknüpfen → /host/settings#verbindungen-und-apis
- *  4) Reinigungskräfte hinzufügen → /host/cleaners
- *  5) Reinigung planen → /host/tasks
+ * Onboarding (responsive)
+ * - Mobile-first Layout (Stack), ab md dann zweispaltig/Row
+ * - Buttons sind auf Mobile full-width, auf md inline
+ * - Kleinere Icons/Spacing auf Mobile, großzügiger ab md
  */
 export function Onboard() {
-  const LS_KEY = "host_onboard_steps_v1"; // Key bleibt, Inhalt jetzt Map { [id]: "erledigt" | "" }
+  const LS_KEY = "host_onboard_steps_v1";
   const navigate = useNavigate();
 
   type Step = {
     id: string;
     title: string;
     description: string;
-    done: boolean; // abgeleitet aus storageMap[id] === "erledigt"
+    done: boolean;
     icon: React.ComponentType<{ className?: string }>;
     redirect?: string;
   };
@@ -86,88 +76,55 @@ export function Onboard() {
 
   const [steps, setSteps] = useState<Step[]>(defaultSteps);
 
-  /** Liest Map aus localStorage. Migriert alte Array-Struktur falls nötig. */
   const readStatusMap = (): StatusMap => {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (!raw) {
-        // initial: leere Map mit allen Keys als ""
-        const empty: StatusMap = Object.fromEntries(defaultSteps.map(s => [s.id, ""]));
-        return empty;
+        return Object.fromEntries(defaultSteps.map((s) => [s.id, ""])) as StatusMap;
       }
-
       const parsed = JSON.parse(raw);
 
-      // Fall A: bereits Map-Format { [id]: "erledigt" | "" }
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-        // sicherstellen, dass alle default-IDs existieren
         const map: StatusMap = { ...parsed };
         for (const s of defaultSteps) {
-          if (map[s.id] !== "erledigt" && map[s.id] !== "") {
-            map[s.id] = ""; // normalisieren
-          }
-          if (!(s.id in map)) {
-            map[s.id] = "";
-          }
+          if (!(s.id in map)) map[s.id] = "";
+          if (map[s.id] !== "erledigt" && map[s.id] !== "") map[s.id] = "";
         }
         return map;
       }
 
-      // Fall B: Legacy-Array [{id, done:boolean}]
       if (Array.isArray(parsed)) {
-        const map: StatusMap = Object.fromEntries(
-          defaultSteps.map(s => [s.id, ""])
-        );
+        const map: StatusMap = Object.fromEntries(defaultSteps.map((s) => [s.id, ""])) as StatusMap;
         for (const item of parsed) {
           if (item && typeof item === "object" && "id" in item) {
             const id = (item as any).id;
             const doneBool = !!(item as any).done;
-            if (typeof id === "string") {
-              map[id] = doneBool ? "erledigt" : "";
-            }
+            if (typeof id === "string") map[id] = doneBool ? "erledigt" : "";
           }
         }
-        // direkt im neuen Format zurückschreiben (Migration)
-        try {
-          localStorage.setItem(LS_KEY, JSON.stringify(map));
-        } catch {}
+        try { localStorage.setItem(LS_KEY, JSON.stringify(map)); } catch {}
         return map;
       }
 
-      // Unbekanntes Format → auf leer zurückfallen
-      const empty: StatusMap = Object.fromEntries(defaultSteps.map(s => [s.id, ""]));
-      return empty;
+      return Object.fromEntries(defaultSteps.map((s) => [s.id, ""])) as StatusMap;
     } catch {
-      const empty: StatusMap = Object.fromEntries(defaultSteps.map(s => [s.id, ""]));
-      return empty;
+      return Object.fromEntries(defaultSteps.map((s) => [s.id, ""])) as StatusMap;
     }
   };
 
-  /** Speichert Map minimal zurück. */
   const writeStatusMap = (map: StatusMap) => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(map));
-    } catch {
-      // Ignorieren, wenn Storage nicht verfügbar
-    }
+    try { localStorage.setItem(LS_KEY, JSON.stringify(map)); } catch {}
   };
 
-  /** Leitet aus Map die Steps (done-Flags) ab. */
-  const mapToSteps = (map: StatusMap): Step[] => {
-    return defaultSteps.map(s => ({
-      ...s,
-      done: map[s.id] === "erledigt",
-    }));
-  };
+  const mapToSteps = (map: StatusMap): Step[] =>
+    defaultSteps.map((s) => ({ ...s, done: map[s.id] === "erledigt" }));
 
-  // Initial laden
   useEffect(() => {
     const map = readStatusMap();
     setSteps(mapToSteps(map));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cross-Tab/Route-Änderungen live übernehmen
   useEffect(() => {
     const handler = (e: StorageEvent) => {
       if (e.key === LS_KEY) {
@@ -180,44 +137,39 @@ export function Onboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Prozent aus "erledigt"-Werten berechnen */
-  const completed = useMemo(() => steps.filter(s => s.done).length, [steps]);
+  const completed = useMemo(() => steps.filter((s) => s.done).length, [steps]);
   const total = steps.length || 1;
   const percent = useMemo(() => Math.round((completed / total) * 100), [completed, total]);
 
-  /** Toggle + Persist + optional Redirect */
   const handleClick = (step: Step) => {
     const currentMap = readStatusMap();
     const wasDone = currentMap[step.id] === "erledigt";
     const nextValue: "erledigt" | "" = wasDone ? "" : "erledigt";
     const nextMap: StatusMap = { ...currentMap, [step.id]: nextValue };
 
-    // Persistieren
     writeStatusMap(nextMap);
-
-    // UI sofort aktualisieren
     setSteps(mapToSteps(nextMap));
 
-    // Wenn jetzt erledigt → redirect
-    if (!wasDone && step.redirect) {
-      navigate(step.redirect);
-    }
+    if (!wasDone && step.redirect) navigate(step.redirect);
   };
 
   return (
     <div className="min-h-screen w-full bg-black text-white antialiased">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Onboarding-Fortschritt</h1>
-            <p className="mt-1 text-sm text-neutral-400">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
+              Onboarding-Fortschritt
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm text-neutral-400">
               {completed} von {total} Schritten abgeschlossen
             </p>
           </div>
-        <div className="text-right">
-            <div className="text-3xl font-bold tabular-nums">{percent}%</div>
-            <div className="text-xs text-neutral-400">Vollständig</div>
+
+          <div className="mt-1 md:mt-0 md:text-right">
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums">{percent}%</div>
+            <div className="text-[10px] sm:text-xs text-neutral-400">Vollständig</div>
           </div>
         </div>
 
@@ -226,61 +178,64 @@ export function Onboard() {
           <div
             className="h-full bg-blue-500 transition-all duration-300"
             style={{ width: `${percent}%` }}
+            aria-label="Fortschrittsbalken"
           />
         </div>
 
         {/* Steps */}
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-3 sm:space-y-4">
           {steps.map((step, idx) => {
             const Icon = step.icon;
             const isDone = step.done;
             return (
               <div
                 key={step.id}
-                className="relative rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 backdrop-blur-sm"
+                className="relative rounded-2xl border border-neutral-800 bg-neutral-900/60 p-3 sm:p-4 backdrop-blur-sm"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   {/* status indicator */}
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900">
+                  <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-neutral-900 shrink-0">
                     {isDone ? (
-                      <CheckCircle2 className="h-7 w-7 text-emerald-500" />
+                      <CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-500" />
                     ) : (
-                      <XCircle className="h-7 w-7 text-red-500" />
+                      <XCircle className="h-6 w-6 sm:h-7 sm:w-7 text-red-500" />
                     )}
                   </div>
 
                   {/* step icon + texts */}
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      <Icon className="h-6 w-6 text-neutral-300" />
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <div className="mt-0.5 sm:mt-1 shrink-0">
+                      <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-neutral-300" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-base font-medium leading-tight">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <h3 className="text-sm sm:text-base font-medium leading-tight truncate">
                           {idx + 1}. {step.title}
                         </h3>
                         {!isDone && (
-                          <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-xs text-red-300">
+                          <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] sm:text-xs text-red-300">
                             Offen
                           </span>
                         )}
                         {isDone && (
-                          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">
+                          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] sm:text-xs text-emerald-300">
                             Erledigt
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-sm text-neutral-400">{step.description}</p>
+                      <p className="mt-1 text-xs sm:text-sm text-neutral-400">
+                        {step.description}
+                      </p>
                     </div>
                   </div>
 
                   {/* spacer */}
-                  <div className="ml-auto" />
+                  <div className="sm:ml-auto" />
 
                   {/* action button */}
                   <button
                     onClick={() => handleClick(step)}
-                    className={`group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                       isDone
                         ? "bg-emerald-600 text-white hover:bg-emerald-500"
                         : "bg-blue-600 text-white hover:bg-blue-500"
@@ -288,7 +243,7 @@ export function Onboard() {
                   >
                     {isDone ? "Rückgängig" : "Erledigen"}
                     {!isDone && (
-                      <span className="-mr-1 inline-block rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] leading-none">
+                      <span className="-mr-1 hidden sm:inline-block rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] leading-none">
                         →
                       </span>
                     )}
