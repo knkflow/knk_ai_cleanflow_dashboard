@@ -293,6 +293,7 @@ return (
     <li>Im Hintergrund ist Cleanflow mit dem PMS (Property Management System) ihrer Wahl verbunden (z. B. Guesty).</li>
     <li>Neue, geänderte und stornierte Reservierungen werden in Echtzeit mit Cleanflow synchronisiert und entsprechende Reinigungen hinzugefügt oder gelöscht. </li>
     <li>Ordnen Sie geplanten Reinigungen eine andere Reinigungskraft zu oder geben Sie der Reinigungskraft spezifische Anweisungen als Notiz mit.</li>
+    <li>Die entsprechenden Reinigungskräfte erhalten personalisierte Tagespläne und Live-Updates zu alle für sie relevanten Änderungen, per WhatsApp sowie über das Dashboard.</li>
   </ol>
 </div>
 
