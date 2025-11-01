@@ -310,3 +310,5 @@ export function Apartments() {
     </div>
   )}
 </div>
+    )
+};
