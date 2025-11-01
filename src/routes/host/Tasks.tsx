@@ -1,6 +1,16 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Edit, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
+import {
+  Plus,
+  RotateCcw,
+  AlertCircle,
+  Edit,
+  Trash2,
+  CalendarDays,
+  User as User_Icon,
+  StickyNote,
+  AlarmClock,
+} from 'lucide-react';
 import { getTasks, createTask, updateTask, deleteTask, getApartments, getCleaners } from '../../lib/api';
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
