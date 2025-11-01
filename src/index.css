@@ -2,10 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---- Globale Styles ---- */
 body {
   @apply bg-black text-white;
 }
 
+/* Sorgt für saubere Layout-Berechnung */
 * {
   box-sizing: border-box;
 }
