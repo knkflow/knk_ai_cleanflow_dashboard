@@ -509,7 +509,7 @@ return (
         />
 
         <Input
-          label="Deadline (yyyy-mm-dd)"
+          label="Frist (yyyy-mm-dd)"
           value={formData.deadline}
           onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
           placeholder="2025-12-31"
