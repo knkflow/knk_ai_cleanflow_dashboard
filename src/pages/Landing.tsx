@@ -1,15 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
-import { User, Search } from 'lucide-react';
+import { UserSearch } from 'lucide-react';
 
-function UserSearchBadge() {
-  return (
-    <span className="relative inline-flex">
-      <User className="w-5 h-5" />
-      <Search className="w-3 h-3 absolute -right-1 -bottom-1" />
-    </span>
-  );
-}
 export function Landing() {
   const navigate = useNavigate();
 
