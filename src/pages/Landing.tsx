@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
-import { UserSearch } from 'lucide-react';
+import { User, Search, Mail } from 'lucide-react';
 
 export function Landing() {
   const navigate = useNavigate();
@@ -87,13 +87,13 @@ export function Landing() {
       </button>
     </nav>
 
-{/* Mobile: Icon-Button (UserSearch) */}
+{/* Mobile: Icon-Button (User + Search + Mail) */}
 <div className="md:hidden justify-self-end">
   <button
     aria-label="Navigation öffnen"
     onClick={() => setMobileOpen((v) => !v)}
     className="
-      relative inline-flex items-center justify-center w-10 h-10 rounded-full
+      relative inline-flex items-center justify-center gap-2 px-3 w-auto h-10 rounded-full
       border border-white/20 text-white/80 bg-black/30
       transition-all duration-300 ease-out
       hover:text-white hover:border-white/60 hover:bg-black/40
@@ -101,9 +101,12 @@ export function Landing() {
       shadow-none hover:shadow-[0_0_18px_rgba(255,255,255,0.35)]
     "
   >
-    <UserSearch className="w-5 h-5" />
+    <User className="w-4 h-4" />
+    <Search className="w-4 h-4" />
+    <Mail className="w-4 h-4" />
   </button>
 </div>
+
 
   {/* Mobile Dropdown */}
   {mobileOpen && (
