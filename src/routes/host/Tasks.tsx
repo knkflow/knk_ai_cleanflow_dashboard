@@ -531,7 +531,7 @@ return (
             type="submit"
             className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
           >
-            {editingId ? 'Update' : 'Create'}
+            {editingId ? 'Aktualisieren' : 'Erstellen'}
           </button>
           <button
             type="button"
