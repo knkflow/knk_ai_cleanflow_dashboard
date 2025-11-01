@@ -283,15 +283,21 @@ return (
     </div>
 
       {/* Info Box */}
-      <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
-      <p className="font-medium mb-2">So funktionieren Reinigungen:</p>
-      <ol className="list-decimal list-inside space-y-1">
-        <li>Add a cleaner with their email address (or phone).</li>
-        <li>A magic link is sent for first-time login.</li>
-        <li>Role is automatically set to <b>Cleaner</b>.</li>
-        <li>Cleaner can then log in and set their password.</li>
-      </ol>
-    </div>
+<div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+  <div className="flex items-center gap-2 mb-2">
+    <Lightbulb className="w-5 h-5 text-blue-400" />
+    <p className="font-medium">How Cleaner Invitations Work:</p>
+  </div>
+
+  <ol className="list-decimal list-inside space-y-1">
+    <li>Add a cleaner with their email address (or phone).</li>
+    <li>A magic link is sent for first-time login.</li>
+    <li>
+      Role is automatically set to <b>Cleaner</b>.
+    </li>
+    <li>Cleaner can then log in and set their password.</li>
+  </ol>
+</div>
 
     {/* Filter */}
     <div className="mb-6 flex flex-col gap-4">
