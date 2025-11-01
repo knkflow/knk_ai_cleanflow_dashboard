@@ -1,8 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
-import { UserSearch } from 'lucide-react';
+import { User, Search } from 'lucide-react';
 
-
+function UserSearchBadge() {
+  return (
+    <span className="relative inline-flex">
+      <User className="w-5 h-5" />
+      <Search className="w-3 h-3 absolute -right-1 -bottom-1" />
+    </span>
+  );
+}
 export function Landing() {
   const navigate = useNavigate();
 
@@ -88,8 +95,7 @@ export function Landing() {
       </button>
     </nav>
 
-  
-{/* Mobile: UserSearch Icon Button */}
+{/* Mobile: Icon-Button (User + Search) */}
 <div className="md:hidden justify-self-end">
   <button
     aria-label="Navigation öffnen"
@@ -107,9 +113,10 @@ export function Landing() {
       before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300
     "
   >
-    <UserSearch className="w-5 h-5" />
+    <UserSearchBadge />
   </button>
 </div>
+
 
 
   {/* Mobile Dropdown */}
