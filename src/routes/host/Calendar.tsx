@@ -16,7 +16,7 @@ import {
   X,
   X as CloseIcon,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion'; // <-- entfernt
 
 interface ContextType {
   user: User;
@@ -307,9 +307,7 @@ export function Calendar() {
                     </button>
                   </div>
                 ) : (
-                  // Mobile: rotes X | Nicht-Mobile (>= sm): Text "-Keine Geplanten Einsätze-"
                   <div className="flex items-center justify-center mt-2">
-                    {/* mobile */}
                     <span
                       className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full
                                  bg-rose-900/40 border border-rose-700/60
@@ -322,7 +320,6 @@ export function Calendar() {
                         aria-label="Keine geplanten Einsätze"
                       />
                     </span>
-                    {/* desktop/tablet */}
                     <span className="hidden sm:inline text-rose-300 font-medium tracking-wide">
                       -Keine Geplanten Einsätze-
                     </span>
@@ -390,12 +387,7 @@ export function Calendar() {
 
       {/* Cleaner Auswahl */}
       {cleaners.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-4"
-        >
+        <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             <button
@@ -439,7 +431,7 @@ export function Calendar() {
               );
             })}
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Kalender-Wrapper mit Neon-Glow */}
