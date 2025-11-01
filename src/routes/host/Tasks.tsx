@@ -406,7 +406,7 @@ return (
                 {/* Datum */}
                 <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-white/60" />
-                  <span>Datum: {formatDisplayDate(task.date)}</span>
+                  <span>Tag der Reinigung: {formatDisplayDate(task.date)}</span>
                 </p>
 
                 {/* Reinigungskraft */}
