@@ -249,6 +249,40 @@ export function Calendar() {
 
   const closeModals = useCallback(() => { setModalOpen(false); setPeopleModalOpen(false); }, []);
 
+  // --- Mobile: Swipe-Gesten zum Monatswechsel ---
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.changedTouches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 50) {
+      const dir = dx < 0 ? 1 : -1;
+      const d = new Date(year, month + dir, 1);
+      setYear(d.getFullYear());
+      setMonth(d.getMonth());
+    }
+    touchStartX.current = null;
+  };
+
+  // --- Mobile: Swipe-Gesten zum Monatswechsel ---
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.changedTouches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 50) {
+      const dir = dx < 0 ? 1 : -1;
+      const d = new Date(year, month + dir, 1);
+      setYear(d.getFullYear());
+      setMonth(d.getMonth());
+    }
+    touchStartX.current = null;
+  };
+
   /* ---- renderDay ---- */
   const renderDay = useCallback(
     (day: MonthDay) => {
@@ -269,7 +303,7 @@ export function Calendar() {
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
           {/* Datum-Badge */}
-          <div className="mb-1 flex items-center justify-between">
+     $1 min-h-[84px] md:min-h-[110px]enter justify-between">
             <span className={`inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ${
               day.isToday ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-200'
             }`}>
@@ -332,27 +366,7 @@ export function Calendar() {
               )}
             </div>
           )}
-        </div>
-      );
-    },
-    [getUnavailableNames, isAllView, getAssignedDetailsForSelected, getUnavailableCleaners, openModalFor]
-  );
-
-  const sortedCleaners = useMemo(() => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))), [cleaners]);
-
-  if (loading) return <div className="text-gray-900">Loading...</div>;
-
-  /* ---- RENDER ---- */
-  return (
-    <div>
-      {errorMsg && (
-        <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-yellow-800 text-sm">
-          {errorMsg}
-        </div>
-      )}
-
-      {/* Kopf: Monat + Legende */}
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        </div<div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -374,9 +388,66 @@ export function Calendar() {
           >
             <ChevronRight className="h-5 w-5" />
           </button>
-          <div className="ml-1 text-2xl font-semibold tracking-tight">
+          <div className="ml-1 text-xl md:text-2xl font-semibold tracking-tight">
             {MONTHS_DE[month]} {year}
           </div>
+          <button
+            onClick={() => { const t = new Date(); setYear(t.getFullYear()); setMonth(t.getMonth()); }}
+            className="ml-2 inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-1 text-xs md:text-sm hover:bg-gray-50"
+          >
+            Heute
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-emerald-50">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Verfügbar
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-red-50">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Nicht verfügbar
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+            <span className="h-2.5 w-2.5 rounded-full bg-gray-300" /> Wochenende
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" /> Heute
+          </span>
+        </div>
+      </div>Left className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => {
+              const d = new Date(year, month + 1, 1);
+              setYear(d.getFullYear()); setMonth(d.getMonth());
+            }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
+            aria-label="Nächster Monat"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+          <div className="ml-1 text-xl md:text-2xl font-semibold tracking-tight">
+            {MONTHS_DE[month]} {year}
+          </div>
+          <button
+            onClick={() => { const t = new Date(); setYear(t.getFullYear()); setMonth(t.getMonth()); }}
+            className="ml-2 inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-1 text-xs md:text-sm hover:bg-gray-50"
+          >
+            Heute
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-emerald-50">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Verfügbar
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-red-50">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Nicht verfügbar
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+            <span className="h-2.5 w-2.5 rounded-full bg-gray-300" /> Wochenende
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" /> Heu
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
@@ -405,9 +476,7 @@ export function Calendar() {
               className={`rounded-xl px-3 py-3 border transition ${
                 isAllView
                   ? 'border-emerald-300 bg-emerald-50 shadow-sm'
-                  : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300'
-              }`}
-            >
+             <div className=\"rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 ring-1 ring-gray-100 shadow-sm\" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
               <div className="flex items-baseline justify-between gap-2">
                 <div className="text-sm font-medium text-gray-900">Alle</div>
                 <div className="text-[11px] text-gray-500">{sortedCleaners.length} Cleaner</div>
