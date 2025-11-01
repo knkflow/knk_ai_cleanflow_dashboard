@@ -10,6 +10,7 @@ import {
   User as User_Icon,
   StickyNote,
   AlarmClock,
+  Lightbulb
 } from 'lucide-react';
 import { getTasks, createTask, updateTask, deleteTask, getApartments, getCleaners } from '../../lib/api';
 import { Modal } from '../../components/forms/Modal';
@@ -283,7 +284,7 @@ return (
 
       {/* Info Box */}
       <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
-      <p className="font-medium mb-2">How Cleaner Invitations Work:</p>
+      <p className="font-medium mb-2">So funktionieren Reinigungen:</p>
       <ol className="list-decimal list-inside space-y-1">
         <li>Add a cleaner with their email address (or phone).</li>
         <li>A magic link is sent for first-time login.</li>
