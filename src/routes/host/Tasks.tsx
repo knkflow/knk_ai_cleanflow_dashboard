@@ -516,7 +516,7 @@ return (
         />
 
         <div>
-          <label className="block text-sm font-medium text-white mb-2">Notiz (Fügen Sie hier weitere Anweisungen für Ihre Reinigungskraft hinzu)</label>
+          <label className="block text-sm font-medium text-white mb-2">Notiz (Fügen Sie hier weitere Anweisungen für die Reinigungskraft hinzu)</label>
           <textarea
             value={formData.note}
             onChange={(e) => setFormData({ ...formData, note: e.target.value })}
