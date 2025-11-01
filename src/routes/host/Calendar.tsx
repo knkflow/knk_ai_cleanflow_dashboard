@@ -144,26 +144,37 @@ export function Calendar() {
   const lastFetchTsRef = useRef(0);
   const THROTTLE_MS = 500;
 
-  const loadCleaners = useCallback(async () => {
-    const nowTs = Date.now();
-    if (inFlightRef.current) return;
-    if (nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
+  // Silent-Refresh Steuerung
+  const initialLoadDone = useRef(false);
 
-    inFlightRef.current = true;
-    setLoading(true);
-    setErrorMsg(null);
-    try {
-      const data = await getCleaners(user.id);
-      setCleaners(data ?? []);
-      if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
-    } catch (e: any) {
-      setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
-    } finally {
-      lastFetchTsRef.current = Date.now();
-      inFlightRef.current = false;
-      setLoading(false);
-    }
-  }, [user.id]);
+  const loadCleaners = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      const nowTs = Date.now();
+      if (inFlightRef.current) return;
+      if (nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
+
+      inFlightRef.current = true;
+      if (!opts?.silent && !initialLoadDone.current) setLoading(true);
+      setErrorMsg(null);
+      try {
+        const data = await getCleaners(user.id);
+        setCleaners((prev) => {
+          const next = data ?? [];
+          if (prev.length === next.length && prev.every((p, i) => p.id === next[i].id)) return prev;
+          return next;
+        });
+        if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
+        initialLoadDone.current = true;
+      } catch (e: any) {
+        setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
+      } finally {
+        lastFetchTsRef.current = Date.now();
+        inFlightRef.current = false;
+        setLoading(false);
+      }
+    },
+    [user.id]
+  );
 
   useEffect(() => {
     void loadCleaners();
@@ -172,14 +183,14 @@ export function Calendar() {
   useEffect(() => {
     const path = location.pathname || '';
     if (path.toLowerCase().includes('calendar')) {
-      void loadCleaners();
+      void loadCleaners({ silent: true });
     }
   }, [location.pathname, loadCleaners]);
 
   useEffect(() => {
-    const onFocus = () => void loadCleaners();
+    const onFocus = () => void loadCleaners({ silent: true });
     const onVis = () => {
-      if (!document.hidden) void loadCleaners();
+      if (!document.hidden) void loadCleaners({ silent: true });
     };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVis);
@@ -223,7 +234,20 @@ export function Calendar() {
         byDate.set(ymd, list);
         idx.set(cleanerId, byDate);
       }
-      setDetailsIndex(idx);
+      setDetailsIndex((prev) => {
+        if (prev.size === idx.size) {
+          let same = true;
+          for (const [cid, days] of idx) {
+            const prevDays = prev.get(cid);
+            if (!prevDays || prevDays.size !== days.size) {
+              same = false;
+              break;
+            }
+          }
+          if (same) return prev;
+        }
+        return idx;
+      });
     } catch {
       // optional: logging
     }
@@ -233,25 +257,50 @@ export function Calendar() {
     void loadAssignments();
   }, [loadAssignments]);
 
-  /** Wer ist an diesem Tag nicht verfügbar? */
+  // Sichtbarer Monatsbereich (für schnellen All-View Index)
+  const monthStart = useMemo(() => ymdFromUTC(year, month + 1, 1), [year, month]);
+  const monthEnd = useMemo(() => {
+    const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    return ymdFromUTC(year, month + 1, lastDay);
+  }, [year, month]);
+
+  const isInVisibleMonth = useCallback(
+    (ymd: string) => ymd >= monthStart && ymd <= monthEnd,
+    [monthStart, monthEnd]
+  );
+
+  /** Map<'YYYY-MM-DD', string[]>: voraggregiert für Alle-Ansicht */
+  const monthUnavailableAll = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const c of cleaners) {
+      const set = unavailableIndex.get(c.id);
+      if (!set) continue;
+      const label = getCleanerLabel(c);
+      for (const ymd of set) {
+        if (!isInVisibleMonth(ymd)) continue;
+        if (!map.has(ymd)) map.set(ymd, []);
+        map.get(ymd)!.push(label);
+      }
+    }
+    return map;
+  }, [cleaners, unavailableIndex, isInVisibleMonth]);
+
+  const selectedCleanerLabel = useMemo(() => {
+    if (!selectedCleanerId) return '';
+    const c = cleaners.find((x) => x.id === selectedCleanerId);
+    return c ? getCleanerLabel(c) : '';
+  }, [cleaners, selectedCleanerId]);
+
+  /** Wer ist an diesem Tag nicht verfügbar? (O(1)-Lookup) */
   const getUnavailableNames = useCallback(
     (ymd: string): string[] => {
       if (!ymd) return [];
-      if (isAllView) {
-        const names: string[] = [];
-        for (const c of cleaners) {
-          const label = getCleanerLabel(c);
-          const set = unavailableIndex.get(c.id);
-          if (set?.has(ymd)) names.push(label);
-        }
-        return names;
-      } else {
-        const c = cleaners.find((x) => x.id === selectedCleanerId);
-        if (!c) return [];
-        return unavailableIndex.get(c.id)?.has(ymd) ? [getCleanerLabel(c)] : [];
-      }
+      if (isAllView) return monthUnavailableAll.get(ymd) ?? [];
+      if (!selectedCleanerId) return [];
+      const set = unavailableIndex.get(selectedCleanerId);
+      return set?.has(ymd) ? [selectedCleanerLabel] : [];
     },
-    [cleaners, isAllView, selectedCleanerId, unavailableIndex]
+    [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]
   );
 
   /** Apartments (Details) für ausgewählten Cleaner am Tag */
@@ -263,94 +312,96 @@ export function Calendar() {
     [detailsIndex, selectedCleanerId]
   );
 
+  // Stabiler Modal-Handler (keine neuen Funktionsinstanzen pro Zelle)
+  const openModalFor = useCallback((ymd: string, items: AssignmentDetail[]) => {
+    setModalDate(ymd);
+    setModalItems(items);
+    setModalOpen(true);
+  }, []);
+
   const renderDay = useCallback(
-  (day: MonthDay) => {
-    const ymd = dayToYMD(day);
-    if (!ymd) return <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />;
+    (day: MonthDay) => {
+      const ymd = dayToYMD(day);
+      if (!ymd) return <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />;
 
-    const unavailableNames = getUnavailableNames(ymd) ?? [];
-    const isUnavailable = unavailableNames.length > 0;
+      const unavailableNames = getUnavailableNames(ymd) ?? [];
+      const isUnavailable = unavailableNames.length > 0;
 
-    const boxClass = isUnavailable
-      ? 'bg-red-500/20 text-red-300 border-red-500/40'
-      : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
+      const boxClass = isUnavailable
+        ? 'bg-red-500/20 text-red-300 border-red-500/40'
+        : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
-    const primaryText = isUnavailable ? '' : 'Verfügbar';
-    const showNamesList = isAllView && isUnavailable;
+      const primaryText = isUnavailable ? '' : 'Verfügbar';
+      const showNamesList = isAllView && isUnavailable;
 
-    const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
+      const assignedDetails =
+        (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
 
-    const openModal = () => {
-      setModalDate(ymd);
-      setModalItems(assignedDetails);
-      setModalOpen(true);
-    };
-
-    return (
-      <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-        {/* Kopfzeile */}
-        <div className="text-xs mb-1 flex items-center gap-2">
-          <span
-            className={
-              day.isToday
-                ? 'font-bold text-white'
-                : day.isCurrentMonth
-                ? 'text-white/70'
-                : 'text-white/40'
-            }
-          >
-            {day.date.getDate()}
-          </span>
-
-          {isUnavailable && (
-            <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
-              Nicht verfügbar
+      return (
+        <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
+          {/* Kopfzeile */}
+          <div className="text-xs mb-1 flex items-center gap-2">
+            <span
+              className={
+                day.isToday
+                  ? 'font-bold text-white'
+                  : day.isCurrentMonth
+                  ? 'text-white/70'
+                  : 'text-white/40'
+              }
+            >
+              {day.date.getDate()}
             </span>
-          )}
-        </div>
 
-        {day.isCurrentMonth && (
-          <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
-            {!!primaryText && <div className="truncate text-center">{primaryText}</div>}
-
-            {/* Alle + rot → Namensliste */}
-            {showNamesList && (
-              <ul className="mt-1 space-y-0.5 pl-4 list-disc">
-                {unavailableNames.map((n, i) => (
-                  <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={n}>
-                    {n}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* Einzel + rot → Button oder grünes X */}
-            {!isAllView && isUnavailable && (
-              assignedDetails.length > 0 ? (
-                <div className="mt-1 flex items-center justify-center">
-                  <button
-                    type="button"
-                    onClick={openModal}
-                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
-                    title="Geplante Einsätze ansehen"
-                  >
-                    <Building2 className="w-4 h-4" />
-                    <span className="text-[11px] font-semibold">Geplante Einsätze</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-2 flex items-center justify-center" title="Keine Geplanten Einsätze">
-                  <X className="w-5 h-5 text-emerald-400" />
-                </div>
-              )
+            {isUnavailable && (
+              <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
+                Nicht verfügbar
+              </span>
             )}
           </div>
-        )}
-      </div>
-    );
-  },
-  [getUnavailableNames, isAllView, getAssignedDetailsForSelected]
-);
+
+          {day.isCurrentMonth && (
+            <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
+              {!!primaryText && <div className="truncate text-center">{primaryText}</div>}
+
+              {/* Alle + rot → Namensliste */}
+              {showNamesList && (
+                <ul className="mt-1 space-y-0.5 pl-4 list-disc">
+                  {unavailableNames.map((n, i) => (
+                    <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={n}>
+                      {n}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Einzel + rot → Button oder grünes X */}
+              {!isAllView && isUnavailable && (
+                assignedDetails.length > 0 ? (
+                  <div className="mt-1 flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => openModalFor(ymd, assignedDetails)}
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                      title="Geplante Einsätze ansehen"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      <span className="text-[11px] font-semibold">Geplante Einsätze</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-center justify-center" title="Keine Geplanten Einsätze">
+                    <X className="w-5 h-5 text-emerald-400" />
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+      );
+    },
+    [getUnavailableNames, isAllView, getAssignedDetailsForSelected, openModalFor]
+  );
 
   const sortedCleaners = useMemo(
     () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
@@ -359,6 +410,168 @@ export function Calendar() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
-  // ...
-  // (Rest deines Codes bleibt unverändert und ist sauber formatiert)
+  return (
+    <div>
+      {errorMsg && (
+        <div className="mb-3 rounded border border-yellow-500/40 bg-yellow-500/10 p-3 text-yellow-200 text-sm">
+          {errorMsg}
+        </div>
+      )}
+
+      {/* Filter-Kacheln */}
+      {cleaners.length > 0 && (
+        <div className="mb-4">
+          <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {/* Alle */}
+            <button
+              onClick={() => setSelectedCleanerId(null)}
+              className={`rounded-xl px-3 py-3 border transition
+                ${isAllView
+                  ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                  : 'border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:border-white/30'}
+              `}
+              title="Alle Cleaner anzeigen"
+            >
+              <div className="text-sm font-medium text-white">Alle</div>
+              <div className="text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
+            </button>
+
+            {/* Einzelne */}
+            {sortedCleaners.map((c) => {
+              const active = selectedCleanerId === c.id;
+              const label = getCleanerLabel(c);
+              const initials = label.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'C';
+
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCleanerId(c.id)}
+                  className={`rounded-xl px-3 py-3 border transition
+                    ${active
+                      ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}
+                  `}
+                  title={`Nur ${label} anzeigen`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`h-7 w-7 rounded-lg flex items-center justify-center
+                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}
+                    >
+                      <span className="text-xs font-bold">{initials}</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white truncate">{label}</div>
+                      <div className="text-[11px] text-white/60">
+                        {active ? 'Ausgewählt' : 'Klicken zum Anzeigen'}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 text-xs text-white/60">
+            {isAllView
+              ? 'Ansicht: Alle Reinigungskräfte'
+              : `Ansicht gefiltert auf: ${
+                  getCleanerLabel(sortedCleaners.find((x) => x.id === selectedCleanerId) as Cleaner)
+                }`}
+          </div>
+        </div>
+      )}
+
+      {/* Kalender */}
+      <MonthCalendar
+        year={year}
+        month={month}
+        onMonthChange={(y, m) => {
+          setYear(y);
+          setMonth(m);
+        }}
+        renderDay={renderDay}
+      />
+
+      {/* Legende */}
+      <div className="mt-6 bg-white/5 border border-white/10 p-4 rounded-lg text-sm text-white/80">
+        <h3 className="font-semibold mb-3 text-white">Legende</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
+            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (Details über Button)'}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded border bg-emerald-500/15 border-emerald-500/35"></div>
+            {isAllView ? 'Alle verfügbar' : 'Cleaner verfügbar'}
+          </div>
+        </div>
+      </div>
+
+      {/* Modal: Geplante Einsätze (Einzelansicht) */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-6 h-6" />
+                <h4 className="text-lg font-semibold">Geplante Einsätze am {modalDate}</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="p-2 rounded-md hover:bg-white/10"
+                aria-label="Schließen"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              {modalItems.length === 0 ? (
+                <div className="text-white/60 text-sm">Keine Einträge.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {modalItems
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((it, i) => (
+                      <li key={i} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-5 h-5" />
+                          <div className="font-medium text-white">{it.name}</div>
+                        </div>
+                        {it.address && (
+                          <div className="mt-1 flex items-center gap-2 text-white/70 text-xs">
+                            <MapPin className="w-4 h-4" />
+                            <span className="truncate">{it.address}</span>
+                          </div>
+                        )}
+                        <div className="mt-1 flex items-center gap-2 text-white/60 text-xs">
+                          <CalendarIcon className="w-4 h-4" />
+                          <span>{it.date}</span>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
+
+export default Calendar;
