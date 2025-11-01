@@ -311,4 +311,4 @@ export function Apartments() {
   )}
 </div>
     )
-};
+}
