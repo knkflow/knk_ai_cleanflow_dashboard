@@ -306,19 +306,24 @@ export function Calendar() {
                     </button>
                   </div>
                 ) : (
-                  // --- Neues dunkles rotes X ---
+                  // Mobile: rotes X | Nicht-Mobile (>= sm): Text "-Keine Geplanten Einsätze-"
                   <div className="flex items-center justify-center mt-2">
+                    {/* mobile */}
                     <span
-                      className="inline-flex items-center justify-center h-7 w-7 rounded-full
+                      className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full
                                  bg-red-900/40 border border-red-700/60
                                  shadow-[0_0_16px_rgba(185,28,28,0.55)] ring-1 ring-red-800/50"
                     >
                       <X
-                        className="w-5 h-5 text-red-400 sm:text-red-500"
+                        className="w-5 h-5 text-red-400"
                         strokeWidth={2.75}
                         title="Keine geplanten Einsätze"
                         aria-label="Keine geplanten Einsätze"
                       />
+                    </span>
+                    {/* desktop/tablet */}
+                    <span className="hidden sm:inline text-red-300 font-medium tracking-wide">
+                      -Keine Geplanten Einsätze-
                     </span>
                   </div>
                 )
