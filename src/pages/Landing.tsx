@@ -109,9 +109,10 @@ export function Landing() {
       ></span>
 
       {/* Text */}
-      <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]">
+      <p className="relative text-[11px] md:text-xs tracking-[0.35em] uppercase text-white drop-shadow-[0_0_3px_rgba(255,255,255,0.25)]">
         Kurzzeitvermietung. Reinigungsteams. Hausverwaltungen.
       </p>
+
     </div>
 
     <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
