@@ -5,6 +5,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    exclude: ['lucide-react'],
+    include: ['framer-motion', 'lucide-react'], // sicherstellen, dass Vite sie auflöst
+  },
+  ssr: {
+    noExternal: ['framer-motion'], // hilft, wenn Vite im SSR/Preview-Modus läuft
   },
 });
