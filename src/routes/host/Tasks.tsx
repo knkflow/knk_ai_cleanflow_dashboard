@@ -286,16 +286,13 @@ return (
 <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
   <div className="flex items-center gap-2 mb-2">
     <Lightbulb className="w-5 h-5 text-blue-400" />
-    <p className="font-medium">How Cleaner Invitations Work:</p>
+    <p className="font-medium">Wie funktioniert Cleanflow's Reinigungsmanagement?</p>
   </div>
 
   <ol className="list-decimal list-inside space-y-1">
-    <li>Add a cleaner with their email address (or phone).</li>
-    <li>A magic link is sent for first-time login.</li>
-    <li>
-      Role is automatically set to <b>Cleaner</b>.
-    </li>
-    <li>Cleaner can then log in and set their password.</li>
+    <li>Im Hintergrund ist Cleanflow mit dem PMS (Property Management System) ihrer Wahl verbunden (z. B. Guesty).</li>
+    <li>Neue, geänderte und stornierte Reservierungen werden in Echtzeit mit Cleanflow synchronisiert. </li>
+    <li>Cleanflow erstellt Reinigungen. Sie können weitere Reinigungen hinzufügen und Eigenschaften wie die Reinigungskraft ändern bzw. eine Notiz hinzufügen</li>
   </ol>
 </div>
 
