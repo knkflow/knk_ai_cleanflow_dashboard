@@ -1,3 +1,4 @@
+// src/routes/host/Tasks.tsx
 import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
@@ -10,14 +11,26 @@ import {
   User as User_Icon,
   StickyNote,
   AlarmClock,
-  Lightbulb
+  Lightbulb,
 } from 'lucide-react';
-import { getTasks, createTask, updateTask, deleteTask, getApartments, getCleaners } from '../../lib/api';
+import {
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  getApartments,
+  getCleaners,
+} from '../../lib/api';
 import { Modal } from '../../components/forms/Modal';
 import { Input } from '../../components/forms/Input';
 import { Select } from '../../components/forms/Select';
 import { isValidDateString } from '../../lib/dates';
-import type { User, CleaningTaskWithDetails, ApartmentWithCleaner, Cleaner } from '../../types/db';
+import type {
+  User,
+  CleaningTaskWithDetails,
+  ApartmentWithCleaner,
+  Cleaner,
+} from '../../types/db';
 
 interface ContextType {
   user: User;
@@ -32,7 +45,8 @@ export function Tasks() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [taskToDelete, setTaskToDelete] = useState<CleaningTaskWithDetails | null>(null);
+  const [taskToDelete, setTaskToDelete] =
+    useState<CleaningTaskWithDetails | null>(null);
 
   const [quickFilters, setQuickFilters] = useState<string[]>([]);
   const [apartmentQuery, setApartmentQuery] = useState('');
@@ -47,18 +61,17 @@ export function Tasks() {
     note: '',
   });
 
-  // Neu: Mobile Info Toggle State
   const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
 
   function parseISODateYMD(dateStr: string): Date | null {
     if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
     const [y, m, d] = dateStr.split('-').map((n) => parseInt(n, 10));
     const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
-    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d)
+      return null;
     return dt;
   }
 
-  // Anzeigeformat exakt: "Mi, 20.05.2025" (ohne Punkt nach Wochentag, mit Komma)
   function formatDisplayDate(dateStr?: string | null): string {
     if (!dateStr) return '';
     const dt = parseISODateYMD(dateStr);
@@ -72,11 +85,11 @@ export function Tasks() {
       timeZone: 'Europe/Berlin',
     }).formatToParts(dt);
 
-    let wd = parts.find(p => p.type === 'weekday')?.value ?? '';
-    wd = wd.replace(/\.$/, ''); // Punkt am Ende entfernen (z.B. "Mi." -> "Mi")
-    const day = parts.find(p => p.type === 'day')?.value ?? '';
-    const month = parts.find(p => p.type === 'month')?.value ?? '';
-    const year = parts.find(p => p.type === 'year')?.value ?? '';
+    let wd = parts.find((p) => p.type === 'weekday')?.value ?? '';
+    wd = wd.replace(/\.$/, '');
+    const day = parts.find((p) => p.type === 'day')?.value ?? '';
+    const month = parts.find((p) => p.type === 'month')?.value ?? '';
+    const year = parts.find((p) => p.type === 'year')?.value ?? '';
 
     return `${wd}, ${day}.${month}.${year}`;
   }
@@ -124,7 +137,13 @@ export function Tasks() {
 
   function openCreateModal() {
     setEditingId(null);
-    setFormData({ listing_id: '', cleaner_id: '', date: '', deadline: '', note: '' });
+    setFormData({
+      listing_id: '',
+      cleaner_id: '',
+      date: '',
+      deadline: '',
+      note: '',
+    });
     setIsModalOpen(true);
   }
 
@@ -174,26 +193,28 @@ export function Tasks() {
     }
   }
 
-  // Helper: Cleaner per ID holen
   function getCleanerById(id?: string | null) {
     if (!id) return undefined;
     return cleaners.find((c) => c.id === id);
   }
 
-  // Prüft, ob der Cleaner an diesem Tag UNavailable ist (Datenfeld enthält gesperrte Tage)
-  function isCleanerUnavailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
+  function isCleanerUnavailableForDate(
+    cleaner: Cleaner,
+    dateStr: string | null | undefined
+  ): boolean {
     if (!dateStr) return false;
     const availability = (cleaner as any)?.availability;
     return Array.isArray(availability) && availability.includes(dateStr);
   }
 
-  // Umkehrung: verfügbar, wenn nicht als unavailable markiert
-  function isCleanerAvailableForDate(cleaner: Cleaner, dateStr: string | null | undefined): boolean {
-    if (!dateStr || !isValidDateString(dateStr)) return true; // solange kein Datum gesetzt ist, alle zeigen
+  function isCleanerAvailableForDate(
+    cleaner: Cleaner,
+    dateStr: string | null | undefined
+  ): boolean {
+    if (!dateStr || !isValidDateString(dateStr)) return true;
     return !isCleanerUnavailableForDate(cleaner, dateStr);
   }
 
-  // Prüft für Badge auf der Karte
   function isCleanerUnavailable(task: CleaningTaskWithDetails): boolean {
     if (!task.cleaner_id) return false;
     const cleaner = getCleanerById(task.cleaner_id);
@@ -201,7 +222,6 @@ export function Tasks() {
     return isCleanerUnavailableForDate(cleaner, task.date);
   }
 
-  // === Filter ===
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -215,17 +235,10 @@ export function Tasks() {
     if (!d) return false;
 
     const checks: boolean[] = [];
-
-    if (quickFilters.includes('TODAY')) {
-      checks.push(d.getTime() === today.getTime());
-    }
-    if (quickFilters.includes('TOMORROW')) {
+    if (quickFilters.includes('TODAY')) checks.push(d.getTime() === today.getTime());
+    if (quickFilters.includes('TOMORROW'))
       checks.push(d.getTime() === tomorrow.getTime());
-    }
-    if (quickFilters.includes('THIS_WEEK')) {
-      checks.push(d >= sow && d <= eow);
-    }
-
+    if (quickFilters.includes('THIS_WEEK')) checks.push(d >= sow && d <= eow);
     return checks.some(Boolean);
   }
 
@@ -261,9 +274,8 @@ export function Tasks() {
     setWithDeadlineOnly(false);
   }
 
-  if (loading) return <div className="text-white">Loading...</div>;
+  if (loading) return <div className="text-gray-900">Loading...</div>;
 
-  // Cleaner-Optionen im Modal: nur Verfügbare für formData.date
   const cleanerOptionsForDate = [
     { value: '', label: 'Stammreinigungskraft' },
     ...cleaners
@@ -275,10 +287,10 @@ export function Tasks() {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Geplante Reinigungen</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Geplante Reinigungen</h2>
         <button
           onClick={openCreateModal}
-          className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md"
+          className="px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 transition-colors font-medium flex items-center gap-2 rounded-md"
         >
           <Plus className="w-5 h-5" />
           Reinigung hinzufügen
@@ -286,14 +298,13 @@ export function Tasks() {
       </div>
 
       {/* Info Box (responsive) */}
-      {/* Mobile: Button + Collapsible */}
       <div className="md:hidden mb-6">
         <button
           type="button"
           onClick={() => setMobileInfoOpen((v) => !v)}
           aria-expanded={mobileInfoOpen}
           aria-controls="cleanflow-info-mobile"
-          className="w-full flex items-center gap-2 px-4 py-3 rounded-full bg-blue-600 text-white shadow active:scale-[0.99] transition-all"
+          className="w-full flex items-center gap-2 px-4 py-3 rounded-full bg-emerald-500 text-white shadow active:scale-[0.99] transition-all"
         >
           <Lightbulb className="w-5 h-5" />
           <span className="font-medium">Wie entsteht der Reinigungsplan?</span>
@@ -302,30 +313,37 @@ export function Tasks() {
         {mobileInfoOpen && (
           <div
             id="cleanflow-info-mobile"
-            className="mt-3 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-300 text-sm rounded-xl"
+            className="mt-3 bg-emerald-50 border border-emerald-200 p-4 text-emerald-800 text-sm rounded-xl"
           >
             <ol className="list-decimal list-inside space-y-1">
-              <li>Im Hintergrund ist Cleanflow mit dem PMS (Property Management System) ihrer Wahl verbunden (z. B. Guesty).</li>
-              <li>Neue, geänderte und stornierte Reservierungen werden in Echtzeit mit Cleanflow synchronisiert. Entsprechende Reinigungen werden hinzugefügt oder gelöscht. </li>
-              <li>Ordnen Sie geplanten Reinigungen eine andere Reinigungskraft zu oder geben Sie der Reinigungskraft spezifische Anweisungen als Notiz mit.</li>
-              <li>Die Reinigungskräfte erhalten personalisierte Tagespläne und Live-Updates zu allen für sie relevanten Änderungen, per WhatsApp sowie über das Dashboard.</li>
+              <li>
+                Cleanflow ist mit dem PMS (Property Management System) Ihrer Wahl
+                verbunden (z. B. Guesty).
+              </li>
+              <li>
+                Neue/änderte/stornierte Reservierungen werden in Echtzeit synchronisiert.
+              </li>
+              <li>
+                Aufgaben lassen sich zuweisen und mit Notizen für Cleaner versehen.
+              </li>
+              <li>
+                Cleaner erhalten Tagespläne & Live-Updates per WhatsApp/Dashboard.
+              </li>
             </ol>
           </div>
         )}
       </div>
 
-      {/* Desktop/Tablet: alter Infokasten bleibt */}
-      <div className="hidden md:block mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+      <div className="hidden md:block mb-6 bg-emerald-50 border border-emerald-200 p-4 text-emerald-800 text-sm rounded-lg">
         <div className="flex items-center gap-2 mb-2">
-          <Lightbulb className="w-5 h-5 text-blue-400" />
+          <Lightbulb className="w-5 h-5" />
           <p className="font-medium">Wie entsteht Cleanflow&apos;s Reinigungsplan?</p>
         </div>
-
         <ol className="list-decimal list-inside space-y-1">
-          <li>Im Hintergrund ist Cleanflow mit dem PMS (Property Management System) ihrer Wahl verbunden (z. B. Guesty).</li>
-          <li>Neue, geänderte und stornierte Reservierungen werden in Echtzeit mit Cleanflow synchronisiert. Entsprechende Reinigungen werden hinzugefügt oder gelöscht. </li>
-          <li>Ordnen Sie geplanten Reinigungen eine andere Reinigungskraft zu oder geben Sie der Reinigungskraft spezifische Anweisungen als Notiz mit.</li>
-          <li>Die Reinigungskräfte erhalten personalisierte Tagespläne und Live-Updates zu allen für sie relevanten Änderungen, per WhatsApp sowie über das Dashboard.</li>
+          <li>PMS verbinden (z. B. Guesty, Airbnb).</li>
+          <li>Echtzeit-Sync der Reservierungen → Aufgaben entstehen automatisch.</li>
+          <li>Zuweisen/Notieren, falls spezielle Hinweise nötig sind.</li>
+          <li>Tagespläne & Live-Updates für Cleaner.</li>
         </ol>
       </div>
 
@@ -343,10 +361,11 @@ export function Tasks() {
               <button
                 key={btn.id}
                 onClick={() => toggleQuickFilter(btn.id as any)}
-                className={`px-4 py-2 rounded-full text-sm transition-all duration-300
-                border ${selected ? 'border-blue-400 bg-blue-500/10 shadow-[0_0_14px_rgba(59,130,246,0.45)]' : 'border-white/20'}
-                hover:border-white hover:shadow-[0_0_12px_rgba(255,255,255,0.35)]
-              `}
+                className={`px-4 py-2 rounded-full text-sm transition-all duration-300 border ${
+                  selected
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm'
+                    : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                }`}
               >
                 {btn.label}
               </button>
@@ -355,8 +374,7 @@ export function Tasks() {
 
           <button
             onClick={resetFilters}
-            className="ml-1 px-4 py-2 rounded-full text-sm transition-all duration-300 border border-white/20
-                     hover:border-white hover:shadow-[0_0_12px_rgba(255,255,255,0.35)] flex items-center gap-2"
+            className="ml-1 px-4 py-2 rounded-full text-sm transition-all duration-300 border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 flex items-center gap-2"
             title="Filter zurücksetzen"
           >
             <RotateCcw className="w-4 h-4" />
@@ -370,23 +388,21 @@ export function Tasks() {
             value={apartmentQuery}
             onChange={(e) => setApartmentQuery(e.target.value)}
             placeholder="Nach Name/Adresse des Apartments suchen"
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm rounded-md
-                     placeholder-white/50 focus:outline-none focus:border-white"
+            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-900 text-sm rounded-md placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           />
           <input
             type="text"
             value={cleanerQuery}
             onChange={(e) => setCleanerQuery(e.target.value)}
             placeholder="Nach Reinigungskraft suchen"
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm rounded-md
-                     placeholder-white/50 focus:outline-none focus:border-white"
+            className="w-full px-3 py-2 bg-white border border-gray-300 text-gray-900 text-sm rounded-md placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           />
-          <label className="inline-flex items-center gap-2 text-sm text-white/80 select-none">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700 select-none">
             <input
               type="checkbox"
               checked={withDeadlineOnly}
               onChange={(e) => setWithDeadlineOnly(e.target.checked)}
-              className="h-4 w-4 appearance-none rounded border border-white/40 bg-transparent checked:bg-white/70 checked:border-white focus:ring-0 transition-colors duration-150"
+              className="h-4 w-4 rounded border-gray-400 text-emerald-600 focus:ring-emerald-300"
             />
             Nur Reinigungen mit Frist anzeigen?
           </label>
@@ -402,31 +418,32 @@ export function Tasks() {
           return (
             <div
               key={task.id}
-              className={`p-6 rounded-2xl transition-all duration-500 ${
+              className={`p-6 rounded-2xl transition-all duration-300 ${
                 unavailable
-                  ? 'border-2 border-red-500 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,80,80,0.45)]'
-                  : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
+                  ? 'border-2 border-red-300 bg-red-50'
+                  : 'bg-white border border-gray-200 hover:shadow-md'
               }`}
             >
               {unavailable && (
-                <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
+                <div className="flex items-center gap-2 mb-3 text-red-700 text-sm">
                   <AlertCircle className="w-4 h-4" />
-                  <span>Die zugeordnete Reinigungskraft ist am Tag der Reinigung nicht verfügbar.</span>
+                  <span>
+                    Die zugeordnete Reinigungskraft ist am Tag der Reinigung nicht
+                    verfügbar.
+                  </span>
                 </div>
               )}
 
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  {/* Titel + Deadline nebeneinander */}
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <h3 className="text-xl font-semibold text-white">
+                    <h3 className="text-xl font-semibold text-gray-900">
                       {task.apartment?.name || 'Unknown Apartment'}
                     </h3>
 
                     {task.deadline && (
                       <span
-                        className="px-3 py-1 text-xs font-semibold rounded-full
-                                 bg-red-600/20 text-red-300 border border-red-500/60 inline-flex items-center gap-1.5"
+                        className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 border border-red-300 inline-flex items-center gap-1.5"
                         title="Deadline"
                       >
                         <AlarmClock className="w-3.5 h-3.5" />
@@ -435,54 +452,51 @@ export function Tasks() {
                     )}
                   </div>
 
-                  {/* Datum */}
-                  <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-white/60" />
+                  <p className="text-gray-700 text-sm mb-1 flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-gray-500" />
                     <span>Tag der Reinigung: {formatDisplayDate(task.date)}</span>
                   </p>
 
-                  {/* Reinigungskraft */}
                   {taskCleaner && (
-                    <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
-                      <User_Icon className="w-4 h-4 text-white/60" />
+                    <p className="text-gray-700 text-sm mb-1 flex items-center gap-2">
+                      <User_Icon className="w-4 h-4 text-gray-500" />
                       <span>Reinigungskraft: {taskCleaner.name}</span>
                     </p>
                   )}
 
                   {!taskCleaner && (
-                    <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
-                      <User_Icon className="w-4 h-4 text-white/60" />
+                    <p className="text-gray-700 text-sm mb-1 flex items-center gap-2">
+                      <User_Icon className="w-4 h-4 text-gray-500" />
                       <span>
-                        Stammreinigungskraft von Apartment {task.apartment?.name || 'Unknown Apartment'}
+                        Stammreinigungskraft von Apartment{' '}
+                        {task.apartment?.name || 'Unknown Apartment'}
                       </span>
                     </p>
                   )}
 
-                  {/* Notiz */}
                   {task.note && (
-                    <div className="mt-3 inline-flex items-start gap-2 rounded-md border border-white/15 text-white/65 font-medium text-sm px-3 py-2 backdrop-blur-sm shadow-inner shadow-white/5 max-w-full break-words">
-                      <StickyNote className="w-4 h-4 mt-0.5 text-white/60 flex-shrink-0" />
+                    <div className="mt-3 inline-flex items-start gap-2 rounded-md border border-gray-200 text-gray-700 font-medium text-sm px-3 py-2 bg-gray-50">
+                      <StickyNote className="w-4 h-4 mt-0.5 text-gray-500 flex-shrink-0" />
                       <span>{task.note}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Buttons */}
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEditModal(task)}
-                    className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-md hover:bg-gray-100 transition-colors"
                     title="Edit"
                   >
-                    <Edit className="w-5 h-5 text-white" />
+                    <Edit className="w-5 h-5 text-gray-700" />
                   </button>
 
                   <button
                     onClick={() => openDeleteModal(task)}
-                    className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+                    className="p-2 rounded-md hover:bg-red-50 transition-colors"
                     title="Delete"
                   >
-                    <Trash2 className="w-5 h-5 text-red-500" />
+                    <Trash2 className="w-5 h-5 text-red-600" />
                   </button>
                 </div>
               </div>
@@ -491,7 +505,7 @@ export function Tasks() {
         })}
 
         {filteredTasks.length === 0 && (
-          <div className="text-center py-12 text-white/50">
+          <div className="text-center py-12 text-gray-500">
             Keine Reinigungen gefunden.
           </div>
         )}
@@ -507,11 +521,16 @@ export function Tasks() {
           <Select
             label="Apartment"
             value={formData.listing_id}
-            onChange={(e) => setFormData({ ...formData, listing_id: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, listing_id: e.target.value })
+            }
             required
             options={[
               { value: '', label: 'Select apartment' },
-              ...apartments.map((a) => ({ value: String(a.listing_id), label: a.name })),
+              ...apartments.map((a) => ({
+                value: String(a.listing_id),
+                label: a.name,
+              })),
             ]}
           />
 
@@ -520,13 +539,16 @@ export function Tasks() {
             value={formData.date}
             onChange={(e) => {
               const nextDate = e.target.value;
-              const selectedCleaner = cleaners.find((c) => c.id === formData.cleaner_id);
+              const selectedCleaner = cleaners.find(
+                (c) => c.id === formData.cleaner_id
+              );
               const stillAvailable =
-                !selectedCleaner || isCleanerAvailableForDate(selectedCleaner, nextDate);
+                !selectedCleaner ||
+                isCleanerAvailableForDate(selectedCleaner, nextDate);
               setFormData({
                 ...formData,
                 date: nextDate,
-                cleaner_id: stillAvailable ? formData.cleaner_id : '', // reset, falls nicht mehr verfügbar
+                cleaner_id: stillAvailable ? formData.cleaner_id : '',
               });
             }}
             required
@@ -536,39 +558,48 @@ export function Tasks() {
           <Select
             label="Reinigungskraft (Optional)"
             value={formData.cleaner_id}
-            onChange={(e) => setFormData({ ...formData, cleaner_id: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, cleaner_id: e.target.value })
+            }
             options={cleanerOptionsForDate}
           />
 
           <Input
             label="Frist (yyyy-mm-dd)"
             value={formData.deadline}
-            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, deadline: e.target.value })
+            }
             placeholder="2025-12-31"
           />
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">Notiz (Fügen Sie hier weitere Anweisungen für die Reinigungskraft hinzu)</label>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Notiz (Fügen Sie hier weitere Anweisungen für die Reinigungskraft
+              hinzu)
+            </label>
             <textarea
               value={formData.note}
-              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, note: e.target.value })
+              }
               rows={3}
-              className="w-full px-4 py-2 bg-white/10 border border-white/20 text-white focus:border-white focus:outline-none"
-              placeholder="Zwei neue Bettlacken mitbringen."
+              className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none rounded-md"
+              placeholder="Zwei neue Bettlaken mitbringen."
             />
           </div>
 
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium"
+              className="flex-1 px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 transition-colors font-medium rounded-md"
             >
               {editingId ? 'Aktualisieren' : 'Erstellen'}
             </button>
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
+              className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors rounded-md"
             >
               Abbrechen
             </button>
@@ -584,19 +615,19 @@ export function Tasks() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40"
             onClick={() => setTaskToDelete(null)}
           />
-          <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-6">
+          <div className="relative w-full max-w-md bg-white text-gray-900 border border-gray-200 shadow-2xl rounded-xl p-6">
             <h3 className="text-lg font-semibold mb-4">Task löschen?</h3>
 
-            <p className="text-white/80 mb-6">
+            <p className="text-gray-700 mb-6">
               Möchten Sie die Reinigung für{' '}
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-gray-900">
                 {taskToDelete.apartment?.name || 'Unbekanntes Apartment'}
               </span>{' '}
               am{' '}
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-gray-900">
                 {formatDisplayDate(taskToDelete.date) || 'Unbekanntes Datum'}
               </span>{' '}
               wirklich entfernen?
@@ -611,7 +642,7 @@ export function Tasks() {
               </button>
               <button
                 onClick={() => setTaskToDelete(null)}
-                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors rounded-md"
               >
                 Abbrechen
               </button>
@@ -622,3 +653,4 @@ export function Tasks() {
     </div>
   );
 }
+export default Tasks;
