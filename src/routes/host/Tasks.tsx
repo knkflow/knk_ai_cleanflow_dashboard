@@ -286,7 +286,7 @@ return (
 <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
   <div className="flex items-center gap-2 mb-2">
     <Lightbulb className="w-5 h-5 text-blue-400" />
-    <p className="font-medium">Wie funktioniert Cleanflow's Reinigungsmanagement?</p>
+    <p className="font-medium">Wie entsteht Cleanflow's Reinigungsplan?</p>
   </div>
 
   <ol className="list-decimal list-inside space-y-1">
