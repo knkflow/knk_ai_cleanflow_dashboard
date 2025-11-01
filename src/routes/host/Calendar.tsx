@@ -115,7 +115,7 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
-  // Index: Aufgaben-Details (für Popup + Kurzliste)
+  // Index: Aufgaben-Details (für Popup)
   const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
 
   // Modal-State
@@ -244,17 +244,11 @@ export function Calendar() {
       ? 'bg-red-500/20 text-red-300 border-red-500/40'
       : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
-    // Textanzeige:
-    // - Grün: "Verfügbar"
-    // - Rot: kein Text (Alle → Namenliste; Einzel → Kurzliste Apartments)
+    // Grün: "Verfügbar"; Rot: kein Text im Kasten (Alle → Namenliste, Einzel → Button)
     const primaryText = isUnavailable ? '' : 'Verfügbar';
 
     const showNamesList = isAllView && isUnavailable;
     const assignedDetails = !isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : [];
-    const shortNames = assignedDetails.slice(0, 4).map(d => d.name);
-
-    // Header-Button „Alle Anzeigen“ (nur Einzel + rot + wenn es Apartments gibt)
-    const showAllBtn = !isAllView && isUnavailable && assignedDetails.length > 0;
 
     const openModal = () => {
       setModalDate(ymd);
@@ -262,9 +256,11 @@ export function Calendar() {
       setModalOpen(true);
     };
 
+    const showButton = !isAllView && isUnavailable && assignedDetails.length > 0;
+
     return (
       <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-        {/* Kopfzeile: Datum + optionaler Button */}
+        {/* Kopfzeile: Datum + Badge überall, sobald abwesend */}
         <div className="text-xs mb-1 flex items-center gap-2">
           <span className={
             day.isToday
@@ -276,16 +272,11 @@ export function Calendar() {
             {day.date.getDate()}
           </span>
 
-          {showAllBtn && (
-            <button
-              type="button"
-              onClick={openModal}
-              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-white text-black hover:bg-white/90 transition-colors border border-white/60"
-              title="Alle Wohnungen anzeigen"
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              Alle Anzeigen
-            </button>
+          {/* Badge überall, sobald abwesend (Alle + Einzel) */}
+          {isUnavailable && (
+            <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
+              Nicht verfügbar
+            </span>
           )}
         </div>
 
@@ -293,7 +284,7 @@ export function Calendar() {
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
             {/* Grün → "Verfügbar"; Rot → kein Text */}
             {!!primaryText && (
-              <div className="truncate">{primaryText}</div>
+              <div className="truncate text-center">{primaryText}</div>
             )}
 
             {/* In "Alle + rot": Liste der Namen */}
@@ -307,15 +298,19 @@ export function Calendar() {
               </ul>
             )}
 
-            {/* In "Einzel + rot": max. 4 Wohnungsnamen */}
-            {!isAllView && isUnavailable && shortNames.length > 0 && (
-              <ul className="mt-1 space-y-0.5 pl-4 list-disc">
-                {shortNames.map((n, i) => (
-                  <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={n}>
-                    - {n}
-                  </li>
-                ))}
-              </ul>
+            {/* In "Einzel + rot": NUR der weiße, zentrierte Button (kein Listing im Kasten) */}
+            {showButton && (
+              <div className="mt-1 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={openModal}
+                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                  title="Geplante Einsätze ansehen"
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span className="text-[11px] font-semibold">Geplante Einsätze</span>
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -415,7 +410,7 @@ export function Calendar() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
-            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (Wohnungen sichtbar)'}
+            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (Details über Button)'}
           </div>
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded border bg-emerald-500/15 border-emerald-500/35"></div>
@@ -424,14 +419,14 @@ export function Calendar() {
         </div>
       </div>
 
-      {/* Modal: Alle Wohnungen am Tag (Einzelansicht) */}
+      {/* Modal: Geplante Einsätze (Einzelansicht) */}
       {modalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Building2 className="w-6 h-6" />
-                <h4 className="text-lg font-semibold">Wohnungen am {modalDate}</h4>
+                <h4 className="text-lg font-semibold">Geplante Einsätze am {modalDate}</h4>
               </div>
               <button
                 type="button"
