@@ -13,6 +13,7 @@ import {
   User as UserIcon,
   Mail,
   Phone,
+  X,
 } from 'lucide-react';
 
 interface ContextType {
@@ -22,7 +23,6 @@ interface ContextType {
 /* ---------------- Helpers ---------------- */
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
-
 function ymdFromUTC(y: number, m1: number, d: number): string {
   return `${y}-${pad2(m1)}-${pad2(d)}`;
 }
@@ -34,56 +34,41 @@ function isValidYMD(y: number, m1: number, d: number): boolean {
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m1 - 1 && dt.getUTCDate() === d;
 }
 
-/** → 'YYYY-MM-DD' */
 function normalizeYMD(input: unknown): string {
   if (input == null) return '';
   if (input instanceof Date)
     return ymdFromUTC(input.getUTCFullYear(), input.getUTCMonth() + 1, input.getUTCDate());
-
-  let s = String(input).trim();
+  const s = String(input).trim();
   if (!s) return '';
-
   if (s.includes('T')) {
     const dt = new Date(s);
     if (!isNaN(dt.getTime()))
       return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
   }
-
-  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const m =
+    s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/) ||
+    s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/) ||
+    s.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (m) {
-    const y = +m[1], mo = +m[2], d = +m[3];
+    const [a, b, c] = m.slice(1).map(Number);
+    const [y, mo, d] = s.includes('.') ? [c, b, a] : [a, b, c];
     return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
   }
-  m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if (m) {
-    const d = +m[1], mo = +m[2], y = +m[3];
-    return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
-  }
-  m = s.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (m) {
-    const y = +m[1], mo = +m[2], d = +m[3];
-    return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
-  }
-
   const dt = new Date(s);
   if (!isNaN(dt.getTime()))
     return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
-
   return '';
 }
 
-/** availability(jsonb/Strings) → Set<'YYYY-MM-DD'> */
 function availabilityToSet(av: unknown): Set<string> {
   const set = new Set<string>();
   const add = (x: unknown) => { const y = normalizeYMD(x); if (y) set.add(y); };
   const walk = (val: unknown) => {
     if (val == null) return;
-    if (Array.isArray(val)) { for (const v of val) walk(v); return; }
+    if (Array.isArray(val)) return val.forEach(walk);
     const s = String(val).trim();
     if (!s) return;
-    if (s.includes(',') || s.includes(';') || /\s/.test(s)) {
-      for (const part of s.split(/[,;\s]+/)) add(part);
-    } else add(s);
+    for (const part of s.split(/[,;\s]+/)) add(part);
   };
   walk(av);
   return set;
@@ -94,16 +79,19 @@ function dayToYMD(day: MonthDay): string {
 }
 
 function getCleanerLabel(c: Cleaner): string {
-  const n = (c as any)?.name; if (typeof n === 'string' && n.trim()) return n.trim();
-  const e = (c as any)?.email; if (typeof e === 'string' && e.trim()) return e.trim();
-  const p = (c as any)?.phone; if (typeof p === 'string' && p.trim()) return p.trim();
+  const n = (c as any)?.name;
+  if (typeof n === 'string' && n.trim()) return n.trim();
+  const e = (c as any)?.email;
+  if (typeof e === 'string' && e.trim()) return e.trim();
+  const p = (c as any)?.phone;
+  if (typeof p === 'string' && p.trim()) return p.trim();
   return '[Unbenannt]';
 }
 
 /* ---------------- Component ---------------- */
 
 type AssignmentDetail = { name: string; address?: string | null; date: string };
-type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>; // cleanerId -> ymd -> details[]
+type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>;
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -112,89 +100,55 @@ export function Calendar() {
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
-
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
-
-  // Index: Aufgaben-Details
   const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
-
-  // Modal: Assignments
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState<string>('');
   const [modalItems, setModalItems] = useState<AssignmentDetail[]>([]);
-
-  // Modal: Unavailable Cleaners (mobile "Alle")
   const [peopleModalOpen, setPeopleModalOpen] = useState(false);
   const [peopleModalDate, setPeopleModalDate] = useState<string>('');
   const [peopleList, setPeopleList] = useState<Cleaner[]>([]);
 
-  // Throttle/Guards fürs Laden
   const inFlightRef = useRef(false);
   const lastFetchTsRef = useRef(0);
   const initialLoadDone = useRef(false);
   const THROTTLE_MS = 500;
 
   /* ---- CLEANERS LADEN ---- */
-  const loadCleaners = useCallback(
-    async (opts?: { silent?: boolean }) => {
-      const nowTs = Date.now();
-      if (inFlightRef.current) return;
-      if (nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
-
-      inFlightRef.current = true;
-      if (!opts?.silent && !initialLoadDone.current) setLoading(true);
-      setErrorMsg(null);
-
-      try {
-        const data = await getCleaners(user.id);
-        setCleaners((prev) => {
-          const next = data ?? [];
-          if (prev.length === next.length && prev.every((p, i) => p.id === next[i].id)) return prev;
-          return next;
-        });
-        if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
-        initialLoadDone.current = true;
-      } catch (e: any) {
-        setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
-      } finally {
-        lastFetchTsRef.current = Date.now();
-        inFlightRef.current = false;
-        setLoading(false);
-      }
-    },
-    [user.id]
-  );
+  const loadCleaners = useCallback(async (opts?: { silent?: boolean }) => {
+    const nowTs = Date.now();
+    if (inFlightRef.current || nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
+    inFlightRef.current = true;
+    if (!opts?.silent && !initialLoadDone.current) setLoading(true);
+    setErrorMsg(null);
+    try {
+      const data = await getCleaners(user.id);
+      setCleaners(data ?? []);
+      if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
+      initialLoadDone.current = true;
+    } catch (e: any) {
+      setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
+    } finally {
+      lastFetchTsRef.current = Date.now();
+      inFlightRef.current = false;
+      setLoading(false);
+    }
+  }, [user.id]);
 
   useEffect(() => { void loadCleaners(); }, [loadCleaners]);
-
   useEffect(() => {
     const path = location.pathname || '';
     if (path.toLowerCase().includes('calendar')) void loadCleaners({ silent: true });
   }, [location.pathname, loadCleaners]);
 
-  useEffect(() => {
-    const onFocus = () => void loadCleaners({ silent: true });
-    const onVis = () => { if (!document.hidden) void loadCleaners({ silent: true }); };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVis);
-    return () => {
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVis);
-    };
-  }, [loadCleaners]);
-
   /* ---- INDEX: Abwesenheiten ---- */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
-    for (const c of cleaners) {
-      const set = availabilityToSet((c as any).availability);
-      m.set(c.id, set);
-    }
+    for (const c of cleaners) m.set(c.id, availabilityToSet((c as any).availability));
     return m;
   }, [cleaners]);
 
@@ -204,39 +158,29 @@ export function Calendar() {
       const startYMD = ymdFromUTC(year, month + 1, 1);
       const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
       const endYMD = ymdFromUTC(year, month + 1, lastDay);
-
       const rows: any[] = await getTasks(user.id, { dateFrom: startYMD, dateTo: endYMD });
       const idx: DetailIndex = new Map();
-
       for (const t of rows ?? []) {
         const ymd = normalizeYMD(t?.date);
-        const cleanerId = t?.cleaner_id as string | undefined;
-        const aptName = t?.apartment?.name as string | undefined;
-        const address = t?.apartment?.address as string | undefined;
+        const cleanerId = t?.cleaner_id;
+        const aptName = t?.apartment?.name;
+        const address = t?.apartment?.address;
         if (!ymd || !cleanerId || !aptName) continue;
-
         const detail: AssignmentDetail = { name: aptName, address: address ?? null, date: ymd };
-        const byDate = idx.get(cleanerId) ?? new Map<string, AssignmentDetail[]>();
+        const byDate = idx.get(cleanerId) ?? new Map();
         const list = byDate.get(ymd) ?? [];
         list.push(detail);
         byDate.set(ymd, list);
         idx.set(cleanerId, byDate);
       }
-
       setDetailsIndex(idx);
-    } catch {
-      /* optional logging */
-    }
+    } catch { /* ignore */ }
   }, [user.id, year, month]);
 
   useEffect(() => { void loadAssignments(); }, [loadAssignments]);
 
-  /* ---- Monatsbereich + AllViewIndex ---- */
   const monthStart = useMemo(() => ymdFromUTC(year, month + 1, 1), [year, month]);
-  const monthEnd = useMemo(() => {
-    const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-    return ymdFromUTC(year, month + 1, lastDay);
-  }, [year, month]);
+  const monthEnd = useMemo(() => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()), [year, month]);
 
   const isInVisibleMonth = useCallback(
     (ymd: string) => ymd >= monthStart && ymd <= monthEnd,
@@ -264,93 +208,63 @@ export function Calendar() {
     return c ? getCleanerLabel(c) : '';
   }, [cleaners, selectedCleanerId]);
 
-  /* ---- Hilfsfunktionen ---- */
   const getUnavailableNames = useCallback(
     (ymd: string): string[] => {
-      if (!ymd) return [];
       if (isAllView) return monthUnavailableAll.get(ymd) ?? [];
-      if (!selectedCleanerId) return [];
-      const set = unavailableIndex.get(selectedCleanerId);
+      const set = unavailableIndex.get(selectedCleanerId!);
       return set?.has(ymd) ? [selectedCleanerLabel] : [];
     },
     [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]
   );
 
   const getUnavailableCleaners = useCallback(
-    (ymd: string): Cleaner[] => {
-      // Liefert tatsächliche Cleaner-Objekte, die an ymd abwesend sind
-      const result: Cleaner[] = [];
-      for (const c of cleaners) {
-        const set = unavailableIndex.get(c.id);
-        if (set?.has(ymd)) result.push(c);
-      }
-      return result;
-    },
+    (ymd: string): Cleaner[] =>
+      cleaners.filter((c) => unavailableIndex.get(c.id)?.has(ymd)),
     [cleaners, unavailableIndex]
   );
 
   const getAssignedDetailsForSelected = useCallback(
-    (ymd: string): AssignmentDetail[] => {
-      if (!selectedCleanerId) return [];
-      return detailsIndex.get(selectedCleanerId)?.get(ymd) ?? [];
-    },
+    (ymd: string): AssignmentDetail[] =>
+      detailsIndex.get(selectedCleanerId ?? '')?.get(ymd) ?? [],
     [detailsIndex, selectedCleanerId]
   );
 
   const openModalFor = useCallback((ymd: string, items: AssignmentDetail[]) => {
-    setModalDate(ymd);
-    setModalItems(items);
-    setModalOpen(true);
+    setModalDate(ymd); setModalItems(items); setModalOpen(true);
   }, []);
 
   const openPeopleModal = useCallback((ymd: string, people: Cleaner[]) => {
-    setPeopleModalDate(ymd);
-    setPeopleList(people);
-    setPeopleModalOpen(true);
+    setPeopleModalDate(ymd); setPeopleList(people); setPeopleModalOpen(true);
   }, []);
 
-  /* ---- renderDay ----
-     - Desktop: wie gehabt (Liste in Alle, Button in Einzelansicht).
-     - Mobile (Alle): Brush-Button -> Modal mit Cleanern (Name/Email/Phone).
-     - Mobile (Einzel): Wenn keine Assignments: nur roter Kasten ohne Text.
-  */
+  /* ---- renderDay ---- */
   const renderDay = useCallback(
     (day: MonthDay) => {
       const ymd = dayToYMD(day);
       if (!ymd) return <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />;
-
-      const unavailableNames = getUnavailableNames(ymd) ?? [];
+      const unavailableNames = getUnavailableNames(ymd);
       const isUnavailable = unavailableNames.length > 0;
-
       const boxClass = isUnavailable
         ? 'bg-red-500/15 text-red-200 border-red-500/30'
         : 'bg-emerald-500/10 text-emerald-200 border-emerald-500/25';
-
-      const assignedDetails =
-        (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
-
-      // Alle-Ansicht: wer ist abwesend (Objekte)
+      const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
       const unavailableCleaners = isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
 
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
-          {/* Kopf: nur Datum */}
           <div className="text-xs mb-1 flex items-center gap-2">
-            <span className={day.isToday ? 'font-bold text-white' : day.isCurrentMonth ? 'text-white/70' : 'text-white/40'}>
+            <span className={day.isToday ? 'font-bold text-white' : 'text-white/70'}>
               {day.date.getDate()}
             </span>
           </div>
 
-          {/* Tages-Kachel */}
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
-              {/* Grün → „Verfügbar“ */}
               {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
 
-              {/* ALLE-Ansicht */}
+              {/* ALLE Ansicht */}
               {isAllView && isUnavailable && (
                 <>
-                  {/* Desktop: Liste wie gehabt */}
                   <div className="mt-1 max-h-16 overflow-y-auto pr-1 hidden sm:block">
                     <ul className="space-y-1">
                       {unavailableNames.map((n, i) => (
@@ -361,45 +275,37 @@ export function Calendar() {
                       ))}
                     </ul>
                   </div>
-
-                  {/* Mobile: Brush-Button öffnet People-Modal */}
                   <div className="mt-1 flex items-center justify-center sm:hidden">
                     <button
-                      type="button"
                       onClick={() => openPeopleModal(ymd, unavailableCleaners)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors touch-manipulation"
-                      title="Unverfügbare Cleaner ansehen"
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
                     >
                       <Brush className="w-4 h-4" />
-                      {/* nur Icon auf ganz klein wäre okay; hier lassen wir den Text aus UX-Gründen weg */}
                     </button>
                   </div>
                 </>
               )}
 
-              {/* EINZEL-Ansicht */}
+              {/* EINZEL Ansicht */}
               {!isAllView && isUnavailable && (
                 assignedDetails.length > 0 ? (
                   <div className="mt-1 flex items-center justify-center">
                     <button
-                      type="button"
                       onClick={() => openModalFor(ymd, assignedDetails)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors touch-manipulation"
-                      title="Geplante Einsätze ansehen"
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
                     >
                       <Building2 className="w-4 h-4" />
                       <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
                     </button>
                   </div>
                 ) : (
-                  <>
-                    {/* Mobile: nur roter Kasten, KEIN Text */}
-                    <div className="mt-2 sm:hidden" />
-                    {/* Desktop: Hinweistext bleibt */}
-                    <div className="mt-2 hidden sm:flex items-center justify-center text-white text-[11px] font-bold">
-                      – Keine Geplanten Einsätze –
-                    </div>
-                  </>
+                  // Wenn keine getTasks: rotes X Symbol
+                  <div className="flex items-center justify-center mt-2">
+                    <X
+                      className="w-5 h-5 text-red-500 drop-shadow-[0_0_8px_rgba(255,0,0,0.5)] animate-pulse"
+                      title="Keine geplanten Einsätze"
+                    />
+                  </div>
                 )
               )}
             </div>
@@ -407,14 +313,7 @@ export function Calendar() {
         </div>
       );
     },
-    [
-      getUnavailableNames,
-      isAllView,
-      getAssignedDetailsForSelected,
-      getUnavailableCleaners,
-      openModalFor,
-      openPeopleModal,
-    ]
+    [getUnavailableNames, isAllView, getAssignedDetailsForSelected, getUnavailableCleaners, openModalFor, openPeopleModal]
   );
 
   const sortedCleaners = useMemo(
@@ -433,20 +332,16 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Filter + Auswahl */}
+      {/* Cleaner Auswahl */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {/* Alle */}
             <button
               onClick={() => setSelectedCleanerId(null)}
               className={`rounded-xl px-3 py-3 border transition
-                ${isAllView
-                  ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                  : 'border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:border-white/30'}
-              `}
-              title="Alle Cleaner anzeigen"
+                ${isAllView ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                  : 'border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:border-white/30'}`}
             >
               <div className="flex items-baseline justify-between gap-2">
                 <div className="text-sm font-medium text-white">Alle</div>
@@ -455,212 +350,44 @@ export function Calendar() {
               <div className="text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
             </button>
 
-            {/* Einzelne */}
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
               const label = getCleanerLabel(c);
-              const initials =
-                label.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'C';
-
+              const initials = label.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
               return (
                 <button
                   key={c.id}
                   onClick={() => setSelectedCleanerId(c.id)}
                   className={`rounded-xl px-3 py-3 border transition
-                    ${active
-                      ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}
-                  `}
-                  title={`Nur ${label} anzeigen`}
+                    ${active ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}`}
                 >
                   <div className="flex items-center gap-2">
-                    <div
-                      className={`h-7 w-7 rounded-lg flex items-center justify-center
-                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}
-                    >
+                    <div className={`h-7 w-7 rounded-lg flex items-center justify-center
+                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}>
                       <span className="text-xs font-bold">{initials}</span>
                     </div>
                     <div>
                       <div className="text-sm font-medium text-white truncate">{label}</div>
-                      <div className="text-[11px] text-white/60">
-                        {active ? 'Ausgewählt' : 'Klicken zum Anzeigen'}
-                      </div>
+                      <div className="text-[11px] text-white/60">{active ? 'Ausgewählt' : 'Klicken'}</div>
                     </div>
                   </div>
                 </button>
               );
             })}
           </div>
-
-          <div className="mt-3 text-xs text-white/60">
-            {isAllView
-              ? 'Ansicht: Alle Reinigungskräfte'
-              : `Ansicht gefiltert auf: ${
-                  getCleanerLabel(sortedCleaners.find((x) => x.id === selectedCleanerId) as Cleaner)
-                }`}
-          </div>
         </div>
       )}
 
-      {/* Schwarzer Kalendercontainer mit feinem White-Glow; Tageskacheln ohne Shadow */}
+      {/* Kalender mit Glow */}
       <div className="rounded-2xl border border-white/20 bg-black p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(255,255,255,0.08)]">
         <MonthCalendar
           year={year}
           month={month}
-          onMonthChange={(y, m) => {
-            setYear(y);
-            setMonth(m);
-          }}
+          onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
           renderDay={renderDay}
         />
       </div>
-
-      {/* Legende */}
-      <div className="mt-6 bg-white/5 border border-white/10 p-4 rounded-lg text-sm text-white/80">
-        <h3 className="font-semibold mb-3 text-white">Legende</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded border bg-red-500/15 border-red-500/30"></div>
-            {isAllView ? 'Abwesenheit vorhanden' : 'Abwesend (Details via Button)'}
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded border bg-emerald-500/10 border-emerald-500/25"></div>
-            {isAllView ? 'Alle verfügbar' : 'Verfügbar'}
-          </div>
-        </div>
-      </div>
-
-      {/* Modal: Geplante Einsätze (Einzelansicht) */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-6 h-6" />
-                <h4 className="text-lg font-semibold">Geplante Einsätze am {modalDate}</h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="p-2 rounded-md hover:bg-white/10"
-                aria-label="Schließen"
-              >
-                <span className="text-lg leading-none">×</span>
-              </button>
-            </div>
-
-            <div className="p-4 max-h-[70vh] overflow-y-auto">
-              {modalItems.length === 0 ? (
-                <div className="text-white/60 text-sm">Keine Einträge.</div>
-              ) : (
-                <ul className="space-y-3">
-                  {modalItems
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((it, i) => (
-                      <li key={i} className="rounded-lg border border-white/10 bg-white/5 p-3">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-5 h-5" />
-                          <div className="font-medium text-white">{it.name}</div>
-                        </div>
-                        {it.address && (
-                          <div className="mt-1 flex items-center gap-2 text-white/70 text-xs">
-                            <MapPin className="w-4 h-4" />
-                            <span className="truncate">{it.address}</span>
-                          </div>
-                        )}
-                        <div className="mt-1 flex items-center gap-2 text-white/60 text-xs">
-                          <CalendarIcon className="w-4 h-4" />
-                          <span>{it.date}</span>
-                        </div>
-                      </li>
-                    ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="p-3 border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
-              >
-                Schließen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal: Unverfügbare Cleaner (Alle-Ansicht, Mobile via Brush-Button) */}
-      {peopleModalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-md bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Brush className="w-6 h-6" />
-                <h4 className="text-lg font-semibold">Abwesende Cleaner am {peopleModalDate}</h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPeopleModalOpen(false)}
-                className="p-2 rounded-md hover:bg-white/10"
-                aria-label="Schließen"
-              >
-                <span className="text-lg leading-none">×</span>
-              </button>
-            </div>
-
-            <div className="p-4 max-h-[70vh] overflow-y-auto">
-              {peopleList.length === 0 ? (
-                <div className="text-white/60 text-sm">Keine Einträge.</div>
-              ) : (
-                <ul className="space-y-3">
-                  {peopleList.map((p) => {
-                    const name = (p as any)?.name || (p as any)?.email || (p as any)?.phone || 'Unbekannt';
-                    const email = (p as any)?.email;
-                    const phone = (p as any)?.phone;
-                    return (
-                      <li key={p.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
-                        <div className="flex items-start gap-3">
-                          <div className="shrink-0">
-                            <UserIcon className="w-6 h-6 text-white/90" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-semibold text-white truncate">{name}</div>
-                            {email && (
-                              <div className="mt-1 flex items-center gap-2 text-white/80 text-xs">
-                                <Mail className="w-4 h-4" />
-                                <span className="truncate">{email}</span>
-                              </div>
-                            )}
-                            {phone && (
-                              <div className="mt-1 flex items-center gap-2 text-white/80 text-xs">
-                                <Phone className="w-4 h-4" />
-                                <span className="truncate">{phone}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-
-            <div className="p-3 border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setPeopleModalOpen(false)}
-                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
-              >
-                Schließen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
