@@ -484,7 +484,7 @@ return (
         />
 
         <Input
-          label="Date (yyyy-mm-dd)"
+          label="Tag der Reinigung (yyyy-mm-dd)"
           value={formData.date}
           onChange={(e) => {
             const nextDate = e.target.value;
