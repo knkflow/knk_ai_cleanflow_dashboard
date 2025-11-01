@@ -522,7 +522,7 @@ return (
             onChange={(e) => setFormData({ ...formData, note: e.target.value })}
             rows={3}
             className="w-full px-4 py-2 bg-white/10 border border-white/20 text-white focus:border-white focus:outline-none"
-            placeholder="Additional instructions..."
+            placeholder="Notiz (Fügen Sie hier weitere Anweisungen für Ihre Reinigungskraft hinzu)"
           />
         </div>
 
