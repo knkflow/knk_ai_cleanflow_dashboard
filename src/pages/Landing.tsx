@@ -43,49 +43,88 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
-        <div className="container mx-auto px-6 lg:px-8 py-5 flex items-center justify-between relative">
-          {/* Linke Seite – CleanFlow Text */}
-          <span className="text-sm md:text-base tracking-widest uppercase text-white font-semibold">
-            CleanFlow
-          </span>
+<header className="border-b border-white/10 sticky top-0 z-40 bg-black/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+  <div className="container mx-auto px-6 lg:px-8 py-4 grid grid-cols-3 items-center">
+    {/* Linke Seite – CleanFlow Text */}
+    <span className="text-sm md:text-base tracking-widest uppercase text-white font-semibold">
+      CleanFlow
+    </span>
 
-{/* Mittig – Logo */}
-<div className="absolute left-1/2 -translate-x-1/2">
-  <img
-    src="/logo.png"
-    className="h-12 md:h-14 w-auto select-none rounded-full border-2 border-white/70
-               shadow-[0_0_10px_rgba(255,255,255,0.25)] transition-all duration-500 ease-out
-               hover:shadow-[0_0_25px_rgba(255,255,255,0.55)] hover:border-white"
-  />
-</div>
+    {/* Mittig – Logo (immer zentriert) */}
+    <div className="justify-self-center">
+      <img
+        src="/logo.png"
+        alt="CleanFlow"
+        className="h-10 md:h-14 w-auto select-none rounded-full border-2 border-white/70
+                   shadow-[0_0_10px_rgba(255,255,255,0.25)] transition-all duration-500 ease-out
+                   hover:shadow-[0_0_25px_rgba(255,255,255,0.55)] hover:border-white"
+      />
+    </div>
 
+    {/* Rechts – Navigation */}
+    {/* Desktop */}
+    <nav className="hidden md:flex justify-end items-center gap-6 lg:gap-8">
+      <button
+        onClick={handleGoToSolutions}
+        className="text-sm text-white/70 hover:text-white transition-colors"
+      >
+        Lösungen
+      </button>
+      <button
+        onClick={openContact}
+        className="text-sm text-white/70 hover:text-white transition-colors"
+      >
+        Kontakt
+      </button>
+      <button
+        onClick={() => navigate('/login')}
+        className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors rounded-full"
+      >
+        Anmelden
+      </button>
+    </nav>
 
-          {/* Navigation rechts */}
-          <nav className="flex items-center gap-6 md:gap-8">
-            <button
-              onClick={handleGoToSolutions}
-              className="text-sm text-white/70 hover:text-white transition-colors"
-            >
-              Lösungen
-            </button>
-            <button
-              onClick={openContact}
-              className="text-sm text-white/70 hover:text-white transition-colors"
-            >
-              Kontakt
-            </button>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors rounded-full"
-            >
-              Anmelden
-            </button>
-          </nav>
+    {/* Mobile: Hamburger */}
+    <div className="md:hidden justify-self-end">
+      <button
+        aria-label="Navigation öffnen"
+        onClick={() => setMobileOpen((v) => !v)}
+        className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-white/50 transition-colors"
+      >
+        {/* simple burger icon */}
+        <span className="block w-5 h-[2px] bg-current rounded-sm" />
+        <span className="block w-5 h-[2px] bg-current rounded-sm mt-1.5" />
+        <span className="block w-5 h-[2px] bg-current rounded-sm mt-1.5" />
+      </button>
+    </div>
+  </div>
 
-        </div>
-      </header>
+  {/* Mobile Dropdown */}
+  {mobileOpen && (
+    <div className="md:hidden border-t border-white/10 bg-black/90 backdrop-blur">
+      <div className="container mx-auto px-6 lg:px-8 py-3 flex flex-col gap-2">
+        <button
+          onClick={() => { setMobileOpen(false); handleGoToSolutions(); }}
+          className="text-sm py-2 text-left text-white/80 hover:text-white transition-colors"
+        >
+          Lösungen
+        </button>
+        <button
+          onClick={() => { setMobileOpen(false); openContact(); }}
+          className="text-sm py-2 text-left text-white/80 hover:text-white transition-colors"
+        >
+          Kontakt
+        </button>
+        <button
+          onClick={() => { setMobileOpen(false); navigate('/login'); }}
+          className="mt-1 px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors rounded-full w-full"
+        >
+          Anmelden
+        </button>
+      </div>
+    </div>
+  )}
+</header>
 
       <main>
 {/* HERO */}
