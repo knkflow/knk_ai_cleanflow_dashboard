@@ -107,7 +107,7 @@ export function Landing() {
   </button>
 </div>
 
-
+</div>
   {/* Mobile Dropdown */}
   {mobileOpen && (
     <div className="md:hidden border-t border-white/10 bg-black/90 backdrop-blur">
