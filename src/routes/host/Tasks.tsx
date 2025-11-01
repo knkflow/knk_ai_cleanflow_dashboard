@@ -7,6 +7,7 @@ import { Input } from '../../components/forms/Input';
 import { Select } from '../../components/forms/Select';
 import { isValidDateString } from '../../lib/dates';
 import type { User, CleaningTaskWithDetails, ApartmentWithCleaner, Cleaner } from '../../types/db';
+import { AlertCircle, Calendar, User, StickyNote } from 'lucide-react'
 
 interface ContextType {
   user: User;
