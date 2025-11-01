@@ -1,6 +1,5 @@
-// src/routes/host/Calendar.tsx
+// src/routes/.../Calendar.tsx
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import type { TouchEvent } from 'react';
 import { useLocation, useOutletContext } from 'react-router-dom';
 import { MonthCalendar } from '../../components/calendar/MonthCalendar';
 import { getCleaners, getTasks } from '../../lib/api';
@@ -16,50 +15,85 @@ import {
   Phone,
   X,
   X as CloseIcon,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-interface ContextType { user: User; }
+interface ContextType {
+  user: User;
+}
 
 /* ---------------- Helpers ---------------- */
+
 const pad2 = (n: number) => n.toString().padStart(2, '0');
-function ymdFromUTC(y: number, m1: number, d: number): string { return `${y}-${pad2(m1)}-${pad2(d)}`; }
+function ymdFromUTC(y: number, m1: number, d: number): string {
+  return `${y}-${pad2(m1)}-${pad2(d)}`;
+}
+
 function isValidYMD(y: number, m1: number, d: number): boolean {
   if (!Number.isInteger(y) || !Number.isInteger(m1) || !Number.isInteger(d)) return false;
   if (m1 < 1 || m1 > 12 || d < 1 || d > 31) return false;
   const dt = new Date(Date.UTC(y, m1 - 1, d));
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m1 - 1 && dt.getUTCDate() === d;
 }
+
 function normalizeYMD(input: unknown): string {
   if (input == null) return '';
-  if (input instanceof Date) return ymdFromUTC(input.getUTCFullYear(), input.getUTCMonth() + 1, input.getUTCDate());
-  const s = String(input).trim(); if (!s) return '';
-  if (s.includes('T')) { const dt = new Date(s); if (!isNaN(dt.getTime())) return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate()); }
-  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/) || s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/) || s.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (m) { const [a, b, c] = m.slice(1).map(Number); const [y, mo, d] = s.includes('.') ? [c, b, a] : [a, b, c]; return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : ''; }
-  const dt = new Date(s); if (!isNaN(dt.getTime())) return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+  if (input instanceof Date)
+    return ymdFromUTC(input.getUTCFullYear(), input.getUTCMonth() + 1, input.getUTCDate());
+  const s = String(input).trim();
+  if (!s) return '';
+  if (s.includes('T')) {
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime()))
+      return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+  }
+  const m =
+    s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/) ||
+    s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/) ||
+    s.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (m) {
+    const [a, b, c] = m.slice(1).map(Number);
+    const [y, mo, d] = s.includes('.') ? [c, b, a] : [a, b, c];
+    return isValidYMD(y, mo, d) ? ymdFromUTC(y, mo, d) : '';
+  }
+  const dt = new Date(s);
+  if (!isNaN(dt.getTime()))
+    return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
   return '';
 }
+
 function availabilityToSet(av: unknown): Set<string> {
-  const set = new Set<string>(); const add = (x: unknown) => { const y = normalizeYMD(x); if (y) set.add(y); };
-  const walk = (val: unknown) => { if (val == null) return; if (Array.isArray(val)) return val.forEach(walk);
-    const s = String(val).trim(); if (!s) return; for (const part of s.split(/[,;\s]+/)) add(part); };
-  walk(av); return set;
+  const set = new Set<string>();
+  const add = (x: unknown) => { const y = normalizeYMD(x); if (y) set.add(y); };
+  const walk = (val: unknown) => {
+    if (val == null) return;
+    if (Array.isArray(val)) return val.forEach(walk);
+    const s = String(val).trim();
+    if (!s) return;
+    for (const part of s.split(/[,;\s]+/)) add(part);
+  };
+  walk(av);
+  return set;
 }
-function dayToYMD(day: MonthDay): string { return normalizeYMD((day as any).dateStr ?? day.date); }
+
+function dayToYMD(day: MonthDay): string {
+  return normalizeYMD((day as any).dateStr ?? day.date);
+}
+
 function getCleanerLabel(c: Cleaner): string {
-  const n = (c as any)?.name; if (typeof n === 'string' && n.trim()) return n.trim();
-  const e = (c as any)?.email; if (typeof e === 'string' && e.trim()) return e.trim();
-  const p = (c as any)?.phone; if (typeof p === 'string' && p.trim()) return p.trim();
+  const n = (c as any)?.name;
+  if (typeof n === 'string' && n.trim()) return n.trim();
+  const e = (c as any)?.email;
+  if (typeof e === 'string' && e.trim()) return e.trim();
+  const p = (c as any)?.phone;
+  if (typeof p === 'string' && p.trim()) return p.trim();
   return '[Unbenannt]';
 }
 
 /* ---------------- Component ---------------- */
+
 type AssignmentDetail = { name: string; address?: string | null; date: string };
 type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>;
-
-const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -87,6 +121,7 @@ export function Calendar() {
   const initialLoadDone = useRef(false);
   const THROTTLE_MS = 500;
 
+  /* ---- CLEANERS LADEN ---- */
   const loadCleaners = useCallback(async (opts?: { silent?: boolean }) => {
     const nowTs = Date.now();
     if (inFlightRef.current || nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
@@ -113,12 +148,14 @@ export function Calendar() {
     if (path.toLowerCase().includes('calendar')) void loadCleaners({ silent: true });
   }, [location.pathname, loadCleaners]);
 
+  /* ---- INDEX: Abwesenheiten ---- */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const c of cleaners) m.set(c.id, availabilityToSet((c as any).availability));
     return m;
   }, [cleaners]);
 
+  /* ---- TASKS LADEN ---- */
   const loadAssignments = useCallback(async () => {
     try {
       const startYMD = ymdFromUTC(year, month + 1, 1);
@@ -147,7 +184,11 @@ export function Calendar() {
 
   const monthStart = useMemo(() => ymdFromUTC(year, month + 1, 1), [year, month]);
   const monthEnd = useMemo(() => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()), [year, month]);
-  const isInVisibleMonth = useCallback((ymd: string) => ymd >= monthStart && ymd <= monthEnd, [monthStart, monthEnd]);
+
+  const isInVisibleMonth = useCallback(
+    (ymd: string) => ymd >= monthStart && ymd <= monthEnd,
+    [monthStart, monthEnd]
+  );
 
   const monthUnavailableAll = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -170,324 +211,343 @@ export function Calendar() {
     return c ? getCleanerLabel(c) : '';
   }, [cleaners, selectedCleanerId]);
 
-  const getUnavailableNames = useCallback((ymd: string): string[] => {
-    if (isAllView) return monthUnavailableAll.get(ymd) ?? [];
-    const set = unavailableIndex.get(selectedCleanerId!);
-    return set?.has(ymd) ? [selectedCleanerLabel] : [];
-  }, [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]);
+  const getUnavailableNames = useCallback(
+    (ymd: string): string[] => {
+      if (isAllView) return monthUnavailableAll.get(ymd) ?? [];
+      const set = unavailableIndex.get(selectedCleanerId!);
+      return set?.has(ymd) ? [selectedCleanerLabel] : [];
+    },
+    [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]
+  );
 
-  const getUnavailableCleaners = useCallback((ymd: string): Cleaner[] =>
-    cleaners.filter((c) => unavailableIndex.get(c.id)?.has(ymd)),
-  [cleaners, unavailableIndex]);
+  const getUnavailableCleaners = useCallback(
+    (ymd: string): Cleaner[] =>
+      cleaners.filter((c) => unavailableIndex.get(c.id)?.has(ymd)),
+    [cleaners, unavailableIndex]
+  );
 
-  const getAssignedDetailsForSelected = useCallback((ymd: string): AssignmentDetail[] =>
-    detailsIndex.get(selectedCleanerId ?? '')?.get(ymd) ?? [],
-  [detailsIndex, selectedCleanerId]);
+  const getAssignedDetailsForSelected = useCallback(
+    (ymd: string): AssignmentDetail[] =>
+      detailsIndex.get(selectedCleanerId ?? '')?.get(ymd) ?? [],
+    [detailsIndex, selectedCleanerId]
+  );
 
-  const openModalFor = useCallback((ymd: string, items: AssignmentDetail[]) => { setModalDate(ymd); setModalItems(items); setModalOpen(true); }, []);
-  const openPeopleModal = useCallback((ymd: string, people: Cleaner[]) => { setPeopleModalDate(ymd); setPeopleList(people); setPeopleModalOpen(true); }, []);
-  const closeModals = useCallback(() => { setModalOpen(false); setPeopleModalOpen(false); }, []);
+  const openModalFor = useCallback((ymd: string, items: AssignmentDetail[]) => {
+    setModalDate(ymd); setModalItems(items); setModalOpen(true);
+  }, []);
 
-  // --- Mobile: Swipe-Gesten ---
-  const touchStartX = useRef<number | null>(null);
-  const handleTouchStart = (e: TouchEvent) => { touchStartX.current = e.changedTouches[0].clientX; };
-  const handleTouchEnd = (e: TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 50) {
-      const dir = dx < 0 ? 1 : -1;
-      const d = new Date(year, month + dir, 1);
-      setYear(d.getFullYear()); setMonth(d.getMonth());
-    }
-    touchStartX.current = null;
-  };
+  const openPeopleModal = useCallback((ymd: string, people: Cleaner[]) => {
+    setPeopleModalDate(ymd); setPeopleList(people); setPeopleModalOpen(true);
+  }, []);
+
+  const closeModals = useCallback(() => {
+    setModalOpen(false);
+    setPeopleModalOpen(false);
+  }, []);
 
   /* ---- renderDay ---- */
-  const renderDay = useCallback((day: MonthDay) => {
-    const ymd = dayToYMD(day);
-    if (!ymd) return (<div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />);
+  const renderDay = useCallback(
+    (day: MonthDay) => {
+      const ymd = dayToYMD(day);
+      if (!ymd) return <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />;
+      const unavailableNames = getUnavailableNames(ymd);
+      const isUnavailable = unavailableNames.length > 0;
+      const boxClass = isUnavailable
+        ? 'bg-rose-500/10 text-rose-200 border-rose-400/30 shadow-[0_0_0_1px_rgba(244,63,94,0.15)_inset]'
+        : 'bg-emerald-500/10 text-emerald-200 border-emerald-400/30 shadow-[0_0_0_1px_rgba(16,185,129,0.15)_inset]';
+      const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
+      const unavailableCleaners = isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
 
-    const unavailableNames = getUnavailableNames(ymd);
-    const isUnavailable = unavailableNames.length > 0;
-
-    const availabilityClass = isUnavailable
-      ? 'bg-red-50 text-red-900 border-red-300 ring-red-200/50'
-      : 'bg-emerald-50 text-emerald-900 border-emerald-300 ring-emerald-200/50';
-
-    const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
-    const unavailableCleaners = isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
-    const weekend = day.date.getDay() === 0 || day.date.getDay() === 6;
-
-    return (
-      <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
-        <div className="mb-1 flex items-center justify-between">
-          <span className={`inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ${
-            day.isToday ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-200'
-          }`}>
-            {day.date.getDate()}. {MONTHS_DE[day.date.getMonth()].slice(0,3)}
-          </span>
-          {weekend && <span className="text-[10px] text-gray-400">WE</span>}
-        </div>
-
-        {day.isCurrentMonth && (
-          <div
-            className={[
-              'relative text-xs p-2 rounded-xl border min-h-[120px] md:min-h-[150px]',
-              'transition-all duration-200 ease-out',
-              'hover:-translate-y-0.5 hover:shadow-lg hover:ring-2',
-              availabilityClass,
-              weekend ? 'shadow-inner ring-1 ring-gray-200/60' : '',
-              day.isToday ? 'outline outline-2 outline-emerald-300/70' : '',
-            ].join(' ')}
-            title={isUnavailable ? 'Nicht verfügbar' : 'Verfügbar'}
-          >
-            {!isUnavailable && (<div className="truncate text-center font-medium tracking-wide">Verfügbar</div>)}
-
-            {/* ALLE Ansicht */}
-            {isAllView && isUnavailable && (
-              <>
-                <div className="mt-1 max-h-24 overflow-y-auto pr-1 hidden sm:block">
-                  <ul className="space-y-1">
-                    {unavailableNames.map((n, i) => (
-                      <li key={i} className="whitespace-nowrap text-[11px]">
-                        <span className="opacity-70">Cleaner:</span>{' '}
-                        <span className="font-medium">{n}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="mt-2 flex items-center justify-center sm:hidden">
-                  <button
-                    onClick={() => openPeopleModal(ymd, unavailableCleaners)}
-                    className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-colors"
-                  >
-                    <Brush className="w-4 h-4" />
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* EINZEL Ansicht */}
-            {!isAllView && isUnavailable && (
-              assignedDetails.length > 0 ? (
-                <div className="mt-2 flex items-center justify-center">
-                  <button
-                    onClick={() => openModalFor(ymd, assignedDetails)}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-colors"
-                  >
-                    <Building2 className="w-4 h-4" />
-                    <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center mt-3">
-                  <span className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full bg-red-100 border border-red-300 shadow ring-1 ring-red-200">
-                    <X className="w-5 h-5 text-red-600" strokeWidth={2.75} title="Keine geplanten Einsätze" aria-label="Keine geplanten Einsätze" />
-                  </span>
-                  <span className="hidden sm:inline text-red-700 font-semibold tracking-wide">Keine geplanten Einsätze</span>
-                </div>
-              )
-            )}
+      return (
+        <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
+          <div className="text-xs mb-1 flex items-center gap-2">
+            <span className={day.isToday ? 'font-bold text-white' : 'text-white/70'}>
+              {day.date.getDate()}
+            </span>
           </div>
-        )}
-      </div>
-    );
-  }, [getUnavailableNames, isAllView, getAssignedDetailsForSelected, getUnavailableCleaners, openModalFor]);
+
+          {day.isCurrentMonth && (
+            <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
+              {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
+
+              {/* ALLE Ansicht */}
+              {isAllView && isUnavailable && (
+                <>
+                  <div className="mt-1 max-h-16 overflow-y-auto pr-1 hidden sm:block">
+                    <ul className="space-y-1">
+                      {unavailableNames.map((n, i) => (
+                        <li key={i} className="whitespace-nowrap text-[11px] text-white/90">
+                          <span className="text-white/60">Cleaner:</span>{' '}
+                          <span className="font-medium">{n}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="mt-1 flex items-center justify-center sm:hidden">
+                    <button
+                      onClick={() => openPeopleModal(ymd, unavailableCleaners)}
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                    >
+                      <Brush className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* EINZEL Ansicht */}
+              {!isAllView && isUnavailable && (
+                assignedDetails.length > 0 ? (
+                  <div className="mt-1 flex items-center justify-center">
+                    <button
+                      onClick={() => openModalFor(ymd, assignedDetails)}
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
+                    </button>
+                  </div>
+                ) : (
+                  // Mobile: rotes X | Nicht-Mobile (>= sm): Text "-Keine Geplanten Einsätze-"
+                  <div className="flex items-center justify-center mt-2">
+                    {/* mobile */}
+                    <span
+                      className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full
+                                 bg-rose-900/40 border border-rose-700/60
+                                 shadow-[0_0_16px_rgba(225,29,72,0.55)] ring-1 ring-rose-800/50"
+                    >
+                      <X
+                        className="w-5 h-5 text-rose-300"
+                        strokeWidth={2.75}
+                        title="Keine geplanten Einsätze"
+                        aria-label="Keine geplanten Einsätze"
+                      />
+                    </span>
+                    {/* desktop/tablet */}
+                    <span className="hidden sm:inline text-rose-300 font-medium tracking-wide">
+                      -Keine Geplanten Einsätze-
+                    </span>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+      );
+    },
+    [getUnavailableNames, isAllView, getAssignedDetailsForSelected, getUnavailableCleaners, openModalFor, openPeopleModal]
+  );
 
   const sortedCleaners = useMemo(
     () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
     [cleaners]
   );
 
-  if (loading) return <div className="text-gray-900">Loading...</div>;
+  /* ---- LOADING ---- */
+  if (loading) {
+    return (
+      <div className="relative min-h-[60vh] text-white">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute -top-48 -left-48 h-[40rem] w-[40rem] rounded-full blur-3xl opacity-50" style={{
+            background: 'radial-gradient(40% 40% at 50% 50%, #10B981 0%, rgba(16,185,129,0.0) 60%)'
+          }} />
+          <div className="absolute -bottom-64 -right-80 h-[40rem] w-[40rem] rounded-full blur-3xl opacity-40" style={{
+            background: 'radial-gradient(40% 40% at 50% 50%, #8B5CF6 0%, rgba(139,92,246,0.0) 60%)'
+          }} />
+        </div>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="relative">
+            <div className="h-12 w-12 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* ---- RENDER ---- */
   return (
-    <div className="bg-gradient-to-b from-sky-50 to-white">
+    <div className="relative text-white">
+      {/* --- VIBRANT BACKGROUND LAYERS --- */}
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[50rem] w-[50rem] rounded-full blur-3xl opacity-40" style={{
+        background: 'radial-gradient(40% 40% at 50% 50%, #10B981 0%, rgba(16,185,129,0.0) 60%)'
+      }} />
+      <div className="pointer-events-none absolute -bottom-56 -right-72 h-[50rem] w-[50rem] rounded-full blur-3xl opacity-30" style={{
+        background: 'radial-gradient(40% 40% at 50% 50%, #8B5CF6 0%, rgba(139,92,246,0.0) 60%)'
+      }} />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.10]" style={{
+        backgroundImage: 'conic-gradient(from 90deg at 50% 50%, #00E5FF, #10B981, #F97316, #FF3D71, #8B5CF6, #00E5FF)'
+      }} />
+      <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:32px_32px]" />
+
       {errorMsg && (
-        <div className="mx-auto max-w-[1400px] px-4 pt-3">
-          <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-yellow-800 text-sm">
-            {errorMsg}
+        <div className="mb-3 relative">
+          <div className="rounded-xl p-[1px] bg-gradient-to-r from-amber-500 to-rose-500">
+            <div className="rounded-xl bg-[#0b0f1a] px-4 py-3 text-amber-200 text-sm border border-white/10">
+              {errorMsg}
+            </div>
           </div>
         </div>
       )}
 
-      {/* EIN EINZIGES großes Kalender-Panel ohne Abstand nach oben */}
-      <div
-        className="mx-auto max-w-[1400px] px-4 pb-6 pt-3"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div className="rounded-3xl border border-gray-200 bg-white ring-1 ring-gray-100 shadow-xl overflow-hidden min-h-[75vh]">
-          {/* Kopf im Panel */}
-          <div className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-gray-200">
-            <div className="px-4 py-3 flex items-center justify-between gap-3">
-              {/* Links: Monat + Pfeile + Heute */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => { const d = new Date(year, month - 1, 1); setYear(d.getFullYear()); setMonth(d.getMonth()); }}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
-                  aria-label="Vorheriger Monat"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => { const d = new Date(year, month + 1, 1); setYear(d.getFullYear()); setMonth(d.getMonth()); }}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
-                  aria-label="Nächster Monat"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-
-                <div className="ml-1 text-2xl md:text-3xl font-extrabold tracking-tight">
-                  {MONTHS_DE[month]} {year}
-                </div>
-
-                <button
-                  onClick={() => { const t = new Date(); setYear(t.getFullYear()); setMonth(t.getMonth()); }}
-                  className="ml-2 inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1.5 text-sm hover:bg-gray-50"
-                >
-                  Heute
-                </button>
+      {/* Cleaner Auswahl */}
+      {cleaners.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-4"
+        >
+          <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <button
+              onClick={() => setSelectedCleanerId(null)}
+              className={`group rounded-xl px-3 py-3 border transition relative overflow-hidden
+                ${isAllView ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                  : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}`}
+            >
+              <span className="pointer-events-none absolute -inset-[1px] rounded-xl bg-gradient-to-r from-emerald-500 via-fuchsia-500 to-indigo-500 opacity-0 group-hover:opacity-30 blur-sm transition" />
+              <div className="relative flex items-baseline justify-between gap-2">
+                <div className="text-sm font-medium text-white">Alle</div>
+                <div className="text-[11px] text-white/60">{sortedCleaners.length} Cleaner</div>
               </div>
+              <div className="relative text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
+            </button>
 
-              {/* Rechts: Legende (Desktop) */}
-              <div className="hidden sm:flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-emerald-50">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Verfügbar
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-red-50">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Nicht verfügbar
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
-                  <span className="h-2.5 w-2.5 rounded-full bg-gray-300" /> Wochenende
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" /> Heute
-                </span>
-              </div>
-            </div>
-
-            {/* Legende Mobile */}
-            <div className="sm:hidden px-4 pb-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5 bg-emerald-50">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" /> Verfügbar
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5 bg-red-50">
-                <span className="h-2 w-2 rounded-full bg-red-500" /> Nicht verfügbar
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5">
-                <span className="h-2 w-2 rounded-full bg-gray-300" /> Wochenende
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-300" /> Heute
-              </span>
-            </div>
-          </div>
-
-          {/* Cleaner-Auswahl IM Panel */}
-          {cleaners.length > 0 && (
-            <div className="px-4 pt-3">
-              <div className="text-gray-900 font-semibold mb-2">Cleaner auswählen</div>
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {sortedCleaners.map((c) => {
+              const active = selectedCleanerId === c.id;
+              const label = getCleanerLabel(c);
+              const initials = label.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+              return (
                 <button
-                  onClick={() => setSelectedCleanerId(null)}
-                  className={`rounded-2xl px-4 py-4 border transition shadow-sm ${
-                    isAllView
-                      ? 'border-emerald-300 bg-emerald-50'
-                      : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300'
-                  }`}
+                  key={c.id}
+                  onClick={() => setSelectedCleanerId(c.id)}
+                  className={`group rounded-xl px-3 py-3 border transition relative overflow-hidden
+                    ${active ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}`}
                 >
-                  <div className="flex items-baseline justify-between gap-2">
-                    <div className="text-sm font-medium text-gray-900">Alle</div>
-                    <div className="text-[11px] text-gray-500">{sortedCleaners.length} Cleaner</div>
+                  <span className="pointer-events-none absolute -inset-[1px] rounded-xl bg-gradient-to-r from-emerald-500 via-fuchsia-500 to-indigo-500 opacity-0 group-hover:opacity-30 blur-sm transition" />
+                  <div className="relative flex items-center gap-2">
+                    <div className={`h-7 w-7 rounded-lg flex items-center justify-center
+                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}>
+                      <span className="text-xs font-bold">{initials}</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white truncate">{label}</div>
+                      <div className="text-[11px] text-white/60">{active ? 'Ausgewählt' : 'Klicken'}</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">Gesamtübersicht</div>
                 </button>
-
-                {sortedCleaners.map((c) => {
-                  const active = selectedCleanerId === c.id;
-                  const label = getCleanerLabel(c);
-                  const initials = label.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedCleanerId(c.id)}
-                      className={`rounded-2xl px-4 py-4 border transition ${
-                        active ? 'border-emerald-300 bg-emerald-50 shadow-sm' : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${active ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-700'}`}>
-                          <span className="text-xs font-bold">{initials}</span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 truncate">{label}</div>
-                          <div className="text-[11px] text-gray-500">{active ? 'Ausgewählt' : 'Klicken'}</div>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Großer Kalender */}
-          <div className="p-4 sm:p-6">
-            <MonthCalendar
-              year={year}
-              month={month}
-              onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
-              renderDay={renderDay}
-            />
+              );
+            })}
           </div>
+        </motion.div>
+      )}
+
+      {/* Kalender-Wrapper mit Neon-Glow */}
+      <div className="relative rounded-2xl border border-white/15 bg-white/5 p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(99,102,241,0.25)] overflow-hidden">
+        <div className="pointer-events-none absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-emerald-500/20 via-fuchsia-500/20 to-indigo-500/20 blur-md" aria-hidden />
+        <div className="relative">
+          <MonthCalendar
+            year={year}
+            month={month}
+            onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
+            renderDay={renderDay}
+          />
         </div>
       </div>
 
       {/* ===== MODALS ===== */}
+
+      {/* Modal: Geplante Einsätze */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="assignments-title" className="w-full max-w-lg mx-4 bg-white text-gray-900 border border-gray-200 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="assignments-title"
+            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
+                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 id="assignments-title" className="text-lg sm:text-xl font-semibold">Geplante Einsätze</h3>
-                <p className="text-gray-600 text-sm mt-0.5 flex items-center gap-2"><CalendarIcon className="w-4 h-4" />{modalDate}</p>
+                <h3 id="assignments-title" className="text-lg sm:text-xl font-semibold">
+                  Geplante Einsätze
+                </h3>
+                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4" />
+                  {modalDate}
+                </p>
               </div>
-              <button aria-label="Schließen" onClick={closeModals} className="p-2 rounded-md hover:bg-gray-100 transition-colors">
-                <CloseIcon className="w-5 h-5 text-gray-700" />
+              <button
+                aria-label="Schließen"
+                onClick={closeModals}
+                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+              >
+                <CloseIcon className="w-5 h-5 text-white/80" />
               </button>
             </div>
 
             <div className="mt-4 space-y-3">
               {modalItems.map((it, idx) => (
-                <div key={`${it.name}-${idx}`} className="rounded-xl border border-gray-200 bg-white p-3">
-                  <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-600" /><div className="font-medium">{it.name}</div></div>
+                <div
+                  key={`${it.name}-${idx}`}
+                  className="rounded-xl border border-white/10 bg-white/5 p-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-white/70" />
+                    <div className="font-medium">{it.name}</div>
+                  </div>
                   {it.address && (
-                    <div className="mt-1 flex items-center gap-2 text-sm text-gray-600"><MapPin className="w-4 h-4" /><span>{it.address}</span></div>
+                    <div className="mt-1 flex items-center gap-2 text-sm text-white/70">
+                      <MapPin className="w-4 h-4" />
+                      <span>{it.address}</span>
+                    </div>
                   )}
                 </div>
               ))}
-              {modalItems.length === 0 && (<div className="text-gray-600 text-sm">Keine Einsätze gefunden.</div>)}
+
+              {modalItems.length === 0 && (
+                <div className="text-white/70 text-sm">Keine Einsätze gefunden.</div>
+              )}
             </div>
 
             <div className="mt-6 flex justify-end">
-              <button onClick={closeModals} className="px-5 py-2 min-h-[44px] bg-emerald-500 text-white font-semibold rounded-md hover:bg-emerald-600 transition-colors w-full sm:w-auto">Schließen</button>
+              <button
+                onClick={closeModals}
+                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+              >
+                Schließen
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Modal: Nicht verfügbare Cleaner */}
       {peopleModalOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="people-title" className="w-full max-w-lg mx-4 bg-white text-gray-900 border border-gray-200 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="people-title"
+            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
+                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 id="people-title" className="text-lg sm:text-xl font-semibold">Nicht verfügbare Cleaner</h3>
-                <p className="text-gray-600 text-sm mt-0.5 flex items-center gap-2"><CalendarIcon className="w-4 h-4" />{peopleModalDate}</p>
+                <h3 id="people-title" className="text-lg sm:text-xl font-semibold">
+                  Nicht verfügbare Cleaner
+                </h3>
+                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4" />
+                  {peopleModalDate}
+                </p>
               </div>
-              <button aria-label="Schließen" onClick={closeModals} className="p-2 rounded-md hover:bg-gray-100 transition-colors">
-                <CloseIcon className="w-5 h-5 text-gray-700" />
+              <button
+                aria-label="Schließen"
+                onClick={closeModals}
+                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+              >
+                <CloseIcon className="w-5 h-5 text-white/80" />
               </button>
             </div>
 
@@ -495,20 +555,44 @@ export function Calendar() {
               {peopleList.map((c) => {
                 const label = getCleanerLabel(c);
                 return (
-                  <div key={c.id} className="rounded-xl border border-gray-200 bg-white p-3">
-                    <div className="flex items-center gap-2"><UserIcon className="w-4 h-4 text-gray-600" /><div className="font-medium">{label}</div></div>
-                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                      {c.email && (<span className="inline-flex items-center gap-1.5"><Mail className="w-4 h-4" />{c.email}</span>)}
-                      {c.phone && (<span className="inline-flex items-center gap-1.5"><Phone className="w-4 h-4" />{c.phone}</span>)}
+                  <div
+                    key={c.id}
+                    className="rounded-xl border border-white/10 bg-white/5 p-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="w-4 h-4 text-white/70" />
+                      <div className="font-medium">{label}</div>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-white/70">
+                      {c.email && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Mail className="w-4 h-4" />
+                          {c.email}
+                        </span>
+                      )}
+                      {c.phone && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Phone className="w-4 h-4" />
+                          {c.phone}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
               })}
-              {peopleList.length === 0 && (<div className="text-gray-600 text-sm">Keine Einträge.</div>)}
+
+              {peopleList.length === 0 && (
+                <div className="text-white/70 text-sm">Keine Einträge.</div>
+              )}
             </div>
 
             <div className="mt-6 flex justify-end">
-              <button onClick={closeModals} className="px-5 py-2 min-h-[44px] bg-emerald-500 text-white font-semibold rounded-md hover:bg-emerald-600 transition-colors w-full sm:w-auto">Schließen</button>
+              <button
+                onClick={closeModals}
+                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+              >
+                Schließen
+              </button>
             </div>
           </div>
         </div>
