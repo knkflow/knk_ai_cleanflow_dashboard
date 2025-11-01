@@ -262,7 +262,7 @@ export function Tasks() {
 
   // Cleaner-Optionen im Modal: nur Verfügbare für formData.date
   const cleanerOptionsForDate = [
-    { value: '', label: 'Use default cleaner' },
+    { value: '', label: 'Stammreinigungskraft' },
     ...cleaners
       .filter((c) => isCleanerAvailableForDate(c, formData.date))
       .map((c) => ({ value: c.id, label: c.name })),
