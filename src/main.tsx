@@ -1,16 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App.tsx";
+import App from "./App"; // .tsx-Endung im Import weglassen ist ok
 import "./index.css";
 
-const rootElement = document.getElementById("root");
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("root not found");
 
-if (!rootElement) {
-  throw new Error("Root-Element mit id='root' wurde nicht gefunden.");
-}
-
-createRoot(rootElement).render(
+createRoot(rootEl).render(
   <StrictMode>
     <BrowserRouter>
       <App />
