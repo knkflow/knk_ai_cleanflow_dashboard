@@ -39,7 +39,7 @@ export function Cleaners() {
     hourly_rate: '',
   });
 
-  // Neu: Mobile-Info-Toggle für den Einladungs-Hinweis
+  // Info-Toggle mobil
   const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
 
   useEffect(() => {
@@ -51,7 +51,6 @@ export function Cleaners() {
     setLoading(true);
     try {
       if (user.role === 'Cleaner') {
-        // Cleaner sieht nur sich selbst (über auth.users.id)
         const me = await getCleanerByUserId(user.auth_id);
         setCleaners(me ? [me] : []);
         if (!me) {
@@ -61,7 +60,6 @@ export function Cleaners() {
           });
         }
       } else {
-        // Host sieht alle seine Cleaner
         const data = await getCleaners(user.id);
         setCleaners(data);
         if (data.length === 0) {
@@ -117,7 +115,6 @@ export function Cleaners() {
         send_magic_link: true,
       };
 
-      // Duplikatprüfung nur bei Neuanlage
       if (!editingId) {
         const nameKey = normalize(payload.name);
         const emailKey = normalize(payload.email ?? '');
@@ -148,11 +145,7 @@ export function Cleaners() {
           const res = await createCleanerAndInvite(payload);
           const msg = String((res as any)?.message ?? '').toLowerCase();
           const err = String((res as any)?.error ?? '').toLowerCase();
-          if (
-            msg.includes('already exists') ||
-            err.includes('already exists') ||
-            err.includes('duplicate')
-          ) {
+          if (msg.includes('already exists') || err.includes('already exists') || err.includes('duplicate')) {
             setErrorModal({
               open: true,
               message: `Cleaner "${payload.name}" / "${payload.email}" existiert bereits.`,
@@ -202,7 +195,7 @@ export function Cleaners() {
     }
   }
 
-  if (loading) return <div className="text-white">Loading...</div>;
+  if (loading) return <div className="text-gray-600">Loading...</div>;
 
   const getAvailCount = (c: Cleaner) => {
     const a: any = (c as any).availability;
@@ -212,10 +205,10 @@ export function Cleaners() {
   const canCreate = user.role === 'Host';
 
   return (
-    <div>
+    <div className="text-gray-900">
       {/* Header */}
       <div className="relative z-[50] flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold">
           {user.role === 'Cleaner' ? 'Mein Profil' : 'Reinigungskräfte'}
         </h2>
 
@@ -223,7 +216,7 @@ export function Cleaners() {
           <button
             type="button"
             onClick={openCreateModal}
-            className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md focus:outline-none focus:ring focus:ring-white/50"
+            className="px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors font-medium flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-emerald-300"
           >
             <Plus className="w-5 h-5" />
             Add Cleaner
@@ -231,17 +224,17 @@ export function Cleaners() {
         )}
       </div>
 
-      {/* Info: mobil = Button + Collapsible, ab md = klassischer Kasten */}
+      {/* Info: mobil = Button + Collapsible, ab md = Box */}
       {canCreate && (
         <>
-          {/* Mobile: blauer Button, bei Klick blauer Kasten mit Inhalt */}
+          {/* Mobile */}
           <div className="md:hidden mb-6">
             <button
               type="button"
               onClick={() => setMobileInfoOpen((v) => !v)}
               aria-expanded={mobileInfoOpen}
               aria-controls="invite-info-mobile"
-              className="w-full flex items-center gap-2 px-4 py-3 rounded-full bg-blue-600 text-white shadow active:scale-[0.99] transition-all"
+              className="w-full flex items-center gap-2 px-4 py-3 rounded-full bg-emerald-500 text-white shadow hover:bg-emerald-600 active:scale-[0.99] transition-all"
             >
               <Lightbulb className="w-5 h-5" />
               <span className="font-medium">So funktioniert die Einladung:</span>
@@ -250,7 +243,7 @@ export function Cleaners() {
             {mobileInfoOpen && (
               <div
                 id="invite-info-mobile"
-                className="mt-3 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-300 text-sm rounded-xl"
+                className="mt-3 bg-emerald-50 border border-emerald-200 p-4 text-emerald-800 text-sm rounded-xl"
               >
                 <ol className="list-decimal list-inside space-y-1">
                   <li>Füge eine Reinigungskraft mit E-Mail oder Telefonnummer hinzu.</li>
@@ -264,10 +257,10 @@ export function Cleaners() {
             )}
           </div>
 
-          {/* Desktop/Tablet: klassischer Infokasten */}
-          <div className="hidden md:block mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+          {/* Desktop/Tablet */}
+          <div className="hidden md:block mb-6 bg-emerald-50 border border-emerald-200 p-4 text-emerald-800 text-sm rounded-lg">
             <div className="flex items-center gap-2 mb-2">
-              <Lightbulb className="w-5 h-5 text-blue-400" />
+              <Lightbulb className="w-5 h-5 text-emerald-700" />
               <p className="font-medium">So funktioniert die Einladung:</p>
             </div>
             <ol className="list-decimal list-inside space-y-1">
@@ -287,43 +280,43 @@ export function Cleaners() {
         {cleaners.map((cleaner) => (
           <div
             key={cleaner.id}
-            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
+            className="bg-white border border-gray-200 p-6 rounded-2xl transition-all duration-300 hover:shadow-md"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold text-white">{cleaner.name}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">{cleaner.name}</h3>
                   {cleaner.user_id ? (
-                    <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-md">
+                    <span className="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium rounded-md">
                       REGISTERED
                     </span>
                   ) : (
-                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-md">
+                    <span className="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium rounded-md">
                       PENDING
                     </span>
                   )}
                 </div>
 
                 {cleaner.email && (
-                  <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-white/60" />
+                  <p className="text-gray-700 text-sm mb-1 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-gray-500" />
                     {cleaner.email}
                   </p>
                 )}
                 {cleaner.phone && (
-                  <p className="text-white/60 text-sm mb-1 flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-white/50" />
+                  <p className="text-gray-600 text-sm mb-1 flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-gray-500" />
                     {cleaner.phone}
                   </p>
                 )}
                 {typeof cleaner.hourly_rate === 'number' && (
-                  <p className="text-white/50 text-sm flex items-center gap-2">
-                    <Euro className="w-4 h-4 text-white/40" />
+                  <p className="text-gray-600 text-sm flex items-center gap-2">
+                    <Euro className="w-4 h-4 text-gray-500" />
                     Rate: €{Number(cleaner.hourly_rate).toFixed(2)}/hour
                   </p>
                 )}
 
-                <p className="text-white/40 text-xs mt-2">
+                <p className="text-gray-500 text-xs mt-2">
                   Unavailable days: {getAvailCount(cleaner)}
                 </p>
               </div>
@@ -332,18 +325,20 @@ export function Cleaners() {
                 <button
                   type="button"
                   onClick={() => openEditModal(cleaner)}
-                  className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 transition-colors"
+                  title="Bearbeiten"
                 >
-                  <Edit className="w-5 h-5 text-white" />
+                  <Edit className="w-5 h-5" />
                 </button>
 
-                {canCreate && (
+                {user.role === 'Host' && (
                   <button
                     type="button"
                     onClick={() => handleDelete(cleaner)}
-                    className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+                    className="p-2 rounded-md bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 transition-colors"
+                    title="Löschen"
                   >
-                    <Trash2 className="w-5 h-5 text-red-500" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 )}
               </div>
@@ -352,14 +347,14 @@ export function Cleaners() {
         ))}
 
         {cleaners.length === 0 && (
-          <div className="text-center py-12 text-white/50">
+          <div className="text-center py-12 text-gray-600">
             Sie haben noch keine Cleaner erstellt.
           </div>
         )}
       </div>
 
       {/* Create/Edit Modal */}
-      {canCreate && (
+      {user.role === 'Host' && (
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
@@ -396,11 +391,11 @@ export function Cleaners() {
               onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
               placeholder="15.00"
             />
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 disabled:opacity-60 transition-colors font-medium rounded-md"
+                className="flex-1 px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60 transition-colors font-medium"
               >
                 {submitting ? 'Saving…' : editingId ? 'Update' : 'Create'}
               </button>
@@ -408,7 +403,7 @@ export function Cleaners() {
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 disabled={submitting}
-                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-60 transition-colors rounded-md"
+                className="flex-1 px-4 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 disabled:opacity-60 transition-colors"
               >
                 Cancel
               </button>
@@ -419,26 +414,26 @@ export function Cleaners() {
 
       {/* Delete Confirm Popup */}
       {isConfirmOpen && selectedCleaner && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="bg-white text-gray-900 border border-gray-200 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-xl font-semibold mb-3">Wirklich entfernen?</h3>
-            <p className="text-white/70 mb-6">
+            <p className="text-gray-700 mb-6">
               Möchten Sie den Cleaner{' '}
-              <span className="text-white font-semibold">{selectedCleaner.name}</span>{' '}
+              <span className="text-gray-900 font-semibold">{selectedCleaner.name}</span>{' '}
               wirklich dauerhaft löschen?
             </p>
             <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setIsConfirmOpen(false)}
-                className="px-4 py-2 border border-white/30 text-white hover:border-white/60 transition-colors rounded-md"
+                className="px-4 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 transition-colors"
               >
                 Abbrechen
               </button>
               <button
                 type="button"
                 onClick={handleDeleteConfirmed}
-                className="px-5 py-2 bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors rounded-md"
+                className="px-5 py-2 rounded-md bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
               >
                 Löschen
               </button>
@@ -449,15 +444,15 @@ export function Cleaners() {
 
       {/* Error / Hinweis Popup */}
       {errorModal.open && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="bg-white text-gray-900 border border-gray-200 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-xl font-semibold mb-3">Hinweis</h3>
-            <p className="text-white/80 mb-6">{errorModal.message}</p>
-            <div className="flex justify-end gap-3">
+            <p className="text-gray-700 mb-6">{errorModal.message}</p>
+            <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => setErrorModal({ open: false, message: '' })}
-                className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg-white/80 transition-colors"
+                className="px-5 py-2 rounded-md bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition-colors"
               >
                 Zurück
               </button>
