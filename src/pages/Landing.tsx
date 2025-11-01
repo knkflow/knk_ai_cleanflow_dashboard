@@ -88,20 +88,12 @@ export function Landing() {
       </button>
     </nav>
 
-    {/* Mobile: Hamburger */}
-    <div className="md:hidden justify-self-end">
-      <button
-        aria-label="Navigation öffnen"
-        onClick={() => setMobileOpen((v) => !v)}
-        className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-white/50 transition-colors"
-      >
-        {/* simple burger icon */}
-        <span className="block w-5 h-[2px] bg-current rounded-sm" />
-        <span className="block w-5 h-[2px] bg-current rounded-sm mt-1.5" />
-        <span className="block w-5 h-[2px] bg-current rounded-sm mt-1.5" />
-      </button>
-    </div>
-  </div>
+  
+   {/* Mobile: Hamburger */}
+<div className="md:hidden justify-self-end">
+  <button ...> ... </button>
+</div>
+
 
   {/* Mobile Dropdown */}
   {mobileOpen && (
