@@ -1,24 +1,16 @@
-// src/components/layout/TabNav.tsx
+// src/components/layout/TabNav.tsx  (optional – falls separat genutzt)
 import { NavLink } from 'react-router-dom';
 
-interface Tab {
-  to: string;
-  label: string;
-}
-
-interface TabNavProps {
-  tabs: Tab[];
-}
-
-export function TabNav({ tabs }: TabNavProps) {
+interface Tab { to: string; label: string; }
+export function TabNav({ tabs }: { tabs: Tab[] }) {
   return (
     <nav className="bg-white/90 backdrop-blur border-b border-gray-200">
       <div className="container mx-auto px-4">
         <div className="flex gap-1">
-          {tabs.map((tab) => (
+          {tabs.map((t) => (
             <NavLink
-              key={tab.to}
-              to={tab.to}
+              key={t.to}
+              to={t.to}
               className={({ isActive }) =>
                 [
                   'px-4 py-3 text-sm font-medium rounded-md transition-colors',
@@ -28,7 +20,7 @@ export function TabNav({ tabs }: TabNavProps) {
                 ].join(' ')
               }
             >
-              {tab.label}
+              {t.label}
             </NavLink>
           ))}
         </div>
