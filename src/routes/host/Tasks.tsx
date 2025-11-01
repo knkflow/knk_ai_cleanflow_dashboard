@@ -502,7 +502,7 @@ return (
         />
 
         <Select
-          label="Reinigungskraft (Optional - Nutzt Stammreinigungskraft, wenn nicht ausgewählt)"
+          label="Reinigungskraft (Optional)"
           value={formData.cleaner_id}
           onChange={(e) => setFormData({ ...formData, cleaner_id: e.target.value })}
           options={cleanerOptionsForDate}
