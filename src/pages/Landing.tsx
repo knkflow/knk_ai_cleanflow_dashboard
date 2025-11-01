@@ -130,7 +130,7 @@ export function Landing() {
         onClick={() => navigate('/login')}
         className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 transition-colors rounded-full"
       >
-        Get Started
+        Loslegen
       </button>
       <button
         onClick={handleLearnMore}
