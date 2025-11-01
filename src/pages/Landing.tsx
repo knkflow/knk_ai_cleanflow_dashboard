@@ -89,9 +89,26 @@ export function Landing() {
     </nav>
 
   
-   {/* Mobile: Hamburger */}
+{/* Mobile: UserSearch Icon Button */}
 <div className="md:hidden justify-self-end">
-  <button ...> ... </button>
+  <button
+    aria-label="Navigation öffnen"
+    onClick={() => setMobileOpen((v) => !v)}
+    className="
+      relative inline-flex items-center justify-center w-10 h-10 rounded-full
+      border border-white/20 text-white/80
+      transition-all duration-300
+      hover:text-white hover:border-white/60
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black
+      shadow-[0_0_0_0_rgba(255,255,255,0)]
+      hover:shadow-[0_0_18px_rgba(255,255,255,0.35)]
+      before:content-[''] before:absolute before:inset-0 before:rounded-full
+      before:bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.22),transparent_60%)]
+      before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300
+    "
+  >
+    <UserSearch className="w-5 h-5" />
+  </button>
 </div>
 
 
