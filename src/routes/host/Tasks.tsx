@@ -382,7 +382,7 @@ return (
                       title="Deadline"
                     >
                       <AlarmClock className="w-3.5 h-3.5" />
-                      Deadline: {formatDisplayDate(task.deadline)}
+                      {formatDisplayDate(task.deadline)}
                     </span>
                   )}
                 </div>
