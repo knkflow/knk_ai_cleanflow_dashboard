@@ -7,6 +7,11 @@
     "lib": ["ESNext", "DOM"],
     "strict": true,
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
     "types": ["vite/client"]
   },
   "include": ["src"]
