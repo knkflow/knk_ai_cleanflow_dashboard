@@ -440,7 +440,7 @@ return (
                 <button
                   onClick={() => openEditModal(task)}
                   className="p-2 rounded-md hover:bg-white/10 transition-colors"
-                  title="Aktualisieren"
+                  title="Edit"
                 >
                   <Edit className="w-5 h-5 text-white" />
                 </button>
@@ -538,7 +538,7 @@ return (
             onClick={() => setIsModalOpen(false)}
             className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors"
           >
-            Cancel
+            Abbrechen
           </button>
         </div>
       </form>
