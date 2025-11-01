@@ -203,7 +203,6 @@ export function Calendar() {
         if (!ymd || !cleanerId || !aptName) continue;
 
         const detail: AssignmentDetail = { name: aptName, address: address ?? null, date: ymd };
-        // ⬇️ FIX: hier war ein zusätzliches ">" am Ende
         const byDate = idx.get(cleanerId) ?? new Map<string, AssignmentDetail[]>();
         const list = byDate.get(ymd) ?? [];
         list.push(detail);
@@ -278,7 +277,10 @@ export function Calendar() {
     setModalOpen(true);
   }, []);
 
-  /* ---- renderDay ---- */
+  /* ---- renderDay ----
+     Desktop: schwarzer Look, feine Linien, runde Ecken, KEIN Shadow auf den Tageskästen.
+     Mobile: kompakter; nur Farbcode rot/grün; Button zeigt nur Icon (Text hidden).
+  */
   const renderDay = useCallback(
     (day: MonthDay) => {
       const ymd = dayToYMD(day);
@@ -287,30 +289,35 @@ export function Calendar() {
       const unavailableNames = getUnavailableNames(ymd) ?? [];
       const isUnavailable = unavailableNames.length > 0;
 
+      // Rote/grüne Status-Kacheln
       const boxClass = isUnavailable
         ? 'bg-red-500/15 text-red-200 border-red-500/30'
         : 'bg-emerald-500/10 text-emerald-200 border-emerald-500/25';
 
+      // In Einzelansicht: Button (Icon-only auf Mobile) oder Hinweis „– Keine Geplanten Einsätze –“.
       const assignedDetails =
         (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
 
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
+          {/* Kopf: nur Datum */}
           <div className="text-xs mb-1 flex items-center gap-2">
             <span className={day.isToday ? 'font-bold text-white' : day.isCurrentMonth ? 'text-white/70' : 'text-white/40'}>
               {day.date.getDate()}
             </span>
           </div>
 
+          {/* Tages-Kachel: KEIN Shadow */}
           {day.isCurrentMonth && (
             <div
               className={`
                 relative text-xs p-1.5 rounded-md border ${boxClass}
-                shadow-[0_1px_6px_rgba(0,0,0,0.35)]
               `}
             >
+              {/* Grün → „Verfügbar“ */}
               {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
 
+              {/* Einzel + rot: Button oder Text */}
               {!isAllView && isUnavailable && (
                 assignedDetails.length > 0 ? (
                   <div className="mt-1 flex items-center justify-center">
@@ -321,6 +328,7 @@ export function Calendar() {
                       title="Geplante Einsätze ansehen"
                     >
                       <Building2 className="w-4 h-4" />
+                      {/* Text nur ab sm sichtbar */}
                       <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
                     </button>
                   </div>
@@ -357,10 +365,12 @@ export function Calendar() {
         </div>
       )}
 
+      {/* Filter + Auswahl */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {/* Alle */}
             <button
               onClick={() => setSelectedCleanerId(null)}
               className={`rounded-xl px-3 py-3 border transition
@@ -374,6 +384,7 @@ export function Calendar() {
               <div className="text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
             </button>
 
+            {/* Einzelne */}
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
               const label = getCleanerLabel(c);
@@ -420,7 +431,8 @@ export function Calendar() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-white/15 bg-black p-3 sm:p-4 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+      {/* SCHWARZE KALENDER-CARD mit feinem weißen Glow (kein Shadow auf Tageskästen) */}
+      <div className="rounded-2xl border border-white/20 bg-black p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(255,255,255,0.08)]">
         <MonthCalendar
           year={year}
           month={month}
@@ -432,6 +444,7 @@ export function Calendar() {
         />
       </div>
 
+      {/* Legende */}
       <div className="mt-6 bg-white/5 border border-white/10 p-4 rounded-lg text-sm text-white/80">
         <h3 className="font-semibold mb-3 text-white">Legende</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -446,6 +459,7 @@ export function Calendar() {
         </div>
       </div>
 
+      {/* Modal: Geplante Einsätze (Einzelansicht) */}
       {modalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
