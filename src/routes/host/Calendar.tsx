@@ -1,4 +1,4 @@
-// src/routes/.../Calendar.tsx
+// src/routes/host/Calendar.tsx
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocation, useOutletContext } from 'react-router-dom';
 import { MonthCalendar } from '../../components/calendar/MonthCalendar';
@@ -63,7 +63,10 @@ function normalizeYMD(input: unknown): string {
 
 function availabilityToSet(av: unknown): Set<string> {
   const set = new Set<string>();
-  const add = (x: unknown) => { const y = normalizeYMD(x); if (y) set.add(y); };
+  const add = (x: unknown) => {
+    const y = normalizeYMD(x);
+    if (y) set.add(y);
+  };
   const walk = (val: unknown) => {
     if (val == null) return;
     if (Array.isArray(val)) return val.forEach(walk);
@@ -120,47 +123,52 @@ export function Calendar() {
   const initialLoadDone = useRef(false);
   const THROTTLE_MS = 500;
 
-  /* ---- CLEANERS LADEN ---- */
-  const loadCleaners = useCallback(async (opts?: { silent?: boolean }) => {
-    const nowTs = Date.now();
-    if (inFlightRef.current || nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
-    inFlightRef.current = true;
-    if (!opts?.silent && !initialLoadDone.current) setLoading(true);
-    setErrorMsg(null);
-    try {
-      const data = await getCleaners(user.id);
-      setCleaners(data ?? []);
-      if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
-      initialLoadDone.current = true;
-    } catch (e: any) {
-      setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
-    } finally {
-      lastFetchTsRef.current = Date.now();
-      inFlightRef.current = false;
-      setLoading(false);
-    }
-  }, [user.id]);
+  const loadCleaners = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      const nowTs = Date.now();
+      if (inFlightRef.current || nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
+      inFlightRef.current = true;
+      if (!opts?.silent && !initialLoadDone.current) setLoading(true);
+      setErrorMsg(null);
+      try {
+        const data = await getCleaners(user.id);
+        setCleaners(data ?? []);
+        if (!data?.length) setErrorMsg('Sie haben noch keine Cleaner erstellt.');
+        initialLoadDone.current = true;
+      } catch (e: any) {
+        setErrorMsg(e?.message || 'Fehler beim Laden der Cleaner.');
+      } finally {
+        lastFetchTsRef.current = Date.now();
+        inFlightRef.current = false;
+        setLoading(false);
+      }
+    },
+    [user.id]
+  );
 
-  useEffect(() => { void loadCleaners(); }, [loadCleaners]);
+  useEffect(() => {
+    void loadCleaners();
+  }, [loadCleaners]);
   useEffect(() => {
     const path = location.pathname || '';
     if (path.toLowerCase().includes('calendar')) void loadCleaners({ silent: true });
   }, [location.pathname, loadCleaners]);
 
-  /* ---- INDEX: Abwesenheiten ---- */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const c of cleaners) m.set(c.id, availabilityToSet((c as any).availability));
     return m;
   }, [cleaners]);
 
-  /* ---- TASKS LADEN ---- */
   const loadAssignments = useCallback(async () => {
     try {
       const startYMD = ymdFromUTC(year, month + 1, 1);
       const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
       const endYMD = ymdFromUTC(year, month + 1, lastDay);
-      const rows: any[] = await getTasks(user.id, { dateFrom: startYMD, dateTo: endYMD });
+      const rows: any[] = await getTasks(user.id, {
+        dateFrom: startYMD,
+        dateTo: endYMD,
+      });
       const idx: DetailIndex = new Map();
       for (const t of rows ?? []) {
         const ymd = normalizeYMD(t?.date);
@@ -168,7 +176,11 @@ export function Calendar() {
         const aptName = t?.apartment?.name;
         const address = t?.apartment?.address;
         if (!ymd || !cleanerId || !aptName) continue;
-        const detail: AssignmentDetail = { name: aptName, address: address ?? null, date: ymd };
+        const detail: AssignmentDetail = {
+          name: aptName,
+          address: address ?? null,
+          date: ymd,
+        };
         const byDate = idx.get(cleanerId) ?? new Map();
         const list = byDate.get(ymd) ?? [];
         list.push(detail);
@@ -176,13 +188,23 @@ export function Calendar() {
         idx.set(cleanerId, byDate);
       }
       setDetailsIndex(idx);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, [user.id, year, month]);
 
-  useEffect(() => { void loadAssignments(); }, [loadAssignments]);
+  useEffect(() => {
+    void loadAssignments();
+  }, [loadAssignments]);
 
-  const monthStart = useMemo(() => ymdFromUTC(year, month + 1, 1), [year, month]);
-  const monthEnd = useMemo(() => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()), [year, month]);
+  const monthStart = useMemo(
+    () => ymdFromUTC(year, month + 1, 1),
+    [year, month]
+  );
+  const monthEnd = useMemo(
+    () => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()),
+    [year, month]
+  );
 
   const isInVisibleMonth = useCallback(
     (ymd: string) => ymd >= monthStart && ymd <= monthEnd,
@@ -216,7 +238,13 @@ export function Calendar() {
       const set = unavailableIndex.get(selectedCleanerId!);
       return set?.has(ymd) ? [selectedCleanerLabel] : [];
     },
-    [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]
+    [
+      isAllView,
+      monthUnavailableAll,
+      selectedCleanerId,
+      unavailableIndex,
+      selectedCleanerLabel,
+    ]
   );
 
   const getUnavailableCleaners = useCallback(
@@ -232,11 +260,15 @@ export function Calendar() {
   );
 
   const openModalFor = useCallback((ymd: string, items: AssignmentDetail[]) => {
-    setModalDate(ymd); setModalItems(items); setModalOpen(true);
+    setModalDate(ymd);
+    setModalItems(items);
+    setModalOpen(true);
   }, []);
 
   const openPeopleModal = useCallback((ymd: string, people: Cleaner[]) => {
-    setPeopleModalDate(ymd); setPeopleList(people); setPeopleModalOpen(true);
+    setPeopleModalDate(ymd);
+    setPeopleList(people);
+    setPeopleModalOpen(true);
   }, []);
 
   const closeModals = useCallback(() => {
@@ -248,26 +280,39 @@ export function Calendar() {
   const renderDay = useCallback(
     (day: MonthDay) => {
       const ymd = dayToYMD(day);
-      if (!ymd) return <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />;
+      if (!ymd)
+        return (
+          <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />
+        );
       const unavailableNames = getUnavailableNames(ymd);
       const isUnavailable = unavailableNames.length > 0;
       const boxClass = isUnavailable
-        ? 'bg-red-500/15 text-red-200 border-red-500/30'
-        : 'bg-emerald-500/10 text-emerald-200 border-emerald-500/25';
-      const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
-      const unavailableCleaners = isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
+        ? 'bg-red-50 text-red-800 border-red-200'
+        : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      const assignedDetails =
+        (!isAllView && isUnavailable
+          ? getAssignedDetailsForSelected(ymd)
+          : []) ?? [];
+      const unavailableCleaners =
+        isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
 
       return (
-        <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
+        <div
+          className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}
+        >
           <div className="text-xs mb-1 flex items-center gap-2">
-            <span className={day.isToday ? 'font-bold text-white' : 'text-white/70'}>
+            <span
+              className={day.isToday ? 'font-bold text-gray-900' : 'text-gray-500'}
+            >
               {day.date.getDate()}
             </span>
           </div>
 
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
-              {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
+              {!isUnavailable && (
+                <div className="truncate text-center">Verfügbar</div>
+              )}
 
               {/* ALLE Ansicht */}
               {isAllView && isUnavailable && (
@@ -275,8 +320,8 @@ export function Calendar() {
                   <div className="mt-1 max-h-16 overflow-y-auto pr-1 hidden sm:block">
                     <ul className="space-y-1">
                       {unavailableNames.map((n, i) => (
-                        <li key={i} className="whitespace-nowrap text-[11px] text-white/90">
-                          <span className="text-white/60">Cleaner:</span>{' '}
+                        <li key={i} className="whitespace-nowrap text-[11px]">
+                          <span className="opacity-70">Cleaner:</span>{' '}
                           <span className="font-medium">{n}</span>
                         </li>
                       ))}
@@ -285,7 +330,7 @@ export function Calendar() {
                   <div className="mt-1 flex items-center justify-center sm:hidden">
                     <button
                       onClick={() => openPeopleModal(ymd, unavailableCleaners)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-colors"
                     >
                       <Brush className="w-4 h-4" />
                     </button>
@@ -294,60 +339,70 @@ export function Calendar() {
               )}
 
               {/* EINZEL Ansicht */}
-              {!isAllView && isUnavailable && (
-                assignedDetails.length > 0 ? (
+              {!isAllView &&
+                isUnavailable &&
+                (assignedDetails.length > 0 ? (
                   <div className="mt-1 flex items-center justify-center">
                     <button
                       onClick={() => openModalFor(ymd, assignedDetails)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-colors"
                     >
                       <Building2 className="w-4 h-4" />
-                      <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
+                      <span className="text-[11px] font-semibold hidden sm:inline">
+                        Geplante Einsätze
+                      </span>
                     </button>
                   </div>
                 ) : (
-                  // Mobile: rotes X | Nicht-Mobile (>= sm): Text "-Keine Geplanten Einsätze-"
                   <div className="flex items-center justify-center mt-2">
                     {/* mobile */}
                     <span
                       className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full
-                                 bg-red-900/40 border border-red-700/60
-                                 shadow-[0_0_16px_rgba(185,28,28,0.55)] ring-1 ring-red-800/50"
+                                 bg-red-100 border border-red-300 shadow ring-1 ring-red-200"
                     >
                       <X
-                        className="w-5 h-5 text-red-400"
+                        className="w-5 h-5 text-red-600"
                         strokeWidth={2.75}
                         title="Keine geplanten Einsätze"
                         aria-label="Keine geplanten Einsätze"
                       />
                     </span>
                     {/* desktop/tablet */}
-                    <span className="hidden sm:inline text-red-300 font-medium tracking-wide">
+                    <span className="hidden sm:inline text-red-700 font-medium tracking-wide">
                       -Keine Geplanten Einsätze-
                     </span>
                   </div>
-                )
-              )}
+                ))}
             </div>
           )}
         </div>
       );
     },
-    [getUnavailableNames, isAllView, getAssignedDetailsForSelected, getUnavailableCleaners, openModalFor, openPeopleModal]
+    [
+      getUnavailableNames,
+      isAllView,
+      getAssignedDetailsForSelected,
+      getUnavailableCleaners,
+      openModalFor,
+      openPeopleModal,
+    ]
   );
 
   const sortedCleaners = useMemo(
-    () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
+    () =>
+      [...cleaners].sort((a, b) =>
+        getCleanerLabel(a).localeCompare(getCleanerLabel(b))
+      ),
     [cleaners]
   );
 
-  if (loading) return <div className="text-white">Loading...</div>;
+  if (loading) return <div className="text-gray-900">Loading...</div>;
 
   /* ---- RENDER ---- */
   return (
     <div>
       {errorMsg && (
-        <div className="mb-3 rounded border border-yellow-500/40 bg-yellow-500/10 p-3 text-yellow-200 text-sm">
+        <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-yellow-800 text-sm">
           {errorMsg}
         </div>
       )}
@@ -355,41 +410,61 @@ export function Calendar() {
       {/* Cleaner Auswahl */}
       {cleaners.length > 0 && (
         <div className="mb-4">
-          <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
+          <div className="text-gray-900 font-semibold mb-2">Cleaner auswählen</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             <button
               onClick={() => setSelectedCleanerId(null)}
-              className={`rounded-xl px-3 py-3 border transition
-                ${isAllView ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                  : 'border-white/10 bg-white/5 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:border-white/30'}`}
+              className={`rounded-xl px-3 py-3 border transition ${
+                isAllView
+                  ? 'border-emerald-300 bg-emerald-50 shadow-sm'
+                  : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300'
+              }`}
             >
               <div className="flex items-baseline justify-between gap-2">
-                <div className="text-sm font-medium text-white">Alle</div>
-                <div className="text-[11px] text-white/60">{sortedCleaners.length} Cleaner</div>
+                <div className="text-sm font-medium text-gray-900">Alle</div>
+                <div className="text-[11px] text-gray-500">
+                  {sortedCleaners.length} Cleaner
+                </div>
               </div>
-              <div className="text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
+              <div className="text-xs text-gray-500 mt-0.5">Gesamtübersicht</div>
             </button>
 
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
               const label = getCleanerLabel(c);
-              const initials = label.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+              const initials = label
+                .split(' ')
+                .map((p) => p[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase();
               return (
                 <button
                   key={c.id}
                   onClick={() => setSelectedCleanerId(c.id)}
-                  className={`rounded-xl px-3 py-3 border transition
-                    ${active ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}`}
+                  className={`rounded-xl px-3 py-3 border transition ${
+                    active
+                      ? 'border-emerald-300 bg-emerald-50 shadow-sm'
+                      : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300'
+                  }`}
                 >
                   <div className="flex items-center gap-2">
-                    <div className={`h-7 w-7 rounded-lg flex items-center justify-center
-                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}>
+                    <div
+                      className={`h-7 w-7 rounded-lg flex items-center justify-center ${
+                        active
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
                       <span className="text-xs font-bold">{initials}</span>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-white truncate">{label}</div>
-                      <div className="text-[11px] text-white/60">{active ? 'Ausgewählt' : 'Klicken'}</div>
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {label}
+                      </div>
+                      <div className="text-[11px] text-gray-500">
+                        {active ? 'Ausgewählt' : 'Klicken'}
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -399,12 +474,15 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Kalender mit Glow */}
-      <div className="rounded-2xl border border-white/20 bg-black p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(255,255,255,0.08)]">
+      {/* Kalender */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 ring-1 ring-gray-100 shadow-sm">
         <MonthCalendar
           year={year}
           month={month}
-          onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
+          onMonthChange={(y, m) => {
+            setYear(y);
+            setMonth(m);
+          }}
           renderDay={renderDay}
         />
       </div>
@@ -413,20 +491,19 @@ export function Calendar() {
 
       {/* Modal: Geplante Einsätze */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="assignments-title"
-            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
-                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+            className="w-full max-w-lg mx-4 bg-white text-gray-900 border border-gray-200 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 id="assignments-title" className="text-lg sm:text-xl font-semibold">
                   Geplante Einsätze
                 </h3>
-                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                <p className="text-gray-600 text-sm mt-0.5 flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4" />
                   {modalDate}
                 </p>
@@ -434,9 +511,9 @@ export function Calendar() {
               <button
                 aria-label="Schließen"
                 onClick={closeModals}
-                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-100 transition-colors"
               >
-                <CloseIcon className="w-5 h-5 text-white/80" />
+                <CloseIcon className="w-5 h-5 text-gray-700" />
               </button>
             </div>
 
@@ -444,14 +521,14 @@ export function Calendar() {
               {modalItems.map((it, idx) => (
                 <div
                   key={`${it.name}-${idx}`}
-                  className="rounded-xl border border-white/10 bg-white/5 p-3"
+                  className="rounded-xl border border-gray-200 bg-white p-3"
                 >
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-white/70" />
+                    <Building2 className="w-4 h-4 text-gray-600" />
                     <div className="font-medium">{it.name}</div>
                   </div>
                   {it.address && (
-                    <div className="mt-1 flex items-center gap-2 text-sm text-white/70">
+                    <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
                       <MapPin className="w-4 h-4" />
                       <span>{it.address}</span>
                     </div>
@@ -460,14 +537,14 @@ export function Calendar() {
               ))}
 
               {modalItems.length === 0 && (
-                <div className="text-white/70 text-sm">Keine Einsätze gefunden.</div>
+                <div className="text-gray-600 text-sm">Keine Einsätze gefunden.</div>
               )}
             </div>
 
             <div className="mt-6 flex justify-end">
               <button
                 onClick={closeModals}
-                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+                className="px-5 py-2 min-h-[44px] bg-emerald-500 text-white font-semibold rounded-md hover:bg-emerald-600 transition-colors w-full sm:w-auto"
               >
                 Schließen
               </button>
@@ -478,20 +555,19 @@ export function Calendar() {
 
       {/* Modal: Nicht verfügbare Cleaner */}
       {peopleModalOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="people-title"
-            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
-                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+            className="w-full max-w-lg mx-4 bg-white text-gray-900 border border-gray-200 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 id="people-title" className="text-lg sm:text-xl font-semibold">
                   Nicht verfügbare Cleaner
                 </h3>
-                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                <p className="text-gray-600 text-sm mt-0.5 flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4" />
                   {peopleModalDate}
                 </p>
@@ -499,9 +575,9 @@ export function Calendar() {
               <button
                 aria-label="Schließen"
                 onClick={closeModals}
-                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-100 transition-colors"
               >
-                <CloseIcon className="w-5 h-5 text-white/80" />
+                <CloseIcon className="w-5 h-5 text-gray-700" />
               </button>
             </div>
 
@@ -511,13 +587,13 @@ export function Calendar() {
                 return (
                   <div
                     key={c.id}
-                    className="rounded-xl border border-white/10 bg-white/5 p-3"
+                    className="rounded-xl border border-gray-200 bg-white p-3"
                   >
                     <div className="flex items-center gap-2">
-                      <UserIcon className="w-4 h-4 text-white/70" />
+                      <UserIcon className="w-4 h-4 text-gray-600" />
                       <div className="font-medium">{label}</div>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-white/70">
+                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-gray-600">
                       {c.email && (
                         <span className="inline-flex items-center gap-1.5">
                           <Mail className="w-4 h-4" />
@@ -536,14 +612,14 @@ export function Calendar() {
               })}
 
               {peopleList.length === 0 && (
-                <div className="text-white/70 text-sm">Keine Einträge.</div>
+                <div className="text-gray-600 text-sm">Keine Einträge.</div>
               )}
             </div>
 
             <div className="mt-6 flex justify-end">
               <button
                 onClick={closeModals}
-                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+                className="px-5 py-2 min-h-[44px] bg-emerald-500 text-white font-semibold rounded-md hover:bg-emerald-600 transition-colors w-full sm:w-auto"
               >
                 Schließen
               </button>
