@@ -5,7 +5,15 @@ import { MonthCalendar } from '../../components/calendar/MonthCalendar';
 import { getCleaners, getTasks } from '../../lib/api';
 import type { User, Cleaner } from '../../types/db';
 import type { MonthDay } from '../../lib/dates';
-import { Building2, MapPin, Calendar as CalendarIcon } from 'lucide-react';
+import {
+  Building2,
+  MapPin,
+  Calendar as CalendarIcon,
+  Brush,
+  User as UserIcon,
+  Mail,
+  Phone,
+} from 'lucide-react';
 
 interface ContextType {
   user: User;
@@ -112,13 +120,18 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
-  // Index: Aufgaben-Details (für Popup)
+  // Index: Aufgaben-Details
   const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
 
-  // Modal-State
+  // Modal: Assignments
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState<string>('');
   const [modalItems, setModalItems] = useState<AssignmentDetail[]>([]);
+
+  // Modal: Unavailable Cleaners (mobile "Alle")
+  const [peopleModalOpen, setPeopleModalOpen] = useState(false);
+  const [peopleModalDate, setPeopleModalDate] = useState<string>('');
+  const [peopleList, setPeopleList] = useState<Cleaner[]>([]);
 
   // Throttle/Guards fürs Laden
   const inFlightRef = useRef(false);
@@ -198,7 +211,7 @@ export function Calendar() {
       for (const t of rows ?? []) {
         const ymd = normalizeYMD(t?.date);
         const cleanerId = t?.cleaner_id as string | undefined;
-        const aptName = t?.apartment?.name as string | undefined; // <-- safe optional
+        const aptName = t?.apartment?.name as string | undefined;
         const address = t?.apartment?.address as string | undefined;
         if (!ymd || !cleanerId || !aptName) continue;
 
@@ -263,6 +276,19 @@ export function Calendar() {
     [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]
   );
 
+  const getUnavailableCleaners = useCallback(
+    (ymd: string): Cleaner[] => {
+      // Liefert tatsächliche Cleaner-Objekte, die an ymd abwesend sind
+      const result: Cleaner[] = [];
+      for (const c of cleaners) {
+        const set = unavailableIndex.get(c.id);
+        if (set?.has(ymd)) result.push(c);
+      }
+      return result;
+    },
+    [cleaners, unavailableIndex]
+  );
+
   const getAssignedDetailsForSelected = useCallback(
     (ymd: string): AssignmentDetail[] => {
       if (!selectedCleanerId) return [];
@@ -277,7 +303,17 @@ export function Calendar() {
     setModalOpen(true);
   }, []);
 
-  /* ---- renderDay ---- */
+  const openPeopleModal = useCallback((ymd: string, people: Cleaner[]) => {
+    setPeopleModalDate(ymd);
+    setPeopleList(people);
+    setPeopleModalOpen(true);
+  }, []);
+
+  /* ---- renderDay ----
+     - Desktop: wie gehabt (Liste in Alle, Button in Einzelansicht).
+     - Mobile (Alle): Brush-Button -> Modal mit Cleanern (Name/Email/Phone).
+     - Mobile (Einzel): Wenn keine Assignments: nur roter Kasten ohne Text.
+  */
   const renderDay = useCallback(
     (day: MonthDay) => {
       const ymd = dayToYMD(day);
@@ -293,32 +329,55 @@ export function Calendar() {
       const assignedDetails =
         (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
 
+      // Alle-Ansicht: wer ist abwesend (Objekte)
+      const unavailableCleaners = isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
+
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
+          {/* Kopf: nur Datum */}
           <div className="text-xs mb-1 flex items-center gap-2">
             <span className={day.isToday ? 'font-bold text-white' : day.isCurrentMonth ? 'text-white/70' : 'text-white/40'}>
               {day.date.getDate()}
             </span>
           </div>
 
+          {/* Tages-Kachel */}
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
+              {/* Grün → „Verfügbar“ */}
               {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
 
-              {/* Alle-Ansicht: scrollbare Liste der unverfügbaren Cleaner */}
+              {/* ALLE-Ansicht */}
               {isAllView && isUnavailable && (
-                <div className="mt-1 max-h-16 overflow-y-auto pr-1">
-                  <ul className="space-y-1">
-                    {unavailableNames.map((n, i) => (
-                      <li key={i} className="whitespace-nowrap text-[11px] text-white/90">
-                        <span className="text-white/60">Cleaner:</span>{' '}<span className="font-medium">{n}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <>
+                  {/* Desktop: Liste wie gehabt */}
+                  <div className="mt-1 max-h-16 overflow-y-auto pr-1 hidden sm:block">
+                    <ul className="space-y-1">
+                      {unavailableNames.map((n, i) => (
+                        <li key={i} className="whitespace-nowrap text-[11px] text-white/90">
+                          <span className="text-white/60">Cleaner:</span>{' '}
+                          <span className="font-medium">{n}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Mobile: Brush-Button öffnet People-Modal */}
+                  <div className="mt-1 flex items-center justify-center sm:hidden">
+                    <button
+                      type="button"
+                      onClick={() => openPeopleModal(ymd, unavailableCleaners)}
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors touch-manipulation"
+                      title="Unverfügbare Cleaner ansehen"
+                    >
+                      <Brush className="w-4 h-4" />
+                      {/* nur Icon auf ganz klein wäre okay; hier lassen wir den Text aus UX-Gründen weg */}
+                    </button>
+                  </div>
+                </>
               )}
 
-              {/* Einzelansicht: Button oder Hinweis */}
+              {/* EINZEL-Ansicht */}
               {!isAllView && isUnavailable && (
                 assignedDetails.length > 0 ? (
                   <div className="mt-1 flex items-center justify-center">
@@ -333,9 +392,14 @@ export function Calendar() {
                     </button>
                   </div>
                 ) : (
-                  <div className="mt-2 flex items-center justify-center text-white text-[11px] font-bold">
-                    – Keine Geplanten Einsätze –
-                  </div>
+                  <>
+                    {/* Mobile: nur roter Kasten, KEIN Text */}
+                    <div className="mt-2 sm:hidden" />
+                    {/* Desktop: Hinweistext bleibt */}
+                    <div className="mt-2 hidden sm:flex items-center justify-center text-white text-[11px] font-bold">
+                      – Keine Geplanten Einsätze –
+                    </div>
+                  </>
                 )
               )}
             </div>
@@ -343,7 +407,14 @@ export function Calendar() {
         </div>
       );
     },
-    [getUnavailableNames, isAllView, getAssignedDetailsForSelected, openModalFor]
+    [
+      getUnavailableNames,
+      isAllView,
+      getAssignedDetailsForSelected,
+      getUnavailableCleaners,
+      openModalFor,
+      openPeopleModal,
+    ]
   );
 
   const sortedCleaners = useMemo(
@@ -362,6 +433,7 @@ export function Calendar() {
         </div>
       )}
 
+      {/* Filter + Auswahl */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
@@ -430,7 +502,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Gesamter Kalender mit feinem White-Glow */}
+      {/* Schwarzer Kalendercontainer mit feinem White-Glow; Tageskacheln ohne Shadow */}
       <div className="rounded-2xl border border-white/20 bg-black p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(255,255,255,0.08)]">
         <MonthCalendar
           year={year}
@@ -458,7 +530,7 @@ export function Calendar() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal: Geplante Einsätze (Einzelansicht) */}
       {modalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
@@ -511,6 +583,76 @@ export function Calendar() {
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
+                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Unverfügbare Cleaner (Alle-Ansicht, Mobile via Brush-Button) */}
+      {peopleModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Brush className="w-6 h-6" />
+                <h4 className="text-lg font-semibold">Abwesende Cleaner am {peopleModalDate}</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPeopleModalOpen(false)}
+                className="p-2 rounded-md hover:bg-white/10"
+                aria-label="Schließen"
+              >
+                <span className="text-lg leading-none">×</span>
+              </button>
+            </div>
+
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              {peopleList.length === 0 ? (
+                <div className="text-white/60 text-sm">Keine Einträge.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {peopleList.map((p) => {
+                    const name = (p as any)?.name || (p as any)?.email || (p as any)?.phone || 'Unbekannt';
+                    const email = (p as any)?.email;
+                    const phone = (p as any)?.phone;
+                    return (
+                      <li key={p.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                        <div className="flex items-start gap-3">
+                          <div className="shrink-0">
+                            <UserIcon className="w-6 h-6 text-white/90" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-white truncate">{name}</div>
+                            {email && (
+                              <div className="mt-1 flex items-center gap-2 text-white/80 text-xs">
+                                <Mail className="w-4 h-4" />
+                                <span className="truncate">{email}</span>
+                              </div>
+                            )}
+                            {phone && (
+                              <div className="mt-1 flex items-center gap-2 text-white/80 text-xs">
+                                <Phone className="w-4 h-4" />
+                                <span className="truncate">{phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div className="p-3 border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setPeopleModalOpen(false)}
                 className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
               >
                 Schließen
