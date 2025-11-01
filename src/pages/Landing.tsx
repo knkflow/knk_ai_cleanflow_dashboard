@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
+import { UserSearch } from 'lucide-react';
+
 
 export function Landing() {
   const navigate = useNavigate();
