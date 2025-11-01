@@ -388,7 +388,7 @@ export function Tasks() {
 
                   {!taskCleaner && (
                     <p className="text-white/70 text-sm mb-1">
-                      Diese Reinigung wird von der Stammreinigungskraft durchgeführt.
+                      Reinigungskraft: Stammreinigungskraft von Apartment {task.apartment?.name || 'Unknown Apartment'}
                     </p>
                   )}
 
