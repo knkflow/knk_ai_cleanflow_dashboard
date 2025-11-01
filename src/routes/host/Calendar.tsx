@@ -16,7 +16,6 @@ import {
   X,
   X as CloseIcon,
 } from 'lucide-react';
-// import { motion } from 'framer-motion'; // <-- entfernt
 
 interface ContextType {
   user: User;
@@ -121,7 +120,6 @@ export function Calendar() {
   const initialLoadDone = useRef(false);
   const THROTTLE_MS = 500;
 
-  /* ---- CLEANERS LADEN ---- */
   const loadCleaners = useCallback(async (opts?: { silent?: boolean }) => {
     const nowTs = Date.now();
     if (inFlightRef.current || nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
@@ -148,14 +146,12 @@ export function Calendar() {
     if (path.toLowerCase().includes('calendar')) void loadCleaners({ silent: true });
   }, [location.pathname, loadCleaners]);
 
-  /* ---- INDEX: Abwesenheiten ---- */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const c of cleaners) m.set(c.id, availabilityToSet((c as any).availability));
     return m;
   }, [cleaners]);
 
-  /* ---- TASKS LADEN ---- */
   const loadAssignments = useCallback(async () => {
     try {
       const startYMD = ymdFromUTC(year, month + 1, 1);
@@ -183,7 +179,10 @@ export function Calendar() {
   useEffect(() => { void loadAssignments(); }, [loadAssignments]);
 
   const monthStart = useMemo(() => ymdFromUTC(year, month + 1, 1), [year, month]);
-  const monthEnd = useMemo(() => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()), [year, month]);
+  const monthEnd = useMemo(
+    () => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()),
+    [year, month]
+  );
 
   const isInVisibleMonth = useCallback(
     (ymd: string) => ymd >= monthStart && ymd <= monthEnd,
@@ -245,6 +244,16 @@ export function Calendar() {
     setPeopleModalOpen(false);
   }, []);
 
+  /* ---- Farb-Logik für den Tag ---- */
+  const dayStyles = useCallback((isUnavailable: boolean) => {
+    if (isUnavailable) {
+      // Rot (nicht verfügbar)
+      return 'bg-red-600/10 text-red-100 border-red-400/30 shadow-[0_0_0_1px_rgba(239,68,68,0.18)_inset]';
+    }
+    // Grün (verfügbar)
+    return 'bg-emerald-600/10 text-emerald-100 border-emerald-400/30 shadow-[0_0_0_1px_rgba(16,185,129,0.18)_inset]';
+  }, []);
+
   /* ---- renderDay ---- */
   const renderDay = useCallback(
     (day: MonthDay) => {
@@ -252,23 +261,30 @@ export function Calendar() {
       if (!ymd) return <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`} />;
       const unavailableNames = getUnavailableNames(ymd);
       const isUnavailable = unavailableNames.length > 0;
-      const boxClass = isUnavailable
-        ? 'bg-rose-500/10 text-rose-200 border-rose-400/30 shadow-[0_0_0_1px_rgba(244,63,94,0.15)_inset]'
-        : 'bg-emerald-500/10 text-emerald-200 border-emerald-400/30 shadow-[0_0_0_1px_rgba(16,185,129,0.15)_inset]';
+      const boxClass = dayStyles(isUnavailable);
       const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
       const unavailableCleaners = isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
 
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
           <div className="text-xs mb-1 flex items-center gap-2">
-            <span className={day.isToday ? 'font-bold text-white' : 'text-white/70'}>
+            <span className={day.isToday ? 'font-bold text-white' : 'text-white/80'}>
               {day.date.getDate()}
             </span>
+            {day.isToday && (
+              <span className="inline-flex items-center rounded-full bg-sky-500/20 text-sky-100 px-1.5 py-0.5 text-[10px] border border-sky-400/30">
+                Heute
+              </span>
+            )}
           </div>
 
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
-              {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
+              {!isUnavailable && (
+                <div className="truncate text-center font-medium">
+                  Verfügbar
+                </div>
+              )}
 
               {/* ALLE Ansicht */}
               {isAllView && isUnavailable && (
@@ -276,9 +292,9 @@ export function Calendar() {
                   <div className="mt-1 max-h-16 overflow-y-auto pr-1 hidden sm:block">
                     <ul className="space-y-1">
                       {unavailableNames.map((n, i) => (
-                        <li key={i} className="whitespace-nowrap text-[11px] text-white/90">
-                          <span className="text-white/60">Cleaner:</span>{' '}
-                          <span className="font-medium">{n}</span>
+                        <li key={i} className="whitespace-nowrap text-[11px] text-red-50">
+                          <span className="text-red-200">Cleaner:</span>{' '}
+                          <span className="font-semibold">{n}</span>
                         </li>
                       ))}
                     </ul>
@@ -286,9 +302,11 @@ export function Calendar() {
                   <div className="mt-1 flex items-center justify-center sm:hidden">
                     <button
                       onClick={() => openPeopleModal(ymd, unavailableCleaners)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-blue-600/40 hover:bg-blue-50 transition-colors"
+                      title="Nicht verfügbare Cleaner anzeigen"
                     >
-                      <Brush className="w-4 h-4" />
+                      <Brush className="w-4 h-4 text-blue-700" />
+                      <span className="text-[11px] font-semibold">Details</span>
                     </button>
                   </div>
                 </>
@@ -300,9 +318,9 @@ export function Calendar() {
                   <div className="mt-1 flex items-center justify-center">
                     <button
                       onClick={() => openModalFor(ymd, assignedDetails)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
+                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-blue-600/40 hover:bg-blue-50 transition-colors"
                     >
-                      <Building2 className="w-4 h-4" />
+                      <Building2 className="w-4 h-4 text-blue-700" />
                       <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
                     </button>
                   </div>
@@ -310,18 +328,18 @@ export function Calendar() {
                   <div className="flex items-center justify-center mt-2">
                     <span
                       className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full
-                                 bg-rose-900/40 border border-rose-700/60
-                                 shadow-[0_0_16px_rgba(225,29,72,0.55)] ring-1 ring-rose-800/50"
+                                 bg-red-900/40 border border-red-700/60
+                                 shadow-[0_0_16px_rgba(225,29,72,0.55)] ring-1 ring-red-800/50"
                     >
                       <X
-                        className="w-5 h-5 text-rose-300"
+                        className="w-5 h-5 text-red-200"
                         strokeWidth={2.75}
                         title="Keine geplanten Einsätze"
                         aria-label="Keine geplanten Einsätze"
                       />
                     </span>
-                    <span className="hidden sm:inline text-rose-300 font-medium tracking-wide">
-                      -Keine Geplanten Einsätze-
+                    <span className="hidden sm:inline text-red-200 font-medium tracking-wide">
+                      – Keine geplanten Einsätze –
                     </span>
                   </div>
                 )
@@ -331,7 +349,15 @@ export function Calendar() {
         </div>
       );
     },
-    [getUnavailableNames, isAllView, getAssignedDetailsForSelected, getUnavailableCleaners, openModalFor, openPeopleModal]
+    [
+      getUnavailableNames,
+      isAllView,
+      getAssignedDetailsForSelected,
+      getUnavailableCleaners,
+      openModalFor,
+      openPeopleModal,
+      dayStyles
+    ]
   );
 
   const sortedCleaners = useMemo(
@@ -343,13 +369,12 @@ export function Calendar() {
   if (loading) {
     return (
       <div className="relative min-h-[60vh] text-white">
+        {/* dezent: nur Grün/Blau */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute -top-48 -left-48 h-[40rem] w-[40rem] rounded-full blur-3xl opacity-50" style={{
-            background: 'radial-gradient(40% 40% at 50% 50%, #10B981 0%, rgba(16,185,129,0.0) 60%)'
-          }} />
-          <div className="absolute -bottom-64 -right-80 h-[40rem] w-[40rem] rounded-full blur-3xl opacity-40" style={{
-            background: 'radial-gradient(40% 40% at 50% 50%, #8B5CF6 0%, rgba(139,92,246,0.0) 60%)'
-          }} />
+          <div className="absolute -top-48 -left-48 h-[40rem] w-[40rem] rounded-full blur-3xl opacity-45"
+               style={{ background: 'radial-gradient(40% 40% at 50% 50%, rgba(16,185,129,0.6) 0%, transparent 60%)' }} />
+          <div className="absolute -bottom-64 -right-80 h-[40rem] w-[40rem] rounded-full blur-3xl opacity-35"
+               style={{ background: 'radial-gradient(40% 40% at 50% 50%, rgba(2,132,199,0.6) 0%, transparent 60%)' }} />
         </div>
         <div className="flex items-center justify-center h-[60vh]">
           <div className="relative">
@@ -363,22 +388,19 @@ export function Calendar() {
   /* ---- RENDER ---- */
   return (
     <div className="relative text-white">
-      {/* --- VIBRANT BACKGROUND LAYERS --- */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[50rem] w-[50rem] rounded-full blur-3xl opacity-40" style={{
-        background: 'radial-gradient(40% 40% at 50% 50%, #10B981 0%, rgba(16,185,129,0.0) 60%)'
-      }} />
-      <div className="pointer-events-none absolute -bottom-56 -right-72 h-[50rem] w-[50rem] rounded-full blur-3xl opacity-30" style={{
-        background: 'radial-gradient(40% 40% at 50% 50%, #8B5CF6 0%, rgba(139,92,246,0.0) 60%)'
-      }} />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.10]" style={{
-        backgroundImage: 'conic-gradient(from 90deg at 50% 50%, #00E5FF, #10B981, #F97316, #FF3D71, #8B5CF6, #00E5FF)'
-      }} />
-      <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:32px_32px]" />
+      {/* --- BACKGROUND (nur Grün/Blau mit leichter Conic-Note) --- */}
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[50rem] w-[50rem] rounded-full blur-3xl opacity-35"
+           style={{ background: 'radial-gradient(40% 40% at 50% 50%, rgba(16,185,129,0.55) 0%, transparent 60%)' }} />
+      <div className="pointer-events-none absolute -bottom-56 -right-72 h-[50rem] w-[50rem] rounded-full blur-3xl opacity-30"
+           style={{ background: 'radial-gradient(40% 40% at 50% 50%, rgba(2,132,199,0.55) 0%, transparent 60%)' }} />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.08]"
+           style={{ backgroundImage: 'conic-gradient(from 90deg at 50% 50%, #0EA5E9, #10B981, #0EA5E9)' }} />
+      <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:32px_32px]" />
 
       {errorMsg && (
         <div className="mb-3 relative">
-          <div className="rounded-xl p-[1px] bg-gradient-to-r from-amber-500 to-rose-500">
-            <div className="rounded-xl bg-[#0b0f1a] px-4 py-3 text-amber-200 text-sm border border-white/10">
+          <div className="rounded-xl p-[1px] bg-gradient-to-r from-sky-500 to-emerald-500">
+            <div className="rounded-xl bg-[#0b0f1a] px-4 py-3 text-sky-100 text-sm border border-white/10">
               {errorMsg}
             </div>
           </div>
@@ -393,15 +415,16 @@ export function Calendar() {
             <button
               onClick={() => setSelectedCleanerId(null)}
               className={`group rounded-xl px-3 py-3 border transition relative overflow-hidden
-                ${isAllView ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                  : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}`}
+                ${isAllView
+                  ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
+                  : 'border-sky-600/40 bg-white/5 hover:shadow-[0_0_24px_rgba(14,165,233,0.45)] hover:border-sky-400/60'}`}
             >
-              <span className="pointer-events-none absolute -inset-[1px] rounded-xl bg-gradient-to-r from-emerald-500 via-fuchsia-500 to-indigo-500 opacity-0 group-hover:opacity-30 blur-sm transition" />
+              <span className="pointer-events-none absolute -inset-[1px] rounded-xl bg-gradient-to-r from-emerald-500 via-sky-500 to-emerald-500 opacity-0 group-hover:opacity-25 blur-sm transition" />
               <div className="relative flex items-baseline justify-between gap-2">
                 <div className="text-sm font-medium text-white">Alle</div>
-                <div className="text-[11px] text-white/60">{sortedCleaners.length} Cleaner</div>
+                <div className="text-[11px] text-white/70">{sortedCleaners.length} Cleaner</div>
               </div>
-              <div className="relative text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
+              <div className="relative text-xs text-white/70 mt-0.5">Gesamtübersicht</div>
             </button>
 
             {sortedCleaners.map((c) => {
@@ -413,18 +436,21 @@ export function Calendar() {
                   key={c.id}
                   onClick={() => setSelectedCleanerId(c.id)}
                   className={`group rounded-xl px-3 py-3 border transition relative overflow-hidden
-                    ${active ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}`}
+                    ${active
+                      ? 'border-emerald-400 bg-emerald-600/10 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]'
+                      : 'border-sky-600/40 bg-white/5 hover:shadow-[0_0_24px_rgba(14,165,233,0.45)] hover:border-sky-400/60'}`}
                 >
-                  <span className="pointer-events-none absolute -inset-[1px] rounded-xl bg-gradient-to-r from-emerald-500 via-fuchsia-500 to-indigo-500 opacity-0 group-hover:opacity-30 blur-sm transition" />
+                  <span className="pointer-events-none absolute -inset-[1px] rounded-xl bg-gradient-to-r from-emerald-500 via-sky-500 to-emerald-500 opacity-0 group-hover:opacity-25 blur-sm transition" />
                   <div className="relative flex items-center gap-2">
                     <div className={`h-7 w-7 rounded-lg flex items-center justify-center
-                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}>
+                      ${active ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-900/40 text-sky-100'}`}>
                       <span className="text-xs font-bold">{initials}</span>
                     </div>
                     <div>
                       <div className="text-sm font-medium text-white truncate">{label}</div>
-                      <div className="text-[11px] text-white/60">{active ? 'Ausgewählt' : 'Klicken'}</div>
+                      <div className={`text-[11px] ${active ? 'text-emerald-200' : 'text-sky-200'}`}>
+                        {active ? 'Ausgewählt' : 'Klicken'}
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -434,9 +460,9 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Kalender-Wrapper mit Neon-Glow */}
-      <div className="relative rounded-2xl border border-white/15 bg-white/5 p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(99,102,241,0.25)] overflow-hidden">
-        <div className="pointer-events-none absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-emerald-500/20 via-fuchsia-500/20 to-indigo-500/20 blur-md" aria-hidden />
+      {/* Kalender-Wrapper */}
+      <div className="relative rounded-2xl border border-sky-600/30 bg-sky-900/10 p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(14,165,233,0.25)] overflow-hidden">
+        <div className="pointer-events-none absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-emerald-500/15 via-sky-500/15 to-emerald-500/15 blur-md" aria-hidden />
         <div className="relative">
           <MonthCalendar
             year={year}
@@ -456,7 +482,7 @@ export function Calendar() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="assignments-title"
-            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
+            className="w-full max-w-lg mx-4 bg-[#0c111b] text-white border border-sky-600/30 rounded-2xl shadow-2xl
                        max-h-[90vh] overflow-y-auto p-4 sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
@@ -464,7 +490,7 @@ export function Calendar() {
                 <h3 id="assignments-title" className="text-lg sm:text-xl font-semibold">
                   Geplante Einsätze
                 </h3>
-                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                <p className="text-sky-200 text-sm mt-0.5 flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4" />
                   {modalDate}
                 </p>
@@ -482,14 +508,14 @@ export function Calendar() {
               {modalItems.map((it, idx) => (
                 <div
                   key={`${it.name}-${idx}`}
-                  className="rounded-xl border border-white/10 bg-white/5 p-3"
+                  className="rounded-xl border border-emerald-600/25 bg-emerald-900/10 p-3"
                 >
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-white/70" />
+                    <Building2 className="w-4 h-4 text-emerald-300" />
                     <div className="font-medium">{it.name}</div>
                   </div>
                   {it.address && (
-                    <div className="mt-1 flex items-center gap-2 text-sm text-white/70">
+                    <div className="mt-1 flex items-center gap-2 text-sm text-emerald-200">
                       <MapPin className="w-4 h-4" />
                       <span>{it.address}</span>
                     </div>
@@ -498,14 +524,14 @@ export function Calendar() {
               ))}
 
               {modalItems.length === 0 && (
-                <div className="text-white/70 text-sm">Keine Einsätze gefunden.</div>
+                <div className="text-sky-100 text-sm">Keine Einsätze gefunden.</div>
               )}
             </div>
 
             <div className="mt-6 flex justify-end">
               <button
                 onClick={closeModals}
-                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-blue-50 transition-colors w-full sm:w-auto border border-sky-600/30"
               >
                 Schließen
               </button>
@@ -521,7 +547,7 @@ export function Calendar() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="people-title"
-            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
+            className="w-full max-w-lg mx-4 bg-[#0c111b] text-white border border-sky-600/30 rounded-2xl shadow-2xl
                        max-h-[90vh] overflow-y-auto p-4 sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
@@ -529,7 +555,7 @@ export function Calendar() {
                 <h3 id="people-title" className="text-lg sm:text-xl font-semibold">
                   Nicht verfügbare Cleaner
                 </h3>
-                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                <p className="text-sky-200 text-sm mt-0.5 flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4" />
                   {peopleModalDate}
                 </p>
@@ -549,13 +575,13 @@ export function Calendar() {
                 return (
                   <div
                     key={c.id}
-                    className="rounded-xl border border-white/10 bg-white/5 p-3"
+                    className="rounded-xl border border-red-600/25 bg-red-900/10 p-3"
                   >
                     <div className="flex items-center gap-2">
-                      <UserIcon className="w-4 h-4 text-white/70" />
+                      <UserIcon className="w-4 h-4 text-red-300" />
                       <div className="font-medium">{label}</div>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-white/70">
+                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-red-200">
                       {c.email && (
                         <span className="inline-flex items-center gap-1.5">
                           <Mail className="w-4 h-4" />
@@ -574,14 +600,14 @@ export function Calendar() {
               })}
 
               {peopleList.length === 0 && (
-                <div className="text-white/70 text-sm">Keine Einträge.</div>
+                <div className="text-sky-100 text-sm">Keine Einträge.</div>
               )}
             </div>
 
             <div className="mt-6 flex justify-end">
               <button
                 onClick={closeModals}
-                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-blue-50 transition-colors w-full sm:w-auto border border-sky-600/30"
               >
                 Schließen
               </button>
