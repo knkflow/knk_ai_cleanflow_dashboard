@@ -296,7 +296,7 @@ export function Tasks() {
           className="w-full flex items-center gap-2 px-4 py-3 rounded-full bg-blue-600 text-white shadow active:scale-[0.99] transition-all"
         >
           <Lightbulb className="w-5 h-5" />
-          <span className="font-medium">Wie entsteht Cleanflow&apos;s Reinigungsplan?</span>
+          <span className="font-medium">Wie entsteht der Reinigungsplan?</span>
         </button>
 
         {mobileInfoOpen && (
