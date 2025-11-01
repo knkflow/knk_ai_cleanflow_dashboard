@@ -181,7 +181,7 @@ export function Calendar() {
         idx.set(cleanerId, byDate);
       }
       setDetailsIndex(idx);
-    } catch {/* ignore */}
+    } catch { /* ignore */ }
   }, [user.id, year, month]);
 
   useEffect(() => { void loadAssignments(); }, [loadAssignments]);
@@ -266,13 +266,14 @@ export function Calendar() {
 
       const unavailableNames = getUnavailableNames(ymd);
       const isUnavailable = unavailableNames.length > 0;
+
+      // Farben/Styles pro Status
       const availabilityClass = isUnavailable
-        ? 'bg-red-50 text-red-900 border-red-300'
-        : 'bg-emerald-50 text-emerald-900 border-emerald-300';
+        ? 'bg-red-50 text-red-900 border-red-300 ring-red-200/50'
+        : 'bg-emerald-50 text-emerald-900 border-emerald-300 ring-emerald-200/50';
 
       const assignedDetails = (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
       const unavailableCleaners = isAllView && isUnavailable ? getUnavailableCleaners(ymd) : [];
-
       const weekend = day.date.getDay() === 0 || day.date.getDay() === 6; // So/Sa
 
       return (
@@ -289,17 +290,24 @@ export function Calendar() {
 
           {day.isCurrentMonth && (
             <div
-              className={`relative text-xs p-2 rounded-lg border min-h-[84px] md:min-h-[110px] ${availabilityClass} ${weekend ? 'ring-1 ring-gray-200/70' : ''} shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6)]`}
+              className={[
+                'relative text-xs p-2 rounded-xl border min-h-[110px] md:min-h-[140px]',
+                'transition-all duration-200 ease-out',
+                'hover:-translate-y-0.5 hover:shadow-lg hover:ring-2',
+                availabilityClass,
+                weekend ? 'shadow-inner ring-1 ring-gray-200/60' : '',
+                day.isToday ? 'outline outline-2 outline-emerald-300/70' : '',
+              ].join(' ')}
               title={isUnavailable ? 'Nicht verfügbar' : 'Verfügbar'}
             >
               {!isUnavailable && (
-                <div className="truncate text-center font-medium">Verfügbar</div>
+                <div className="truncate text-center font-medium tracking-wide">Verfügbar</div>
               )}
 
               {/* ALLE Ansicht */}
               {isAllView && isUnavailable && (
                 <>
-                  <div className="mt-1 max-h-16 overflow-y-auto pr-1 hidden sm:block">
+                  <div className="mt-1 max-h-24 overflow-y-auto pr-1 hidden sm:block">
                     <ul className="space-y-1">
                       {unavailableNames.map((n, i) => (
                         <li key={i} className="whitespace-nowrap text-[11px]">
@@ -309,7 +317,7 @@ export function Calendar() {
                       ))}
                     </ul>
                   </div>
-                  <div className="mt-1 flex items-center justify-center sm:hidden">
+                  <div className="mt-2 flex items-center justify-center sm:hidden">
                     <button
                       onClick={() => openPeopleModal(ymd, unavailableCleaners)}
                       className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -323,17 +331,17 @@ export function Calendar() {
               {/* EINZEL Ansicht */}
               {!isAllView && isUnavailable && (
                 assignedDetails.length > 0 ? (
-                  <div className="mt-1 flex items-center justify-center">
+                  <div className="mt-2 flex items-center justify-center">
                     <button
                       onClick={() => openModalFor(ymd, assignedDetails)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-colors"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 transition-colors"
                     >
                       <Building2 className="w-4 h-4" />
                       <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center mt-2">
+                  <div className="flex items-center justify-center mt-3">
                     <span className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full bg-red-100 border border-red-300 shadow ring-1 ring-red-200">
                       <X className="w-5 h-5 text-red-600" strokeWidth={2.75} title="Keine geplanten Einsätze" aria-label="Keine geplanten Einsätze" />
                     </span>
@@ -358,67 +366,23 @@ export function Calendar() {
 
   /* ---- RENDER ---- */
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
       {errorMsg && (
         <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-yellow-800 text-sm">
           {errorMsg}
         </div>
       )}
 
-     
-            }}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
-            aria-label="Vorheriger Monat"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => {
-              const d = new Date(year, month + 1, 1);
-              setYear(d.getFullYear()); setMonth(d.getMonth());
-            }}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
-            aria-label="Nächster Monat"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-          <div className="ml-1 text-xl md:text-2xl font-semibold tracking-tight">
-            {MONTHS_DE[month]} {year}
-          </div>
-          <button
-            onClick={() => { const t = new Date(); setYear(t.getFullYear()); setMonth(t.getMonth()); }}
-            className="ml-2 inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-1 text-xs md:text-sm hover:bg-gray-50"
-          >
-            Heute
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-emerald-50">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Verfügbar
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-red-50">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Nicht verfügbar
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
-            <span className="h-2.5 w-2.5 rounded-full bg-gray-300" /> Wochenende
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" /> Heute
-          </span>
-        </div>
-      </div>
-
-      {/* Cleaner Auswahl */}
+      {/* Cleaner-Auswahl (oben, groß) */}
       {cleaners.length > 0 && (
-        <div className="mb-4">
+        <div className="mx-auto max-w-[1400px] px-4 pt-4">
           <div className="text-gray-900 font-semibold mb-2">Cleaner auswählen</div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             <button
               onClick={() => setSelectedCleanerId(null)}
-              className={`rounded-xl px-3 py-3 border transition ${
+              className={`rounded-2xl px-4 py-4 border transition shadow-sm ${
                 isAllView
-                  ? 'border-emerald-300 bg-emerald-50 shadow-sm'
+                  ? 'border-emerald-300 bg-emerald-50'
                   : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300'
               }`}
             >
@@ -437,12 +401,12 @@ export function Calendar() {
                 <button
                   key={c.id}
                   onClick={() => setSelectedCleanerId(c.id)}
-                  className={`rounded-xl px-3 py-3 border transition ${
+                  className={`rounded-2xl px-4 py-4 border transition ${
                     active ? 'border-emerald-300 bg-emerald-50 shadow-sm' : 'border-gray-200 bg-white hover:shadow-md hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${active ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${active ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-700'}`}>
                       <span className="text-xs font-bold">{initials}</span>
                     </div>
                     <div>
@@ -457,18 +421,95 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Kalender */}
+      {/* Kalender-Panel: groß, füllt die Seite */}
       <div
-        className="rounded-2xl border border-gray-200 bg-white p-3 sm:p-4 ring-1 ring-gray-100 shadow-sm"
+        className="mx-auto max-w-[1400px] px-4 pb-8 pt-4"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <MonthCalendar
-          year={year}
-          month={month}
-          onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
-          renderDay={renderDay}
-        />
+        <div className="rounded-3xl border border-gray-200 bg-white ring-1 ring-gray-100 shadow-xl overflow-hidden min-h-[70vh]">
+          {/* Kopf: sticky INNEN */}
+          <div className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-gray-200">
+            <div className="px-4 py-3 flex items-center justify-between gap-3">
+              {/* Links: Navigation + Monat */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const d = new Date(year, month - 1, 1);
+                    setYear(d.getFullYear()); setMonth(d.getMonth());
+                  }}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
+                  aria-label="Vorheriger Monat"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    const d = new Date(year, month + 1, 1);
+                    setYear(d.getFullYear()); setMonth(d.getMonth());
+                  }}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50"
+                  aria-label="Nächster Monat"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+
+                <div className="ml-1 text-2xl md:text-3xl font-extrabold tracking-tight">
+                  {MONTHS_DE[month]} {year}
+                </div>
+
+                <button
+                  onClick={() => { const t = new Date(); setYear(t.getFullYear()); setMonth(t.getMonth()); }}
+                  className="ml-2 inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1.5 text-sm hover:bg-gray-50"
+                >
+                  Heute
+                </button>
+              </div>
+
+              {/* Rechts: Legende (Desktop) */}
+              <div className="hidden sm:flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-emerald-50">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Verfügbar
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 bg-red-50">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Nicht verfügbar
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+                  <span className="h-2.5 w-2.5 rounded-full bg-gray-300" /> Wochenende
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" /> Heute
+                </span>
+              </div>
+            </div>
+
+            {/* Legende Mobile */}
+            <div className="sm:hidden px-4 pb-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5 bg-emerald-50">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" /> Verfügbar
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5 bg-red-50">
+                <span className="h-2 w-2 rounded-full bg-red-500" /> Nicht verfügbar
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5">
+                <span className="h-2 w-2 rounded-full bg-gray-300" /> Wochenende
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-300" /> Heute
+              </span>
+            </div>
+          </div>
+
+          {/* Der eigentliche Kalender groß */}
+          <div className="p-4 sm:p-6">
+            <MonthCalendar
+              year={year}
+              month={month}
+              onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
+              renderDay={renderDay}
+            />
+          </div>
+        </div>
       </div>
 
       {/* ===== MODALS ===== */}
