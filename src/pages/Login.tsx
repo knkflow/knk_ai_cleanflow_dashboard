@@ -183,7 +183,7 @@ export function Login() {
               >
                 <LogIn className="w-5 h-5" />
                 {loading ? 'Bitte warten …' : 'Anmelden'}
-              </button>
+              </button
 
               <div className="text-center">
                 <span className="text-sm text-gray-600">Passwort vergessen? </span>
