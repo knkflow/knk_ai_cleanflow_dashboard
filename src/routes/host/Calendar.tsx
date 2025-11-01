@@ -383,10 +383,10 @@ export function Calendar() {
                   </div>
                 ) : (
                   <div
-                    className="mt-2 flex items-center justify-center text-emerald-400 text-[11px] font-medium"
+                    className="mt-2 flex items-center justify-center text-black text-[11px] font-bold"
                     title="Keine Geplanten Einsätze"
                   >
-                    – Keine Geplanten Einsätze –
+                   – Keine Geplanten Einsätze –   
                   </div>
                 )
               )}
