@@ -123,54 +123,53 @@ export function Apartments() {
   }
 
   if (loading) {
-    return <div className="text-white px-4 sm:px-6 md:px-8">Loading...</div>;
+    return <div className="px-4 sm:px-6 md:px-8 text-gray-600">Loading...</div>;
   }
 
   return (
     <div className="px-4 sm:px-6 md:px-8">
-      {/* Header: stack auf Mobile, inline ab sm */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-white">Apartments</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Apartments</h2>
         <button
           onClick={openCreateModal}
-          className="w-full sm:w-auto px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center justify-center gap-2 rounded-md"
+          className="w-full sm:w-auto px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors font-medium flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Apartment hinzufügen
         </button>
       </div>
 
-      {/* Grid: 1 Spalte auf XS, 2 auf sm, 3 auf lg */}
+      {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {apartments.map((apartment) => (
           <div
             key={apartment.listing_id}
-            className="bg-white/5 border border-white/10 p-4 sm:p-5 rounded-2xl transition-all duration-500 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
+            className="bg-white border border-gray-200 p-4 sm:p-5 rounded-2xl transition-all duration-300 hover:shadow-md"
           >
-            {/* Karte: stack auf Mobile, Buttons unten full width; ab sm Row */}
             <div className="flex flex-col gap-3">
               {/* Titel & Infos */}
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white/80 shrink-0" />
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
                   <span className="truncate">{apartment.name}</span>
                 </h3>
 
-                <p className="text-white/70 text-xs sm:text-sm mb-2 flex items-center gap-2">
-                  <KeyRound className="w-4 h-4 text-white/60 shrink-0" />
+                <p className="text-gray-700 text-xs sm:text-sm mb-2 flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-gray-500 shrink-0" />
                   <span className="truncate">Listing ID: {apartment.listing_id}</span>
                 </p>
 
                 {apartment.address && (
-                  <p className="text-white/60 text-xs sm:text-sm mb-2 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-white/50 shrink-0" />
+                  <p className="text-gray-600 text-xs sm:text-sm mb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-500 shrink-0" />
                     <span className="truncate">{apartment.address}</span>
                   </p>
                 )}
 
                 {apartment.default_cleaner && (
-                  <p className="text-white/50 text-xs sm:text-sm flex items-center gap-2">
-                    <User_Icon className="w-4 h-4 text-white/40 shrink-0" />
+                  <p className="text-gray-600 text-xs sm:text-sm flex items-center gap-2">
+                    <User_Icon className="w-4 h-4 text-gray-500 shrink-0" />
                     <span className="truncate">
                       Stammreinigungskraft: {apartment.default_cleaner.name}
                     </span>
@@ -178,24 +177,24 @@ export function Apartments() {
                 )}
               </div>
 
-              {/* Actions: Mobile full-width, ab sm inline rechts */}
+              {/* Actions */}
               <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
                 <button
                   onClick={() => openEditModal(apartment)}
-                  className="w-full sm:w-auto p-2 rounded-md hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
-                  title="Edit"
+                  className="w-full sm:w-auto px-3 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors flex items-center justify-center gap-2 text-gray-800"
+                  title="Bearbeiten"
                 >
-                  <Edit className="w-5 h-5 text-white" />
+                  <Edit className="w-5 h-5" />
                   <span className="sm:hidden text-sm">Bearbeiten</span>
                 </button>
 
                 <button
                   onClick={() => openDeleteModal(apartment)}
-                  className="w-full sm:w-auto p-2 rounded-md hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
-                  title="Delete"
+                  className="w-full sm:w-auto px-3 py-2 rounded-md bg-red-50 hover:bg-red-100 border border-red-200 transition-colors flex items-center justify-center gap-2 text-red-700"
+                  title="Löschen"
                 >
-                  <Trash2 className="w-5 h-5 text-red-500" />
-                  <span className="sm:hidden text-sm text-red-400">Löschen</span>
+                  <Trash2 className="w-5 h-5" />
+                  <span className="sm:hidden text-sm">Löschen</span>
                 </button>
               </div>
             </div>
@@ -203,7 +202,7 @@ export function Apartments() {
         ))}
 
         {apartments.length === 0 && (
-          <div className="col-span-full text-center py-10 sm:py-12 text-white/60 text-sm sm:text-base">
+          <div className="col-span-full text-center py-10 sm:py-12 text-gray-600 text-sm sm:text-base">
             Noch keine Apartments. Füge dein erstes Apartment hinzu, um zu starten.
           </div>
         )}
@@ -250,18 +249,18 @@ export function Apartments() {
             ]}
           />
 
-          {/* Modal-Buttons: mobile stacked, ab sm nebeneinander */}
+          {/* Modal-Buttons */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
             <button
               type="submit"
-              className="w-full sm:flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium rounded-md"
+              className="w-full sm:flex-1 px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors font-medium"
             >
               {editingId ? 'Aktualisieren' : 'Erstellen'}
             </button>
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="w-full sm:flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+              className="w-full sm:flex-1 px-4 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 transition-colors"
             >
               Abbrechen
             </button>
@@ -278,42 +277,41 @@ export function Apartments() {
         >
           {/* Overlay */}
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             onClick={() => setApartmentToDelete(null)}
           />
           {/* Dialog */}
-          <div className="relative w-full max-w-md bg-black text-white border border-white/10 shadow-2xl rounded-xl p-5 sm:p-6">
+          <div className="relative w-full max-w-md bg-white text-gray-900 border border-gray-200 shadow-2xl rounded-xl p-5 sm:p-6">
             <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Apartment löschen?</h3>
 
-            <div className="space-y-2 text-white/85 mb-5 sm:mb-6">
+            <div className="space-y-2 text-gray-800 mb-5 sm:mb-6">
               <p>
                 Möchten Sie das Apartment{' '}
-                <span className="font-semibold text-white">
+                <span className="font-semibold">
                   {apartmentToDelete.name}
                 </span>{' '}
                 wirklich entfernen?
               </p>
               {apartmentToDelete.address && (
-                <p className="text-white/70">
-                  Adresse: <span className="text-white">{apartmentToDelete.address}</span>
+                <p className="text-gray-600">
+                  Adresse: <span className="text-gray-800">{apartmentToDelete.address}</span>
                 </p>
               )}
-              <p className="text-red-400 text-xs sm:text-sm mt-2">
+              <p className="text-red-600 text-xs sm:text-sm mt-2">
                 Hinweis: Alle zugehörigen Reinigungsaufträge werden ebenfalls gelöscht.
               </p>
             </div>
 
-            {/* Buttons: Mobile full width */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={confirmDeleteApartment}
-                className="w-full sm:flex-1 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors font-medium rounded-md"
+                className="w-full sm:flex-1 px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
               >
                 Löschen
               </button>
               <button
                 onClick={() => setApartmentToDelete(null)}
-                className="w-full sm:flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
+                className="w-full sm:flex-1 px-4 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 transition-colors"
               >
                 Abbrechen
               </button>
