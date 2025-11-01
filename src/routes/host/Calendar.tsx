@@ -195,7 +195,7 @@ export function Calendar() {
       : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
     // Einzellansicht: Text im Kasten; Alle-Ansicht: kein Text im roten Kasten
-    const showTextInsideBox = !isAllView && !isUnavailable;
+    const showTextInsideBox = !isAllView && isUnavailable;
 
 const primaryText = isAllView
   ? (isUnavailable ? '' : 'Verfügbar')        // Alle: rot -> kein Text, grün -> "Verfügbar"
