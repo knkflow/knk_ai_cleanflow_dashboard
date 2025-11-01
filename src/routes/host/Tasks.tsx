@@ -281,6 +281,19 @@ return (
       </button>
     </div>
 
+      {/* Info Box */}
+      {canCreate && (
+        <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+          <p className="font-medium mb-2">How Cleaner Invitations Work:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Add a cleaner with their email address (or phone).</li>
+            <li>A magic link is sent for first-time login.</li>
+            <li>Role is automatically set to <b>Cleaner</b>.</li>
+            <li>Cleaner can then log in and set their password.</li>
+          </ol>
+        </div>
+      )}
+
     {/* Filter */}
     <div className="mb-6 flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
