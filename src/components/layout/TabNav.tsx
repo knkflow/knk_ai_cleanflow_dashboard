@@ -1,3 +1,4 @@
+// src/components/layout/TabNav.tsx
 import { NavLink } from 'react-router-dom';
 
 interface Tab {
@@ -11,7 +12,7 @@ interface TabNavProps {
 
 export function TabNav({ tabs }: TabNavProps) {
   return (
-    <nav className="bg-black border-b border-white/10">
+    <nav className="bg-white/90 backdrop-blur border-b border-gray-200">
       <div className="container mx-auto px-4">
         <div className="flex gap-1">
           {tabs.map((tab) => (
@@ -19,11 +20,12 @@ export function TabNav({ tabs }: TabNavProps) {
               key={tab.to}
               to={tab.to}
               className={({ isActive }) =>
-                `px-6 py-4 text-sm font-medium transition-colors ${
+                [
+                  'px-4 py-3 text-sm font-medium rounded-md transition-colors',
                   isActive
-                    ? 'text-white border-b-2 border-white'
-                    : 'text-white/50 hover:text-white/70'
-                }`
+                    ? 'bg-emerald-500 text-white'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+                ].join(' ')
               }
             >
               {tab.label}
