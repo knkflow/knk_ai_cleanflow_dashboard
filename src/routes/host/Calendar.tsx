@@ -216,6 +216,7 @@ export function Calendar() {
           </span>
 
           
+        </div>
 
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
