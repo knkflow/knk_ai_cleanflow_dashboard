@@ -170,44 +170,48 @@ export function Landing() {
       <main>
         {/* HERO */}
         <section ref={heroRef} className="relative overflow-hidden">
-          <div aria-hidden className="pointer-events-none absolute inset-0">
+          {/* NOTE: Grüne Blobs auf Mobile ausblenden, auf Desktop unverändert */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 hidden md:block"
+          >
             <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-emerald-200 blur-3xl" />
             <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-emerald-100 blur-3xl" />
           </div>
 
-          <div className="container mx-auto px-6 lg:px-10 py-24 md:py-32 text-center">
+          <div className="container mx-auto px-6 lg:px-10 py-16 md:py-32 text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 bg-white">
               <span className="text-[11px] md:text-xs tracking-[0.35em] uppercase text-gray-600">
                 Kurzzeitvermietung · Reinigungsteams · Hausverwaltungen
               </span>
             </div>
 
-            <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
+            <h1 className="mt-6 text-3xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
               Ihre Reinigungen. Einfach organisiert – klar, effizient, zuverlässig.
             </h1>
 
-            <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="mt-6 text-base md:text-xl text-gray-600 max-w-3xl mx-auto">
               Digitale Verwaltung aller Reinigungen, automatische und manuelle WhatsApp-Benachrichtigungen an Teams,
               zentrale Auftragsverwaltung mit Dokumentation und ein Kalender, der Abwesenheiten und Planung im Blick behält.
             </p>
 
-            <div className="mt-10 flex items-center justify-center gap-4">
+            <div className="mt-8 md:mt-10 flex items-center justify-center gap-3 md:gap-4">
               <Link
                 to="/login"
-                className="group inline-flex items-center gap-2 px-7 py-3 rounded-full bg-emerald-500 text-white font-semibold hover:bg-emerald-600"
+                className="group inline-flex items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-emerald-500 text-white font-semibold hover:bg-emerald-600"
               >
                 Jetzt starten
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <button
                 onClick={() => scrollTo(featuresRef)}
-                className="px-7 py-3 rounded-full border border-gray-200 text-gray-900 hover:bg-gray-50"
+                className="px-6 md:px-7 py-3 rounded-full border border-gray-200 text-gray-900 hover:bg-gray-50"
               >
                 Mehr erfahren
               </button>
             </div>
 
-            <div className="mt-14 mx-auto max-w-5xl rounded-3xl overflow-hidden border border-gray-200 bg-white">
+            <div className="mt-10 md:mt-14 mx-auto max-w-5xl rounded-2xl md:rounded-3xl overflow-hidden border border-gray-200 bg-white">
               <img
                 src="/Photo1.png"
                 alt="Dashboard Vorschau"
@@ -218,7 +222,7 @@ export function Landing() {
         </section>
 
         {/* FEATURES */}
-        <section ref={featuresRef} className="py-24 border-t border-gray-200">
+        <section ref={featuresRef} className="py-20 md:py-24 border-t border-gray-200">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
@@ -230,7 +234,7 @@ export function Landing() {
               </p>
             </div>
 
-            <div className="mt-14 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {[
                 {
                   icon: <MessageSquare className="w-5 h-5" />,
@@ -270,21 +274,19 @@ export function Landing() {
         </section>
 
         {/* MISSION / STORY */}
-        <section ref={storyRef} className="py-24 bg-gray-50">
-          <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-12 items-center">
+        <section ref={storyRef} className="py-20 md:py-24 bg-gray-50">
+          <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
               <img
                 src="/Photo2.png"
                 alt="Team bei der Einsatzplanung"
-                className="w-full rounded-3xl border border-gray-200"
+                className="w-full rounded-2xl md:rounded-3xl border border-gray-200"
               />
             </div>
 
             <div>
-              <p className="text-sm uppercase tracking-widest text-gray-500">
-                Unsere Mission
-              </p>
-              <h3 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight">
+              <p className="text-sm uppercase tracking-widest text-gray-500">Unsere Mission</p>
+              <h3 className="mt-2 text-2xl md:text-4xl font-extrabold tracking-tight">
                 Wir bringen Ruhe & Qualität in die Reinigung
               </h3>
               <p className="mt-4 text-gray-700 leading-relaxed">
@@ -320,7 +322,7 @@ export function Landing() {
         </section>
 
         {/* TRUST / TESTIMONIALS */}
-        <section className="py-24">
+        <section className="py-20 md:py-24">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="grid md:grid-cols-2 gap-10 items-start">
               <div>
@@ -389,7 +391,7 @@ export function Landing() {
         </section>
 
         {/* PRICING / CTA */}
-        <section ref={pricingRef} className="py-24 border-t border-gray-200">
+        <section ref={pricingRef} className="py-20 md:py-24 border-t border-gray-200">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center max-w-2xl mx-auto">
               <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -400,7 +402,7 @@ export function Landing() {
               </p>
             </div>
 
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="mt-10 md:mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
                   name: "Starter",
