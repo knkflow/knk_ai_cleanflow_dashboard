@@ -210,218 +210,228 @@ export function Cleaners() {
   const canCreate = user.role === 'Host';
 
   return (
-    <div>
-      {/* Header */}
-      <div className="relative z-[50] flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">
-          {user.role === 'Cleaner' ? 'Mein Profil' : 'Reinigungskräfte'}
-        </h2>
+  <div>
+  {/* Header */}
+  <div className="relative z-[50] flex items-center justify-between mb-6">
+    <h2 className="text-2xl font-bold text-white">
+      {user.role === 'Cleaner' ? 'Mein Profil' : 'Reinigungskräfte'}
+    </h2>
 
-        {canCreate && (
+    {canCreate && (
+      <button
+        type="button"
+        onClick={openCreateModal}
+        className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md focus:outline-none focus:ring focus:ring-white/50"
+      >
+        <Plus className="w-5 h-5" />
+        Add Cleaner
+      </button>
+    )}
+  </div>
+
+  {/* Info Box */}
+  {canCreate && (
+    <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+      <div className="flex items-center gap-2 mb-2">
+        <Lightbulb className="w-5 h-5 text-blue-400" />
+        <p className="font-medium">How Cleaner Invitations Work:</p>
+      </div>
+  
+      <ol className="list-decimal list-inside space-y-1">
+        <li>Add a cleaner with their email address (or phone).</li>
+        <li>A magic link is sent for first-time login.</li>
+        <li>
+          Role is automatically set to <b>Cleaner</b>.
+        </li>
+        <li>Cleaner can then log in and set their password.</li>
+      </ol>
+    </div>
+  )}
+
+  {/* Cleaner Cards */}
+  <div className="grid gap-4">
+    {cleaners.map((cleaner) => (
+      <div
+        key={cleaner.id}
+        className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-xl font-semibold text-white">{cleaner.name}</h3>
+              {cleaner.user_id ? (
+                <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-md">
+                  REGISTERED
+                </span>
+              ) : (
+                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-md">
+                  PENDING
+                </span>
+              )}
+            </div>
+
+            {cleaner.email && (
+              <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
+                <Mail className="w-4 h-4 text-white/60" />
+                {cleaner.email}
+              </p>
+            )}
+            {cleaner.phone && (
+              <p className="text-white/60 text-sm mb-1 flex items-center gap-2">
+                <Phone className="w-4 h-4 text-white/50" />
+                {cleaner.phone}
+              </p>
+            )}
+            {typeof cleaner.hourly_rate === 'number' && (
+              <p className="text-white/50 text-sm flex items-center gap-2">
+                <Euro className="w-4 h-4 text-white/40" />
+                Rate: €{Number(cleaner.hourly_rate).toFixed(2)}/hour
+              </p>
+            )}
+
+            <p className="text-white/40 text-xs mt-2">
+              Unavailable days: {getAvailCount(cleaner)}
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => openEditModal(cleaner)}
+              className="p-2 rounded-md hover:bg-white/10 transition-colors"
+            >
+              <Edit className="w-5 h-5 text-white" />
+            </button>
+
+            {canCreate && (
+              <button
+                type="button"
+                onClick={() => handleDelete(cleaner)}
+                className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+              >
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    ))}
+
+    {cleaners.length === 0 && (
+      <div className="text-center py-12 text-white/50">
+        Sie haben noch keine Cleaner erstellt.
+      </div>
+    )}
+  </div>
+
+  {/* Create/Edit Modal */}
+  {canCreate && (
+    <Modal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      title={editingId ? 'Edit Cleaner' : 'Add Cleaner'}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+          placeholder="Full name"
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          placeholder="email@example.com"
+        />
+        <Input
+          label="Phone"
+          type="tel"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          placeholder="+49 123 456789"
+        />
+        <Input
+          label="Hourly Rate (€)"
+          type="number"
+          step="0.01"
+          min="0"
+          value={formData.hourly_rate}
+          onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
+          placeholder="15.00"
+        />
+        <div className="flex gap-3 pt-4">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 disabled:opacity-60 transition-colors font-medium rounded-md"
+          >
+            {submitting ? 'Saving…' : editingId ? 'Update' : 'Create'}
+          </button>
           <button
             type="button"
-            onClick={openCreateModal}
-            className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md focus:outline-none focus:ring focus:ring-white/50"
+            onClick={() => setIsModalOpen(false)}
+            disabled={submitting}
+            className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-60 transition-colors rounded-md"
           >
-            <Plus className="w-5 h-5" />
-            Add Cleaner
+            Cancel
           </button>
-        )}
-      </div>
-
-      {/* Info Box */}
-      {canCreate && (
-        <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb className="w-5 h-5 text-blue-400" />
-            <p className="font-medium">How Cleaner Invitations Work:</p>
-          </div>
-      
-          <ol className="list-decimal list-inside space-y-1">
-            <li>Add a cleaner with their email address (or phone).</li>
-            <li>A magic link is sent for first-time login.</li>
-            <li>
-              Role is automatically set to <b>Cleaner</b>.
-            </li>
-            <li>Cleaner can then log in and set their password.</li>
-          </ol>
         </div>
-      )}
+      </form>
+    </Modal>
+  )}
 
-      {/* Cleaner Cards */}
-      <div className="grid gap-4">
-        {cleaners.map((cleaner) => (
-          <div
-            key={cleaner.id}
-            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
+  {/* Delete Confirm Popup */}
+  {isConfirmOpen && selectedCleaner && (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
+        <h3 className="text-xl font-semibold mb-3">Wirklich entfernen?</h3>
+        <p className="text-white/70 mb-6">
+          Möchten Sie den Cleaner{' '}
+          <span className="text-white font-semibold">{selectedCleaner.name}</span>{' '}
+          wirklich dauerhaft löschen?
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setIsConfirmOpen(false)}
+            className="px-4 py-2 border border-white/30 text-white hover:border-white/60 transition-colors rounded-md"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold text-white">{cleaner.name}</h3>
-                  {cleaner.user_id ? (
-                    <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-md">
-                      REGISTERED
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-md">
-                      PENDING
-                    </span>
-                  )}
-                </div>
-
-                {cleaner.email && <p className="text-white/70 text-sm mb-1">{cleaner.email}</p>}
-                {cleaner.phone && <p className="text-white/60 text-sm mb-1">{cleaner.phone}</p>}
-                {typeof cleaner.hourly_rate === 'number' && (
-                  <p className="text-white/50 text-sm">
-                    Rate: €{Number(cleaner.hourly_rate).toFixed(2)}/hour
-                  </p>
-                )}
-
-                <p className="text-white/40 text-xs mt-2">
-                  Unavailable days: {getAvailCount(cleaner)}
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => openEditModal(cleaner)}
-                  className="p-2 rounded-md hover:bg-white/10 transition-colors"
-                >
-                  <Edit className="w-5 h-5 text-white" />
-                </button>
-
-                {canCreate && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(cleaner)}
-                    className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5 text-red-500" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {cleaners.length === 0 && (
-          <div className="text-center py-12 text-white/50">
-            Sie haben noch keine Cleaner erstellt.
-          </div>
-        )}
+            Abbrechen
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteConfirmed}
+            className="px-5 py-2 bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors rounded-md"
+          >
+            Löschen
+          </button>
+        </div>
       </div>
-
-      {/* Create/Edit Modal */}
-      {canCreate && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title={editingId ? 'Edit Cleaner' : 'Add Cleaner'}
-        >
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              placeholder="Full name"
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="email@example.com"
-            />
-            <Input
-              label="Phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+49 123 456789"
-            />
-            <Input
-              label="Hourly Rate (€)"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.hourly_rate}
-              onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-              placeholder="15.00"
-            />
-            <div className="flex gap-3 pt-4">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 disabled:opacity-60 transition-colors font-medium rounded-md"
-              >
-                {submitting ? 'Saving…' : editingId ? 'Update' : 'Create'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                disabled={submitting}
-                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-60 transition-colors rounded-md"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      {/* Delete Confirm Popup */}
-      {isConfirmOpen && selectedCleaner && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-xl font-semibold mb-3">Wirklich entfernen?</h3>
-            <p className="text-white/70 mb-6">
-              Möchten Sie den Cleaner{' '}
-              <span className="text-white font-semibold">{selectedCleaner.name}</span>{' '}
-              wirklich dauerhaft löschen?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsConfirmOpen(false)}
-                className="px-4 py-2 border border-white/30 text-white hover:border-white/60 transition-colors rounded-md"
-              >
-                Abbrechen
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirmed}
-                className="px-5 py-2 bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors rounded-md"
-              >
-                Löschen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Error / Hinweis Popup */}
-      {errorModal.open && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-xl font-semibold mb-3">Hinweis</h3>
-            <p className="text-white/80 mb-6">{errorModal.message}</p>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setErrorModal({ open: false, message: '' })}
-                className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg-white/80 transition-colors"
-              >
-                Zurück
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  );
-}
+  )}
+
+  {/* Error / Hinweis Popup */}
+  {errorModal.open && (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
+        <h3 className="text-xl font-semibold mb-3">Hinweis</h3>
+        <p className="text-white/80 mb-6">{errorModal.message}</p>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setErrorModal({ open: false, message: '' })}
+            className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg-white/80 transition-colors"
+          >
+            Zurück
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+)}
 
 export default Cleaners;
