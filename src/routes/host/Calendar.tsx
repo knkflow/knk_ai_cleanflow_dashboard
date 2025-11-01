@@ -199,9 +199,8 @@ export function Calendar() {
 
     const primaryText = isAllView
   ? '' // Nur Namen anzeigen, kein Zusatz
-  : isUnavailable
-    ? 'Nicht verfügbar'
-    : 'Verfügbar';
+  : (isUnavailable ? 'Nicht verfügbar' : '');
+  : 'Verfügbar';
 
 
     const showNamesList = isAllView && isUnavailable;
@@ -221,7 +220,7 @@ export function Calendar() {
           </span>
 
           {/* Badge nur in "Alle" + wenn abwesend */}
-          {isAllView && isUnavailable && (
+          {!isAllView && isUnavailable && (
             <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
               Nicht verfügbar
             </span>
