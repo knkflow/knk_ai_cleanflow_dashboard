@@ -341,73 +341,7 @@ export function Tasks() {
           const unavailable = isCleanerUnavailable(task);
           const taskCleaner = getCleanerById(task.cleaner_id);
 
-return (
-  <div
-    key={task.id}
-    className={`p-6 rounded-2xl transition-all duration-500 ${
-      unavailable
-        ? 'border-2 border-red-500 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,80,80,0.45)]'
-        : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
-    }`}
-  >
-    {unavailable && (
-      <div className="flex items-center gap-2 mb-3 text-red-500 text-sm">
-        <AlertCircle className="w-4 h-4" />
-        <span>Die zugeordnete Reinigungskraft ist am Tag der Reinigung nicht verfügbar.</span>
-      </div>
-    )}
 
-    <div className="flex items-start justify-between">
-      <div className="flex-1">
-        {/* Titel + Deadline nebeneinander */}
-        <div className="flex items-center gap-3 mb-2 flex-wrap">
-          <h3 className="text-xl font-semibold text-white">
-            {task.apartment?.name || 'Unknown Apartment'}
-          </h3>
-
-          {task.deadline && (
-            <span
-              className="px-3 py-1 text-xs font-semibold rounded-full
-                         bg-red-600/20 text-red-300 border border-red-500/60"
-              title="Deadline"
-            >
-              Deadline: {formatDisplayDate(task.deadline)}
-            </span>
-          )}
-        </div>
-
-        {/* Datum */}
-        <p className="flex items-center gap-2 text-white/70 text-sm mb-1">
-          <Calendar className="w-4 h-4 text-white/50" />
-          <span>Datum: {formatDisplayDate(task.date)}</span>
-        </p>
-
-        {/* Reinigungskraft */}
-        {taskCleaner ? (
-          <p className="flex items-center gap-2 text-white/70 text-sm mb-1">
-            <User className="w-4 h-4 text-white/50" />
-            <span>Reinigungskraft: {taskCleaner.name}</span>
-          </p>
-        ) : (
-          <p className="flex items-center gap-2 text-white/70 text-sm mb-1">
-            <User className="w-4 h-4 text-white/50" />
-            <span>
-              Gereinigt durch Stammreinigungskraft von Apartment {task.apartment?.name || 'Unknown Apartment'}
-            </span>
-          </p>
-        )}
-
-        {/* Notiz */}
-        {task.note && (
-          <div className="mt-3 flex items-start gap-2 rounded-md border border-white/15 text-white/65 font-medium text-sm px-3 py-2 backdrop-blur-sm shadow-inner shadow-white/5 max-w-full break-words">
-            <StickyNote className="w-4 h-4 mt-0.5 text-white/50 flex-shrink-0" />
-            <span>{task.note}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-),
                 </div>
 
                 <div className="flex gap-2">
