@@ -5,7 +5,7 @@ import { MonthCalendar } from '../../components/calendar/MonthCalendar';
 import { getCleaners, getTasks } from '../../lib/api';
 import type { User, Cleaner } from '../../types/db';
 import type { MonthDay } from '../../lib/dates';
-import { Building2, MapPin, Calendar as CalendarIcon, X } from 'lucide-react';
+import { Building2, MapPin, Calendar as CalendarIcon } from 'lucide-react';
 
 interface ContextType {
   user: User;
@@ -114,7 +114,7 @@ function getCleanerLabel(c: Cleaner): string {
 /* ---------------- Component ---------------- */
 
 type AssignmentDetail = { name: string; address?: string | null; date: string };
-type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>; // cleanerId -> ymd -> details[]
+type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>;
 
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
@@ -131,22 +131,17 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
 
-  // Index: Aufgaben-Details (für Popup)
   const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
-
-  // Modal-State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState<string>('');
   const [modalItems, setModalItems] = useState<AssignmentDetail[]>([]);
 
-  // Throttle/Guards fürs Laden
   const inFlightRef = useRef(false);
   const lastFetchTsRef = useRef(0);
+  const initialLoadDone = useRef(false);
   const THROTTLE_MS = 500;
 
-  // Silent-Refresh Steuerung
-  const initialLoadDone = useRef(false);
-
+  /* ---- CLEANERS LADEN ---- */
   const loadCleaners = useCallback(
     async (opts?: { silent?: boolean }) => {
       const nowTs = Date.now();
@@ -156,6 +151,7 @@ export function Calendar() {
       inFlightRef.current = true;
       if (!opts?.silent && !initialLoadDone.current) setLoading(true);
       setErrorMsg(null);
+
       try {
         const data = await getCleaners(user.id);
         setCleaners((prev) => {
@@ -182,9 +178,7 @@ export function Calendar() {
 
   useEffect(() => {
     const path = location.pathname || '';
-    if (path.toLowerCase().includes('calendar')) {
-      void loadCleaners({ silent: true });
-    }
+    if (path.toLowerCase().includes('calendar')) void loadCleaners({ silent: true });
   }, [location.pathname, loadCleaners]);
 
   useEffect(() => {
@@ -200,7 +194,7 @@ export function Calendar() {
     };
   }, [loadCleaners]);
 
-  /** Map<cleanerId, Set<'YYYY-MM-DD'>> */
+  /* ---- INDEX: Abwesenheiten ---- */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const c of cleaners) {
@@ -210,7 +204,7 @@ export function Calendar() {
     return m;
   }, [cleaners]);
 
-  /** Tasks des Monats laden und indexieren (Cleaner → Datum → Details[]) */
+  /* ---- TASKS LADEN ---- */
   const loadAssignments = useCallback(async () => {
     try {
       const startYMD = ymdFromUTC(year, month + 1, 1);
@@ -218,8 +212,8 @@ export function Calendar() {
       const endYMD = ymdFromUTC(year, month + 1, lastDay);
 
       const rows: any[] = await getTasks(user.id, { dateFrom: startYMD, dateTo: endYMD });
-
       const idx: DetailIndex = new Map();
+
       for (const t of rows ?? []) {
         const ymd = normalizeYMD(t?.date);
         const cleanerId = t?.cleaner_id as string | undefined;
@@ -234,6 +228,7 @@ export function Calendar() {
         byDate.set(ymd, list);
         idx.set(cleanerId, byDate);
       }
+
       setDetailsIndex((prev) => {
         if (prev.size === idx.size) {
           let same = true;
@@ -249,7 +244,7 @@ export function Calendar() {
         return idx;
       });
     } catch {
-      // optional: logging
+      /* optional logging */
     }
   }, [user.id, year, month]);
 
@@ -257,7 +252,7 @@ export function Calendar() {
     void loadAssignments();
   }, [loadAssignments]);
 
-  // Sichtbarer Monatsbereich (für schnellen All-View Index)
+  /* ---- Monatsbereich + AllViewIndex ---- */
   const monthStart = useMemo(() => ymdFromUTC(year, month + 1, 1), [year, month]);
   const monthEnd = useMemo(() => {
     const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
@@ -269,7 +264,6 @@ export function Calendar() {
     [monthStart, monthEnd]
   );
 
-  /** Map<'YYYY-MM-DD', string[]>: voraggregiert für Alle-Ansicht */
   const monthUnavailableAll = useMemo(() => {
     const map = new Map<string, string[]>();
     for (const c of cleaners) {
@@ -291,7 +285,7 @@ export function Calendar() {
     return c ? getCleanerLabel(c) : '';
   }, [cleaners, selectedCleanerId]);
 
-  /** Wer ist an diesem Tag nicht verfügbar? (O(1)-Lookup) */
+  /* ---- Hilfsfunktionen ---- */
   const getUnavailableNames = useCallback(
     (ymd: string): string[] => {
       if (!ymd) return [];
@@ -303,7 +297,6 @@ export function Calendar() {
     [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]
   );
 
-  /** Apartments (Details) für ausgewählten Cleaner am Tag */
   const getAssignedDetailsForSelected = useCallback(
     (ymd: string): AssignmentDetail[] => {
       if (!selectedCleanerId) return [];
@@ -312,13 +305,13 @@ export function Calendar() {
     [detailsIndex, selectedCleanerId]
   );
 
-  // Stabiler Modal-Handler (keine neuen Funktionsinstanzen pro Zelle)
   const openModalFor = useCallback((ymd: string, items: AssignmentDetail[]) => {
     setModalDate(ymd);
     setModalItems(items);
     setModalOpen(true);
   }, []);
 
+  /* ---- renderDay ---- */
   const renderDay = useCallback(
     (day: MonthDay) => {
       const ymd = dayToYMD(day);
@@ -326,20 +319,17 @@ export function Calendar() {
 
       const unavailableNames = getUnavailableNames(ymd) ?? [];
       const isUnavailable = unavailableNames.length > 0;
-
       const boxClass = isUnavailable
         ? 'bg-red-500/20 text-red-300 border-red-500/40'
         : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35';
 
       const primaryText = isUnavailable ? '' : 'Verfügbar';
       const showNamesList = isAllView && isUnavailable;
-
       const assignedDetails =
         (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
 
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-          {/* Kopfzeile */}
           <div className="text-xs mb-1 flex items-center gap-2">
             <span
               className={
@@ -364,7 +354,6 @@ export function Calendar() {
             <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
               {!!primaryText && <div className="truncate text-center">{primaryText}</div>}
 
-              {/* Alle + rot → Namensliste */}
               {showNamesList && (
                 <ul className="mt-1 space-y-0.5 pl-4 list-disc">
                   {unavailableNames.map((n, i) => (
@@ -375,7 +364,6 @@ export function Calendar() {
                 </ul>
               )}
 
-              {/* Einzel + rot → Button oder grünes X */}
               {!isAllView && isUnavailable && (
                 assignedDetails.length > 0 ? (
                   <div className="mt-1 flex items-center justify-center">
@@ -390,8 +378,11 @@ export function Calendar() {
                     </button>
                   </div>
                 ) : (
-                  <div className="mt-2 flex items-center justify-center" title="Keine Geplanten Einsätze">
-                    <X className="w-5 h-5 text-emerald-400" />
+                  <div
+                    className="mt-2 flex items-center justify-center text-emerald-400 text-[11px] font-medium"
+                    title="Keine Geplanten Einsätze"
+                  >
+                    – Keine Geplanten Einsätze –
                   </div>
                 )
               )}
@@ -410,6 +401,7 @@ export function Calendar() {
 
   if (loading) return <div className="text-white">Loading...</div>;
 
+  /* ---- RENDER ---- */
   return (
     <div>
       {errorMsg && (
@@ -418,7 +410,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Filter-Kacheln */}
+      {/* Filter + Auswahl */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
@@ -441,137 +433,4 @@ export function Calendar() {
             {sortedCleaners.map((c) => {
               const active = selectedCleanerId === c.id;
               const label = getCleanerLabel(c);
-              const initials = label.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'C';
-
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedCleanerId(c.id)}
-                  className={`rounded-xl px-3 py-3 border transition
-                    ${active
-                      ? 'border-white/60 bg-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.35)]'
-                      : 'border-white/10 bg-white/5 hover:shadow-[0_0_24px_rgba(255,255,255,0.45)] hover:border-white/30'}
-                  `}
-                  title={`Nur ${label} anzeigen`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`h-7 w-7 rounded-lg flex items-center justify-center
-                      ${active ? 'bg-white/80 text-black' : 'bg-white/10 text-white/80'}`}
-                    >
-                      <span className="text-xs font-bold">{initials}</span>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-white truncate">{label}</div>
-                      <div className="text-[11px] text-white/60">
-                        {active ? 'Ausgewählt' : 'Klicken zum Anzeigen'}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-3 text-xs text-white/60">
-            {isAllView
-              ? 'Ansicht: Alle Reinigungskräfte'
-              : `Ansicht gefiltert auf: ${
-                  getCleanerLabel(sortedCleaners.find((x) => x.id === selectedCleanerId) as Cleaner)
-                }`}
-          </div>
-        </div>
-      )}
-
-      {/* Kalender */}
-      <MonthCalendar
-        year={year}
-        month={month}
-        onMonthChange={(y, m) => {
-          setYear(y);
-          setMonth(m);
-        }}
-        renderDay={renderDay}
-      />
-
-      {/* Legende */}
-      <div className="mt-6 bg-white/5 border border-white/10 p-4 rounded-lg text-sm text-white/80">
-        <h3 className="font-semibold mb-3 text-white">Legende</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
-            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (Details über Button)'}
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded border bg-emerald-500/15 border-emerald-500/35"></div>
-            {isAllView ? 'Alle verfügbar' : 'Cleaner verfügbar'}
-          </div>
-        </div>
-      </div>
-
-      {/* Modal: Geplante Einsätze (Einzelansicht) */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-6 h-6" />
-                <h4 className="text-lg font-semibold">Geplante Einsätze am {modalDate}</h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="p-2 rounded-md hover:bg-white/10"
-                aria-label="Schließen"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-4 max-h-[70vh] overflow-y-auto">
-              {modalItems.length === 0 ? (
-                <div className="text-white/60 text-sm">Keine Einträge.</div>
-              ) : (
-                <ul className="space-y-3">
-                  {modalItems
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((it, i) => (
-                      <li key={i} className="rounded-lg border border-white/10 bg-white/5 p-3">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-5 h-5" />
-                          <div className="font-medium text-white">{it.name}</div>
-                        </div>
-                        {it.address && (
-                          <div className="mt-1 flex items-center gap-2 text-white/70 text-xs">
-                            <MapPin className="w-4 h-4" />
-                            <span className="truncate">{it.address}</span>
-                          </div>
-                        )}
-                        <div className="mt-1 flex items-center gap-2 text-white/60 text-xs">
-                          <CalendarIcon className="w-4 h-4" />
-                          <span>{it.date}</span>
-                        </div>
-                      </li>
-                    ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="p-3 border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="px-4 py-2 bg-white text-black rounded-md hover:bg-white/90 transition-colors"
-              >
-                Schließen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default Calendar;
+              const initials = label.split(' ').map((p) => p[0]).slice(0, 2
