@@ -269,7 +269,7 @@ export function Landing() {
               </span>
             </h3>
             <p className="mt-4 text-white/70">
-              Join hosts who trust CleanFlow to keep their properties pristine.
+              Schließe dich Gastgebern an, die CleanFlow vertrauen, um ihre Unterkünfte makellos zu halten.
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <button
