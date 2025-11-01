@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocation, useOutletContext } from 'react-router-dom';
 import { MonthCalendar } from '../../components/calendar/MonthCalendar';
-import { getCleaners } from '../../lib/api';
+import { getCleaners, getTasks } from '../../lib/api'; // <-- NEU: getTasks
 import type { User, Cleaner } from '../../types/db';
 import type { MonthDay } from '../../lib/dates';
 
@@ -96,6 +96,8 @@ function getCleanerLabel(c: Cleaner): string {
 
 /* ---------------- Component ---------------- */
 
+type AssignmentIndex = Map<string, Map<string, string[]>>; // cleanerId -> ymd -> [apartment names]
+
 export function Calendar() {
   const { user } = useOutletContext<ContextType>();
   const location = useLocation();
@@ -110,6 +112,9 @@ export function Calendar() {
 
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
+
+  // NEU: Index für Aufgaben nach Cleaner/Datum
+  const [assignmentsIndex, setAssignmentsIndex] = useState<AssignmentIndex>(new Map());
 
   // Throttle/Guards fürs Laden
   const inFlightRef = useRef(false);
@@ -167,6 +172,37 @@ export function Calendar() {
     return m;
   }, [cleaners]);
 
+  /** NEU: Tasks des Monats laden und indexieren (Cleaner → Datum → Apartments[]) */
+  const loadAssignments = useCallback(async () => {
+    try {
+      // Spannweite des aktuellen Monats
+      const startYMD = ymdFromUTC(year, month + 1, 1);
+      const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      const endYMD = ymdFromUTC(year, month + 1, lastDay);
+
+      const rows: any[] = await getTasks(user.id, { dateFrom: startYMD, dateTo: endYMD });
+
+      const idx: AssignmentIndex = new Map();
+      for (const t of rows ?? []) {
+        const ymd = normalizeYMD(t?.date);
+        const cleanerId = t?.cleaner_id as string | undefined;
+        const aptName = t?.apartment?.name as string | undefined;
+        if (!ymd || !cleanerId || !aptName) continue;
+
+        const byDate = idx.get(cleanerId) ?? new Map<string, string[]>();
+        const list = byDate.get(ymd) ?? [];
+        list.push(aptName);
+        byDate.set(ymd, list);
+        idx.set(cleanerId, byDate);
+      }
+      setAssignmentsIndex(idx);
+    } catch {
+      // optional: Logging
+    }
+  }, [user.id, year, month]);
+
+  useEffect(() => { void loadAssignments(); }, [loadAssignments]);
+
   /** Wer ist an diesem Tag nicht verfügbar? */
   const getUnavailableNames = useCallback((ymd: string): string[] => {
     if (!ymd) return [];
@@ -185,6 +221,12 @@ export function Calendar() {
     }
   }, [cleaners, isAllView, selectedCleanerId, unavailableIndex]);
 
+  /** NEU: Apartments für ausgewählten Cleaner am Tag */
+  const getAssignedAptsForSelected = useCallback((ymd: string): string[] => {
+    if (!selectedCleanerId) return [];
+    return assignmentsIndex.get(selectedCleanerId)?.get(ymd) ?? [];
+  }, [assignmentsIndex, selectedCleanerId]);
+
   const renderDay = useCallback((day: MonthDay) => {
     const ymd = dayToYMD(day);
     const unavailableNames = getUnavailableNames(ymd);
@@ -197,13 +239,19 @@ export function Calendar() {
     // Einzellansicht: Text im Kasten; Alle-Ansicht: kein Text im roten Kasten
     const showTextInsideBox = !isAllView || !isUnavailable;
 
-const primaryText = isUnavailable ? 'Nicht verfügbar' : 'Verfügbar';
+    // Text-Logik:
+    // - Grün (nicht unavailable): überall "Verfügbar"
+    // - Rot:
+    //    • Alle: kein Text (nur Namensliste)
+    //    • Einzel: kein Text (wir zeigen stattdessen die Apartmentliste)
+    const primaryText = isUnavailable ? '' : 'Verfügbar';
 
     const showNamesList = isAllView && isUnavailable;
+    const assignedApts = !isAllView && isUnavailable ? getAssignedAptsForSelected(ymd) : [];
 
     return (
       <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'}`}>
-        {/* Kopfzeile: Datum + rotes Badge in der "Alle"-Ansicht */}
+        {/* Kopfzeile: Datum + rotes Badge nur in Einzelansicht */}
         <div className="text-xs mb-1 flex items-center gap-2">
           <span className={
             day.isToday
@@ -215,7 +263,7 @@ const primaryText = isUnavailable ? 'Nicht verfügbar' : 'Verfügbar';
             {day.date.getDate()}
           </span>
 
-          {/* Badge nur in "Alle" + wenn abwesend */}
+          {/* Badge nur in Einzelansicht + wenn abwesend */}
           {!isAllView && isUnavailable && (
             <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
               Nicht verfügbar
@@ -226,11 +274,11 @@ const primaryText = isUnavailable ? 'Nicht verfügbar' : 'Verfügbar';
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
             {/* Text nur, wenn erlaubt (siehe oben) */}
-            {showTextInsideBox && (
+            {showTextInsideBox && !!primaryText && (
               <div className="truncate">{primaryText}</div>
             )}
 
-            {/* In "Alle": Liste der Namen untereinander */}
+            {/* In "Alle + rot": Liste der Namen */}
             {showNamesList && (
               <ul className="mt-1 space-y-0.5 pl-4 list-disc">
                 {unavailableNames.map((n, i) => (
@@ -240,11 +288,22 @@ const primaryText = isUnavailable ? 'Nicht verfügbar' : 'Verfügbar';
                 ))}
               </ul>
             )}
+
+            {/* In "Einzel + rot": Liste der Apartments (mit Bindestrich) */}
+            {!isAllView && isUnavailable && assignedApts.length > 0 && (
+              <ul className="mt-1 space-y-0.5 pl-4 list-disc">
+                {assignedApts.map((name, i) => (
+                  <li key={i} className="whitespace-nowrap overflow-hidden text-ellipsis" title={name}>
+                    - {name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>
     );
-  }, [getUnavailableNames, isAllView]);
+  }, [getUnavailableNames, isAllView, getAssignedAptsForSelected]);
 
   const sortedCleaners = useMemo(
     () => [...cleaners].sort((a, b) => getCleanerLabel(a).localeCompare(getCleanerLabel(b))),
@@ -338,7 +397,7 @@ const primaryText = isUnavailable ? 'Nicht verfügbar' : 'Verfügbar';
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded border bg-red-500/20 border-red-500/40"></div>
-            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend'}
+            {isAllView ? 'Mindestens eine Reinigungskraft abwesend' : 'Cleaner abwesend (zeigt Wohnungen)'}
           </div>
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded border bg-emerald-500/15 border-emerald-500/35"></div>
