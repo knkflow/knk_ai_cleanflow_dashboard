@@ -469,7 +469,7 @@ return (
     <Modal
       isOpen={isModalOpen}
       onClose={() => setIsModalOpen(false)}
-      title={editingId ? 'Reinigung bearbeiten' : 'Neue Reinigung erstellen'}
+      title={editingId ? 'Bestehende Reinigung bearbeiten' : 'Neue Reinigung erstellen'}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Select
