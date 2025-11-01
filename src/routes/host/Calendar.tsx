@@ -215,13 +215,7 @@ export function Calendar() {
             {day.date.getDate()}
           </span>
 
-          {/* Badge nur in "Alle" + wenn abwesend */}
-          {isAllView && isUnavailable && (
-            <span className="inline-flex items-center rounded-sm px-1.5 py-[1px] text-[10px] font-semibold bg-red-600/90 text-white">
-              Nicht verfügbar
-            </span>
-          )}
-        </div>
+          
 
         {day.isCurrentMonth && (
           <div className={`relative text-xs p-1 rounded border transition-shadow ${boxClass}`}>
