@@ -22,10 +22,8 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-100 via-sky-200 to-sky-300 flex items-center justify-center">
-        <div className="text-emerald-700 text-lg font-medium animate-pulse">
-          Cleanflow wird geladen...
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-sky-100 via-sky-200 to-emerald-100 flex items-center justify-center">
+        <div className="text-emerald-700 text-lg font-medium">Cleanflow lädt...</div>
       </div>
     );
   }
@@ -35,25 +33,25 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
     return <Navigate to={user.role === 'Host' ? '/host' : '/cleaner'} replace />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-sky-200 to-sky-300 text-gray-800">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-r from-sky-200 to-sky-100 border-b border-emerald-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)] backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-sky-200 to-emerald-100 text-gray-800">
+      {/* Header mit Verlauf, Schlagschatten und Emerald-Akzentlinie */}
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-sky-200 via-sky-100 to-emerald-50 border-b border-emerald-200 shadow-[0_2px_15px_rgba(0,0,0,0.08)]">
         <Header user={user} />
-      </div>
+      </header>
 
-      {/* Navigation */}
-      <nav className="container mx-auto px-4">
-        <div className="flex flex-wrap items-center gap-2 border-b border-emerald-200/40 py-3">
+      {/* Navigations-Tabs */}
+      <nav className="container mx-auto px-4 mt-2">
+        <div className="flex flex-wrap items-center gap-2 border-b border-emerald-200/60 py-3 backdrop-blur-sm">
           {tabs.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
                 [
-                  'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 shadow-sm',
+                  'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 shadow-sm',
                   isActive
-                    ? 'bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.35)]'
-                    : 'text-gray-700 bg-sky-50/70 hover:bg-emerald-50 hover:text-emerald-700 border border-transparent hover:border-emerald-100',
+                    ? 'bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.45)]'
+                    : 'text-gray-700 bg-white/40 hover:bg-emerald-50 hover:text-emerald-700 border border-transparent hover:border-emerald-200',
                 ].join(' ')
               }
             >
@@ -64,16 +62,14 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
         </div>
       </nav>
 
-      {/* Seiteninhalt */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="rounded-2xl bg-sky-50/70 backdrop-blur-sm p-6 shadow-[0_0_25px_rgba(0,0,0,0.05)] border border-sky-200/50">
-          <Outlet context={{ user }} />
-        </div>
+      {/* Hauptinhalt */}
+      <main className="container mx-auto px-4 py-10">
+        <Outlet context={{ user }} />
       </main>
 
-      {/* Footer */}
-      <footer className="mt-8 py-6 text-center text-sm text-gray-600 border-t border-emerald-100/50 bg-gradient-to-r from-sky-100 to-sky-200">
-        <span className="font-semibold text-emerald-600">Cleanflow</span> © {new Date().getFullYear()} — Struktur trifft Ruhe.
+      {/* Dezenter Footer */}
+      <footer className="mt-8 py-8 text-center text-sm text-gray-600 bg-transparent">
+        <span className="font-medium text-emerald-700">Cleanflow</span> © {new Date().getFullYear()} — Sauberkeit mit System.
       </footer>
     </div>
   );
