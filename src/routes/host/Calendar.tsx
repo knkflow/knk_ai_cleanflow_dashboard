@@ -198,7 +198,7 @@ export function Calendar() {
       for (const t of rows ?? []) {
         const ymd = normalizeYMD(t?.date);
         const cleanerId = t?.cleaner_id as string | undefined;
-        the const aptName = t?.apartment?.name as string | undefined; // <-- safe optional
+        const aptName = t?.apartment?.name as string | undefined; // <-- safe optional
         const address = t?.apartment?.address as string | undefined;
         if (!ymd || !cleanerId || !aptName) continue;
 
@@ -277,10 +277,7 @@ export function Calendar() {
     setModalOpen(true);
   }, []);
 
-  /* ---- renderDay ----
-     Desktop: schwarzer Look, feine Linien, runde Ecken, KEIN Shadow auf den Tageskästen.
-     Mobile: kompakter; Button zeigt nur Icon; in „Alle“ die unverfügbaren Cleaner als scrollbare Liste.
-  */
+  /* ---- renderDay ---- */
   const renderDay = useCallback(
     (day: MonthDay) => {
       const ymd = dayToYMD(day);
@@ -289,31 +286,26 @@ export function Calendar() {
       const unavailableNames = getUnavailableNames(ymd) ?? [];
       const isUnavailable = unavailableNames.length > 0;
 
-      // Rote/grüne Status-Kacheln
       const boxClass = isUnavailable
         ? 'bg-red-500/15 text-red-200 border-red-500/30'
         : 'bg-emerald-500/10 text-emerald-200 border-emerald-500/25';
 
-      // Einzelansicht: Button (Icon-only auf Mobile) oder Hinweis
       const assignedDetails =
         (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
 
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
-          {/* Kopf: nur Datum */}
           <div className="text-xs mb-1 flex items-center gap-2">
             <span className={day.isToday ? 'font-bold text-white' : day.isCurrentMonth ? 'text-white/70' : 'text-white/40'}>
               {day.date.getDate()}
             </span>
           </div>
 
-          {/* Tages-Kachel (kein Shadow) */}
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
-              {/* Grün → „Verfügbar“ */}
               {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
 
-              {/* ALLE-ANSICHT: Unverfügbare Cleaner als scrollbare Liste */}
+              {/* Alle-Ansicht: scrollbare Liste der unverfügbaren Cleaner */}
               {isAllView && isUnavailable && (
                 <div className="mt-1 max-h-16 overflow-y-auto pr-1">
                   <ul className="space-y-1">
@@ -326,7 +318,7 @@ export function Calendar() {
                 </div>
               )}
 
-              {/* EINZEL-ANSICHT: Button oder Text */}
+              {/* Einzelansicht: Button oder Hinweis */}
               {!isAllView && isUnavailable && (
                 assignedDetails.length > 0 ? (
                   <div className="mt-1 flex items-center justify-center">
@@ -337,15 +329,11 @@ export function Calendar() {
                       title="Geplante Einsätze ansehen"
                     >
                       <Building2 className="w-4 h-4" />
-                      {/* Text nur ab sm sichtbar */}
                       <span className="text-[11px] font-semibold hidden sm:inline">Geplante Einsätze</span>
                     </button>
                   </div>
                 ) : (
-                  <div
-                    className="mt-2 flex items-center justify-center text-white text-[11px] font-bold"
-                    title="Keine Geplanten Einsätze"
-                  >
+                  <div className="mt-2 flex items-center justify-center text-white text-[11px] font-bold">
                     – Keine Geplanten Einsätze –
                   </div>
                 )
@@ -374,7 +362,6 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Filter + Auswahl */}
       {cleaners.length > 0 && (
         <div className="mb-4">
           <div className="text-white font-semibold mb-2">Cleaner auswählen</div>
@@ -443,7 +430,7 @@ export function Calendar() {
         </div>
       )}
 
-      {/* SCHWARZE KALENDER-CARD mit feinem weißen Glow (kein Shadow auf Tageskästen) */}
+      {/* Gesamter Kalender mit feinem White-Glow */}
       <div className="rounded-2xl border border-white/20 bg-black p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(255,255,255,0.08)]">
         <MonthCalendar
           year={year}
@@ -471,7 +458,7 @@ export function Calendar() {
         </div>
       </div>
 
-      {/* Modal: Geplante Einsätze (Einzelansicht) */}
+      {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-xl bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl">
