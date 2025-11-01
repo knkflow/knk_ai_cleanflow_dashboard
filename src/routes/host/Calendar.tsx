@@ -14,6 +14,7 @@ import {
   Mail,
   Phone,
   X,
+  X as CloseIcon,
 } from 'lucide-react';
 
 interface ContextType {
@@ -106,6 +107,8 @@ export function Calendar() {
   const [selectedCleanerId, setSelectedCleanerId] = useState<string | null>(null);
   const isAllView = selectedCleanerId === null;
   const [detailsIndex, setDetailsIndex] = useState<DetailIndex>(new Map());
+
+  // NEW: modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState<string>('');
   const [modalItems, setModalItems] = useState<AssignmentDetail[]>([]);
@@ -235,6 +238,11 @@ export function Calendar() {
 
   const openPeopleModal = useCallback((ymd: string, people: Cleaner[]) => {
     setPeopleModalDate(ymd); setPeopleList(people); setPeopleModalOpen(true);
+  }, []);
+
+  const closeModals = useCallback(() => {
+    setModalOpen(false);
+    setPeopleModalOpen(false);
   }, []);
 
   /* ---- renderDay ---- */
@@ -388,6 +396,150 @@ export function Calendar() {
           renderDay={renderDay}
         />
       </div>
+
+      {/* ===== MODALS (neu) ===== */}
+
+      {/* Modal: Geplante Einsätze (Einzel-Ansicht) */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="assignments-title"
+            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
+                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 id="assignments-title" className="text-lg sm:text-xl font-semibold">
+                  Geplante Einsätze
+                </h3>
+                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4" />
+                  {modalDate}
+                </p>
+              </div>
+              <button
+                aria-label="Schließen"
+                onClick={closeModals}
+                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+              >
+                <CloseIcon className="w-5 h-5 text-white/80" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {modalItems.map((it, idx) => (
+                <div
+                  key={`${it.name}-${idx}`}
+                  className="rounded-xl border border-white/10 bg-white/5 p-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-white/70" />
+                    <div className="font-medium">{it.name}</div>
+                  </div>
+                  {it.address && (
+                    <div className="mt-1 flex items-center gap-2 text-sm text-white/70">
+                      <MapPin className="w-4 h-4" />
+                      <span>{it.address}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {modalItems.length === 0 && (
+                <div className="text-white/70 text-sm">Keine Einsätze gefunden.</div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={closeModals}
+                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Nicht verfügbare Cleaner (Alle-Ansicht, Mobile) */}
+      {peopleModalOpen && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="people-title"
+            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
+                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 id="people-title" className="text-lg sm:text-xl font-semibold">
+                  Nicht verfügbare Cleaner
+                </h3>
+                <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4" />
+                  {peopleModalDate}
+                </p>
+              </div>
+              <button
+                aria-label="Schließen"
+                onClick={closeModals}
+                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+              >
+                <CloseIcon className="w-5 h-5 text-white/80" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {peopleList.map((c) => {
+                const label = getCleanerLabel(c);
+                return (
+                  <div
+                    key={c.id}
+                    className="rounded-xl border border-white/10 bg-white/5 p-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="w-4 h-4 text-white/70" />
+                      <div className="font-medium">{label}</div>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-white/70">
+                      {c.email && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Mail className="w-4 h-4" />
+                          {c.email}
+                        </span>
+                      )}
+                      {c.phone && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Phone className="w-4 h-4" />
+                          {c.phone}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {peopleList.length === 0 && (
+                <div className="text-white/70 text-sm">Keine Einträge.</div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={closeModals}
+                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ===== /MODALS ===== */}
     </div>
   );
 }
