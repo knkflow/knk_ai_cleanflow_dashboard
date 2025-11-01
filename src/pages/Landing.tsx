@@ -265,7 +265,7 @@ export function Landing() {
           <div className="container mx-auto px-6 lg:px-8 max-w-3xl text-center">
             <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-neutral-100 via-white to-neutral-100">
-                Ready to optimize your operations?
+                Bereit Ihr Reinigungsmanagement zu optimieren?
               </span>
             </h3>
             <p className="mt-4 text-white/70">
