@@ -197,10 +197,7 @@ export function Calendar() {
     // Einzellansicht: Text im Kasten; Alle-Ansicht: kein Text im roten Kasten
     const showTextInsideBox = !isAllView || !isUnavailable;
 
-const primaryText = isAllView
-  ? (isUnavailable ? '' : 'Verfügbar')        // Alle: rot -> kein Text, grün -> "Verfügbar"
-  : (isUnavailable ? 'Nicht verfügbar' : 'Verfügbar'); // Einzel: rot -> "Nicht verfügbar", grün -> "Verfügbar"
-
+const primaryText = isUnavailable ? 'Nicht verfügbar' : 'Verfügbar';
 
     const showNamesList = isAllView && isUnavailable;
 
