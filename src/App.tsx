@@ -1,5 +1,4 @@
-// src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { DashboardHost } from './pages/DashboardHost';
@@ -43,38 +42,36 @@ const cleanerTabs = [
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Öffentliche Seiten */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      {/* Öffentliche Seiten */}
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
 
-        {/* Magic-Link Zielseite: Passwort setzen (ohne Guard) */}
-        <Route path="/cleaner/set-password" element={<SetPassword />} />
+      {/* Magic-Link Zielseite: Passwort setzen (ohne Guard) */}
+      <Route path="/cleaner/set-password" element={<SetPassword />} />
 
-        {/* Host-Bereich (geschützt) */}
-        <Route path="/host" element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}>
-          <Route index element={<DashboardHost />} />
-          <Route path="onboard" element={<HostOnboard />} />
-          <Route path="apartments" element={<HostApartments />} />
-          <Route path="cleaners" element={<HostCleaners />} />
-          <Route path="tasks" element={<HostTasks />} />
-          <Route path="calendar" element={<HostCalendar />} />
-          <Route path="settings" element={<HostSettings />} />
-        </Route>
+      {/* Host-Bereich (geschützt) */}
+      <Route path="/host" element={<GuardedLayout requiredRole="Host" tabs={hostTabs} />}>
+        <Route index element={<DashboardHost />} />
+        <Route path="onboard" element={<HostOnboard />} />
+        <Route path="apartments" element={<HostApartments />} />
+        <Route path="cleaners" element={<HostCleaners />} />
+        <Route path="tasks" element={<HostTasks />} />
+        <Route path="calendar" element={<HostCalendar />} />
+        <Route path="settings" element={<HostSettings />} />
+      </Route>
 
-        {/* Cleaner-Bereich (geschützt) */}
-        <Route path="/cleaner" element={<GuardedLayout requiredRole="Cleaner" tabs={cleanerTabs} />}>
-          <Route index element={<DashboardCleaner />} />
-          <Route path="apartments" element={<CleanerApartments />} />
-          <Route path="tasks" element={<CleanerTasks />} />
-          <Route path="calendar" element={<CleanerCalendar />} />
-        </Route>
+      {/* Cleaner-Bereich (geschützt) */}
+      <Route path="/cleaner" element={<GuardedLayout requiredRole="Cleaner" tabs={cleanerTabs} />}>
+        <Route index element={<DashboardCleaner />} />
+        <Route path="apartments" element={<CleanerApartments />} />
+        <Route path="tasks" element={<CleanerTasks />} />
+        <Route path="calendar" element={<CleanerCalendar />} />
+      </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
