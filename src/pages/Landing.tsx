@@ -50,17 +50,18 @@ export function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur">
-        <div className="container mx-auto px-6 lg:px-10 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-300 to-emerald-500 grid place-items-center shadow-sm">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-sm md:text-base tracking-[0.25em] uppercase font-semibold">
-              CleanFlow
-            </span>
-          </div>
+  
+<div className="flex items-center gap-3">
+  <img
+    src="/logo.png"
+    alt="CleanFlow Logo"
+    className="h-10 w-auto object-contain"
+  />
+  <span className="text-sm md:text-base tracking-[0.25em] uppercase font-semibold">
+    CleanFlow
+  </span>
+</div>
+
 
           <nav className="hidden md:flex items-center gap-8 text-gray-600">
             <button onClick={() => scrollTo(heroRef)} className="hover:text-gray-900">
