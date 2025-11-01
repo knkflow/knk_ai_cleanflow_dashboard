@@ -308,7 +308,7 @@ export function Landing() {
               transition={{ duration: 0.45 }}
             >
               <img
-                src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1400&auto=format&fit=crop"
+                src="/Photo1.png"
                 alt="Team bei der Einsatzplanung"
                 className="w-full rounded-3xl border border-gray-200"
               />
