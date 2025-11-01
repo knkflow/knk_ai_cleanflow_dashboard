@@ -202,7 +202,6 @@ export function Calendar() {
   : (isUnavailable ? 'Nicht verfügbar' : '');
   : 'Verfügbar';
 
-
     const showNamesList = isAllView && isUnavailable;
 
     return (
