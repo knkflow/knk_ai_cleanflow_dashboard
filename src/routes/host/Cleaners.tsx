@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Lightbulb } from 'lucide-react';
 import {
   getCleaners,
   getCleanerByUserId,
