@@ -224,7 +224,7 @@ export function Landing() {
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-12 items-center">
             <div>
               <img
-                src="/Photo1.png"
+                src="/Photo2.png"
                 alt="Team bei der Einsatzplanung"
                 className="w-full rounded-3xl border border-gray-200"
               />
