@@ -229,24 +229,23 @@ export function Cleaners() {
     )}
   </div>
 
-  {/* Info Box */}
-  {canCreate && (
-    <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
-      <div className="flex items-center gap-2 mb-2">
-        <Lightbulb className="w-5 h-5 text-blue-400" />
-        <p className="font-medium">How Cleaner Invitations Work:</p>
-      </div>
-  
-      <ol className="list-decimal list-inside space-y-1">
-        <li>Add a cleaner with their email address (or phone).</li>
-        <li>A magic link is sent for first-time login.</li>
-        <li>
-          Role is automatically set to <b>Cleaner</b>.
-        </li>
-        <li>Cleaner can then log in and set their password.</li>
-      </ol>
+  {/* Info-Box */}
+{canCreate && (
+  <div className="mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+    <div className="flex items-center gap-2 mb-2">
+      <Lightbulb className="w-5 h-5 text-blue-400" />
+      <p className="font-medium">So funktioniert die Einladung:</p>
     </div>
-  )}
+
+    <ol className="list-decimal list-inside space-y-1">
+      <li>Füge eine Reinigungskraft mit E-Mail oder Telefonnummer hinzu.</li>
+      <li>Sie erhält automatisch einen Einladungslink.</li>
+      <li>Die Rolle wird automatisch auf <b>Cleaner</b> gesetzt.</li>
+      <li>Nach dem ersten Login kann ein Passwort festgelegt werden.</li>
+    </ol>
+  </div>
+)}
+
 
   {/* Cleaner Cards */}
   <div className="grid gap-4">
