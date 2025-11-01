@@ -4,9 +4,7 @@ import { LogOut } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { User } from '../../types/db';
 
-interface HeaderProps {
-  user: User;
-}
+interface HeaderProps { user: User; }
 
 export function Header({ user }: HeaderProps) {
   const navigate = useNavigate();
@@ -30,9 +28,8 @@ export function Header({ user }: HeaderProps) {
             <h1 className="text-xl font-semibold text-gray-900">
               Guten Tag, {user.name || user.email}
             </h1>
-
             <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-              <span className="text-emerald-700/80">Rolle:</span>
+              <span>Rolle:</span>
               <span className="font-semibold">{user.role}</span>
             </div>
           </div>
