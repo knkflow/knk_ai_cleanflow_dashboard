@@ -337,7 +337,7 @@ return (
           type="text"
           value={apartmentQuery}
           onChange={(e) => setApartmentQuery(e.target.value)}
-          placeholder="Name/Adresse des Apartments"
+          placeholder="Nach Name/Adresse des Apartments suchen"
           className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm rounded-md
                      placeholder-white/50 focus:outline-none focus:border-white"
         />
@@ -345,7 +345,7 @@ return (
           type="text"
           value={cleanerQuery}
           onChange={(e) => setCleanerQuery(e.target.value)}
-          placeholder="Cleaner suchen"
+          placeholder="Nach Reinigungskraft suchen"
           className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white text-sm rounded-md
                      placeholder-white/50 focus:outline-none focus:border-white"
         />
