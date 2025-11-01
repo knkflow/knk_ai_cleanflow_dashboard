@@ -198,7 +198,7 @@ export function Calendar() {
       for (const t of rows ?? []) {
         const ymd = normalizeYMD(t?.date);
         const cleanerId = t?.cleaner_id as string | undefined;
-        const aptName = t?.apartment?.name as string | undefined;
+        the const aptName = t?.apartment?.name as string | undefined; // <-- safe optional
         const address = t?.apartment?.address as string | undefined;
         if (!ymd || !cleanerId || !aptName) continue;
 
@@ -279,7 +279,7 @@ export function Calendar() {
 
   /* ---- renderDay ----
      Desktop: schwarzer Look, feine Linien, runde Ecken, KEIN Shadow auf den Tageskästen.
-     Mobile: kompakter; nur Farbcode rot/grün; Button zeigt nur Icon (Text hidden).
+     Mobile: kompakter; Button zeigt nur Icon; in „Alle“ die unverfügbaren Cleaner als scrollbare Liste.
   */
   const renderDay = useCallback(
     (day: MonthDay) => {
@@ -294,7 +294,7 @@ export function Calendar() {
         ? 'bg-red-500/15 text-red-200 border-red-500/30'
         : 'bg-emerald-500/10 text-emerald-200 border-emerald-500/25';
 
-      // In Einzelansicht: Button (Icon-only auf Mobile) oder Hinweis „– Keine Geplanten Einsätze –“.
+      // Einzelansicht: Button (Icon-only auf Mobile) oder Hinweis
       const assignedDetails =
         (!isAllView && isUnavailable ? getAssignedDetailsForSelected(ymd) : []) ?? [];
 
@@ -307,17 +307,26 @@ export function Calendar() {
             </span>
           </div>
 
-          {/* Tages-Kachel: KEIN Shadow */}
+          {/* Tages-Kachel (kein Shadow) */}
           {day.isCurrentMonth && (
-            <div
-              className={`
-                relative text-xs p-1.5 rounded-md border ${boxClass}
-              `}
-            >
+            <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
               {/* Grün → „Verfügbar“ */}
               {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
 
-              {/* Einzel + rot: Button oder Text */}
+              {/* ALLE-ANSICHT: Unverfügbare Cleaner als scrollbare Liste */}
+              {isAllView && isUnavailable && (
+                <div className="mt-1 max-h-16 overflow-y-auto pr-1">
+                  <ul className="space-y-1">
+                    {unavailableNames.map((n, i) => (
+                      <li key={i} className="whitespace-nowrap text-[11px] text-white/90">
+                        <span className="text-white/60">Cleaner:</span>{' '}<span className="font-medium">{n}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* EINZEL-ANSICHT: Button oder Text */}
               {!isAllView && isUnavailable && (
                 assignedDetails.length > 0 ? (
                   <div className="mt-1 flex items-center justify-center">
@@ -380,7 +389,10 @@ export function Calendar() {
               `}
               title="Alle Cleaner anzeigen"
             >
-              <div className="text-sm font-medium text-white">Alle</div>
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="text-sm font-medium text-white">Alle</div>
+                <div className="text-[11px] text-white/60">{sortedCleaners.length} Cleaner</div>
+              </div>
               <div className="text-xs text-white/60 mt-0.5">Gesamtübersicht</div>
             </button>
 
