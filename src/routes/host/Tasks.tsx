@@ -405,7 +405,7 @@ return (
                   <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
                     <User_Icon className="w-4 h-4 text-white/60" />
                     <span>
-                      Reinigungskraft: Stammreinigungskraft von Apartment {task.apartment?.name || 'Unknown Apartment'}
+                      Stammreinigungskraft von Apartment {task.apartment?.name || 'Unknown Apartment'}
                     </span>
                   </p>
                 )}
