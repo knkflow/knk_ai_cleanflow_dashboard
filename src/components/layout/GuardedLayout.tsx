@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import { Header } from './Header';
@@ -27,8 +28,8 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-black text-lg">Loading...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-lg">Loading...</div>
       </div>
     );
   }
@@ -42,12 +43,12 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-black text-white">
       <Header user={user} />
 
       {/* Inline tab navigation (replaces TabNav) */}
       <nav className="container mx-auto px-4">
-        <div className="flex flex-wrap items-center gap-2 border-b border-black/10 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 py-3">
           {tabs.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -56,8 +57,8 @@ export function GuardedLayout({ requiredRole, tabs }: GuardedLayoutProps) {
                 [
                   'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-black text-white'
-                    : 'text-black/80 hover:bg-black/5 hover:text-black',
+                    ? 'bg-white text-black'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white',
                 ].join(' ')
               }
             >
