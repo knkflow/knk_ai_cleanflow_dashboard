@@ -210,64 +210,97 @@ export function Apartments() {
       </div>
 
       {/* Create/Edit Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingId ? 'Apartment bearbeiten' : 'Apartment hinzufügen'}
+<Modal
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  title={editingId ? 'Apartment bearbeiten' : 'Apartment hinzufügen'}
+>
+  <form onSubmit={handleSubmit} className="space-y-4 bg-black text-white">
+    <div className="space-y-3">
+      {/* Listing ID */}
+      <div>
+        <label className="block text-white text-sm font-medium mb-1">
+          Listing ID
+        </label>
+        <input
+          type="text"
+          value={formData.listing_id}
+          onChange={(e) => setFormData({ ...formData, listing_id: e.target.value })}
+          required
+          disabled={!!editingId}
+          placeholder="z. B. APT-001"
+          className="w-full px-3 py-2 bg-white text-black rounded-md border border-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+        />
+      </div>
+
+      {/* Name */}
+      <div>
+        <label className="block text-white text-sm font-medium mb-1">
+          Name
+        </label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+          placeholder="z. B. Downtown Studio"
+          className="w-full px-3 py-2 bg-white text-black rounded-md border border-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+        />
+      </div>
+
+      {/* Adresse */}
+      <div>
+        <label className="block text-white text-sm font-medium mb-1">
+          Adresse
+        </label>
+        <input
+          type="text"
+          value={formData.address}
+          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          placeholder="Vollständige Adresse"
+          className="w-full px-3 py-2 bg-white text-black rounded-md border border-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+        />
+      </div>
+
+      {/* Cleaner Auswahl */}
+      <div>
+        <label className="block text-white text-sm font-medium mb-1">
+          Stammreinigungskraft
+        </label>
+        <select
+          value={formData.default_cleaner_id}
+          onChange={(e) => setFormData({ ...formData, default_cleaner_id: e.target.value })}
+          className="w-full px-3 py-2 bg-white text-black rounded-md border border-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+        >
+          <option value="">Keine</option>
+          {cleaners.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    {/* Buttons */}
+    <div className="flex flex-col sm:flex-row gap-3 pt-4">
+      <button
+        type="submit"
+        className="w-full sm:flex-1 px-4 py-2 bg-white text-black hover:bg-gray-200 transition-colors font-medium rounded-md"
       >
-        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-          <Input
-            label="Listing ID"
-            value={formData.listing_id}
-            onChange={(e) => setFormData({ ...formData, listing_id: e.target.value })}
-            required
-            disabled={!!editingId}
-            placeholder="z. B. APT-001"
-          />
+        {editingId ? 'Aktualisieren' : 'Erstellen'}
+      </button>
+      <button
+        type="button"
+        onClick={() => setIsModalOpen(false)}
+        className="w-full sm:flex-1 px-4 py-2 bg-black border border-white/30 text-white hover:bg-white/10 transition-colors rounded-md"
+      >
+        Abbrechen
+      </button>
+    </div>
+  </form>
+</Modal>
 
-          <Input
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            placeholder="z. B. Downtown Studio"
-          />
-
-          <Input
-            label="Adresse"
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            placeholder="Vollständige Adresse"
-          />
-
-          <Select
-            label="Stammreinigungskraft"
-            value={formData.default_cleaner_id}
-            onChange={(e) => setFormData({ ...formData, default_cleaner_id: e.target.value })}
-            options={[
-              { value: '', label: 'Keine' },
-              ...cleaners.map((c) => ({ value: c.id, label: c.name })),
-            ]}
-          />
-
-          {/* Modal-Buttons: mobile stacked, ab sm nebeneinander */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
-            <button
-              type="submit"
-              className="w-full sm:flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium rounded-md"
-            >
-              {editingId ? 'Aktualisieren' : 'Erstellen'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="w-full sm:flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors rounded-md"
-            >
-              Abbrechen
-            </button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Delete Modal */}
       {apartmentToDelete && (
