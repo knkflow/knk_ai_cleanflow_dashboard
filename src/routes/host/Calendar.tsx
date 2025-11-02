@@ -258,13 +258,12 @@ export function Calendar() {
 
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
-    <div className="flex items-center gap-2 sm:gap-3">
-  <UserIcon className="w-6 h-6 text-white/80" />
-  <span className="text-base sm:text-lg font-semibold text-white underline underline-offset-4 decoration-white">
-    {label}
-  </span>
-</div>
-
+          {/* Datum oben links */}
+          <div className="text-xs mb-1 flex items-center gap-2">
+            <span className={day.isToday ? 'font-bold text-white' : 'text-white/70'}>
+              {day.date.getDate()}
+            </span>
+          </div>
 
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
@@ -297,7 +296,6 @@ export function Calendar() {
                     </button>
                   </div>
                 ) : (
-                  // Mobile: rotes X | Nicht-Mobile (>= sm): Text "-Keine Geplanten Einsätze-"
                   <div className="flex items-center justify-center mt-2">
                     {/* mobile */}
                     <span
@@ -504,10 +502,14 @@ export function Calendar() {
                     key={c.id}
                     className="rounded-xl border border-white/10 bg-white/5 p-3"
                   >
-                    <div className="flex items-center gap-2">
-                      <UserIcon className="w-4 h-4 text-white/70" />
-                      <div className="font-medium">{label}</div>
+                    {/* Icon + Name: größer, fetter, weiß unterstrichen */}
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <UserIcon className="w-6 h-6 text-white/80" />
+                      <span className="text-base sm:text-lg font-semibold text-white underline underline-offset-4 decoration-white">
+                        {label}
+                      </span>
                     </div>
+
                     <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-white/70">
                       {c.email && (
                         <span className="inline-flex items-center gap-1.5">
