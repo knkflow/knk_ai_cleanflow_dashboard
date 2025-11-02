@@ -152,7 +152,7 @@ export function Cleaners() {
             className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md"
           >
             <Plus className="w-5 h-5" />
-            Add Cleaner
+            Reinigungskraft hinzufügen
           </button>
         )}
       </div>
