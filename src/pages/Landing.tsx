@@ -25,7 +25,7 @@ export function Landing() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Auto-Slider (Hero Galerie)
-  const slides = ["/Photo2.png", "/Photo3.jpeg", "/Photo5.jpeg"];
+  const slides = ["/Photo2.png", "/Photo3.jpg", "/Photo5.jpg"];
   const [activeSlide, setActiveSlide] = useState(0);
   useEffect(() => {
     const id = setInterval(() => {
