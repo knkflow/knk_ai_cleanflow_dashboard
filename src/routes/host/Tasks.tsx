@@ -405,7 +405,7 @@ export function Tasks() {
               className={`p-6 rounded-2xl transition-all duration-500 ${
                 unavailable
                   ? 'border-2 border-red-500 bg-red-500/5 hover:shadow-[0_0_20px_3px_rgba(255,80,80,0.45)]'
-                  : 'bg-white/5 border border-white/10 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
+                  : 'bg-white/5 border border-white/10 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]'
               }`}
             >
               {unavailable && (
