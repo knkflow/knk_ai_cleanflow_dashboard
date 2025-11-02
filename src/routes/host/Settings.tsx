@@ -67,7 +67,7 @@ export function Settings() {
                 {currentSection?.label}
               </h3>
               <p className="text-white/60 text-sm">
-                Diese Funktion ist für Gastaccounts nicht verfügbar.
+                Diese Funktion ist für diesen Accounttyp nicht verfügbar.
               </p>
             </div>
           </section>
