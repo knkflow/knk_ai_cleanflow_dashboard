@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Lightbulb, Edit, Trash2, Mail, Phone, Euro } from 'lucide-react';
+import { Plus, Lightbulb, Edit, Trash2, Mail, Phone, Euro, ChevronsUpDown } from 'lucide-react';
 import {
   getCleaners,
   getCleanerByUserId,
@@ -20,6 +20,7 @@ export function Cleaners() {
   const { user } = useOutletContext<ContextType>();
 
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
+  const [filteredCleaners, setFilteredCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -31,14 +32,19 @@ export function Cleaners() {
     message: '',
   });
 
+  // --- Filter-States (analog Apartments) ---
+  const [filters, setFilters] = useState({
+    name: '',
+    email: '',
+    phone: '',
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     hourly_rate: '',
   });
-
-  const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -50,10 +56,13 @@ export function Cleaners() {
     try {
       if (user.role === 'Cleaner') {
         const me = await getCleanerByUserId(user.auth_id);
-        setCleaners(me ? [me] : []);
+        const list = me ? [me] : [];
+        setCleaners(list);
+        setFilteredCleaners(list);
       } else {
         const data = await getCleaners(user.id);
         setCleaners(data);
+        setFilteredCleaners(data);
       }
     } catch (e: any) {
       setErrorModal({
@@ -64,6 +73,27 @@ export function Cleaners() {
       setLoading(false);
     }
   }
+
+  // --- Filtering logic (analog Apartments) ---
+  useEffect(() => {
+    const filtered = cleaners.filter((c) => {
+      const nameMatch = filters.name
+        ? c.name?.toLowerCase().includes(filters.name.toLowerCase())
+        : true;
+      const emailMatch = filters.email
+        ? (c.email || '').toLowerCase().includes(filters.email.toLowerCase())
+        : true;
+      const phoneMatch = filters.phone
+        ? (c.phone || '').toLowerCase().includes(filters.phone.toLowerCase())
+        : true;
+      return nameMatch && emailMatch && phoneMatch;
+    });
+    setFilteredCleaners(filtered);
+  }, [filters, cleaners]);
+
+  // Autocomplete-Dropdown Hilfsfunktion (analog Apartments)
+  const unique = (key: keyof Cleaner) =>
+    Array.from(new Set(cleaners.map((c) => (c[key] as unknown as string) || '').filter(Boolean))) as string[];
 
   function openCreateModal() {
     setEditingId(null);
@@ -134,14 +164,14 @@ export function Cleaners() {
     }
   }
 
-  if (loading) return <div className="text-white">Loading...</div>;
+  if (loading) return <div className="text-white px-4 sm:px-6 md:px-8">Loading...</div>;
   const canCreate = user.role === 'Host';
 
   return (
-    <div>
+    <div className="px-4 sm:px-6 md:px-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-white">
           {user.role === 'Cleaner' ? 'Mein Profil' : 'Reinigungskräfte'}
         </h2>
 
@@ -149,7 +179,7 @@ export function Cleaners() {
           <button
             type="button"
             onClick={openCreateModal}
-            className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center gap-2 rounded-md"
+            className="w-full sm:w-auto px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors font-medium flex items-center justify-center gap-2 rounded-md"
           >
             <Plus className="w-5 h-5" />
             Reinigungskraft hinzufügen
@@ -173,9 +203,42 @@ export function Cleaners() {
         </div>
       )}
 
+      {/* Filterleiste (wie bei Apartments) */}
+      <div className="bg-[#111111] border border-white/10 rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3">
+        {[
+          { key: 'name', placeholder: 'Name' },
+          { key: 'email', placeholder: 'E-Mail' },
+          { key: 'phone', placeholder: 'Nummer' },
+        ].map(({ key, placeholder }) => (
+          <div key={key} className="relative flex-1">
+            <input
+              type="text"
+              placeholder={placeholder}
+              value={filters[key as keyof typeof filters]}
+              onChange={(e) => setFilters({ ...filters, [key]: e.target.value })}
+              list={`${key}-list`}
+              className="w-full px-3 py-2 bg-[#1a1a1a] text-white rounded-md border border-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+            />
+            <datalist id={`${key}-list`}>
+              {unique(key as keyof Cleaner).map((val) => (
+                <option key={val} value={val} />
+              ))}
+            </datalist>
+            <ChevronsUpDown className="absolute right-3 top-2.5 w-4 h-4 text-white/40" />
+          </div>
+        ))}
+
+        <button
+          onClick={() => setFilters({ name: '', email: '', phone: '' })}
+          className="px-4 py-2 bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white rounded-md border border-white/20 transition-colors"
+        >
+          Zurücksetzen
+        </button>
+      </div>
+
       {/* Cleaner Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-        {cleaners.map((cleaner) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl-grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4">
+        {filteredCleaners.map((cleaner) => (
           <div
             key={cleaner.id}
             className="
@@ -246,9 +309,9 @@ export function Cleaners() {
           </div>
         ))}
 
-        {cleaners.length === 0 && (
+        {filteredCleaners.length === 0 && (
           <div className="col-span-full text-center py-12 text-white/50">
-            Sie haben noch keine Cleaner erstellt.
+            Keine Reinigungskräfte gefunden.
           </div>
         )}
       </div>
