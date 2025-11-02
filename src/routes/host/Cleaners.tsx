@@ -173,7 +173,7 @@ export function Cleaners() {
         </div>
       )}
 
-      {/* Cleaner Cards (jetzt mit gleichem Hover-Glow wie Apartments) */}
+      {/* Cleaner Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {cleaners.map((cleaner) => (
           <div
@@ -183,22 +183,22 @@ export function Cleaners() {
               bg-white/5 border border-white/10 p-6 rounded-2xl
               transition-all duration-300
               shadow-[0_0_0_0_rgba(255,255,255,0)]
-              hover:scale-[1.01] focus-within:scale-[1.01]
-              hover:border-white/60 focus-within:border-white/60
-              hover:shadow-[0_0_42px_8px_rgba(255,255,255,0.35)]
-              focus-within:shadow-[0_0_42px_8px_rgba(255,255,255,0.35)]
-              hover:bg-white/[0.06]
+              hover:scale-[1.005] focus-within:scale-[1.005]
+              hover:border-white/50 focus-within:border-white/50
+              hover:shadow-[0_0_25px_4px_rgba(255,255,255,0.25)]
+              focus-within:shadow-[0_0_25px_4px_rgba(255,255,255,0.25)]
+              hover:bg-white/[0.05]
             "
           >
-            {/* optionaler innerer Glanz */}
+            {/* dezenter innerer Glanz */}
             <div
               aria-hidden
               className="
                 pointer-events-none absolute inset-0 rounded-2xl
                 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100
                 transition-opacity duration-300
-                ring-1 ring-white/30
-                shadow-[inset_0_0_24px_6px_rgba(255,255,255,0.08)]
+                ring-1 ring-white/20
+                shadow-[inset_0_0_16px_3px_rgba(255,255,255,0.05)]
               "
             />
 
@@ -270,7 +270,7 @@ export function Cleaners() {
         )}
       </div>
 
-      {/* Delete Confirm */}
+      {/* Confirm + Error Popups bleiben identisch */}
       {isConfirmOpen && selectedCleaner && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
@@ -300,7 +300,6 @@ export function Cleaners() {
         </div>
       )}
 
-      {/* Error Modal */}
       {errorModal.open && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
