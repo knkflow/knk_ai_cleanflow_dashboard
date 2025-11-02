@@ -185,8 +185,6 @@ export function Cleaners() {
               hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]
             "
           >
-
-
             <div className="mb-3 flex items-center gap-2">
               <h3 className="text-lg font-semibold text-white">{cleaner.name}</h3>
               {cleaner.user_id ? (
@@ -255,7 +253,82 @@ export function Cleaners() {
         )}
       </div>
 
-      {/* Confirm + Error Popups bleiben identisch */}
+      {/* Create/Edit Modal */}
+      {isModalOpen && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={editingId ? 'Cleaner bearbeiten' : 'Cleaner hinzufügen'}
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Name"
+              placeholder="Vor- und Nachname"
+              value={formData.name}
+              onChange={(e: any) => setFormData((p) => ({ ...p, name: e.target.value }))}
+              required
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="E-Mail (optional)"
+                type="email"
+                placeholder="name@example.com"
+                value={formData.email}
+                onChange={(e: any) => setFormData((p) => ({ ...p, email: e.target.value }))}
+              />
+              <Input
+                label="Telefon (optional)"
+                type="tel"
+                placeholder="+49 ..."
+                value={formData.phone}
+                onChange={(e: any) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+              />
+            </div>
+
+            <Input
+              label="Stundenlohn (optional)"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0"
+              placeholder="z. B. 18.50"
+              value={formData.hourly_rate}
+              onChange={(e: any) => setFormData((p) => ({ ...p, hourly_rate: e.target.value }))}
+            />
+
+            {/* Hinweis zur Einladung */}
+            <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg text-blue-300 text-sm">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="w-4 h-4" />
+                <span>
+                  Beim Speichern erhält die Reinigungskraft automatisch einen Einladungslink (Magic Link).
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 border border-white/30 text-white rounded-md hover:border-white/60 transition-colors"
+                disabled={submitting}
+              >
+                Abbrechen
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors disabled:opacity-70"
+                disabled={submitting || !formData.name.trim()}
+              >
+                {submitting ? (editingId ? 'Speichern…' : 'Einladen…') : (editingId ? 'Speichern' : 'Einladen')}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Confirm + Error Popups */}
       {isConfirmOpen && selectedCleaner && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
@@ -294,7 +367,7 @@ export function Cleaners() {
               <button
                 type="button"
                 onClick={() => setErrorModal({ open: false, message: '' })}
-                className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg-white/80 transition-colors"
+                className="px-5 py-2 bg-white text-black font-semibold rounded-md hover:bg:white/80 transition-colors"
               >
                 Zurück
               </button>
