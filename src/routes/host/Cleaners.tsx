@@ -181,7 +181,7 @@ export function Cleaners() {
             className="
               bg-white/5 border border-white/10 p-4 sm:p-5 rounded-2xl
               transition-all duration-500
-              hover:border-2 hover:border-white
+              hover:border-white
               hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]
             "
           >
