@@ -268,12 +268,12 @@ export function Calendar() {
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
               {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
 
-              {/* ALLE Ansicht: Icon statt Namensliste */}
+              {/* ALLE Ansicht: Icon-Button (weißer Kasten) statt Namensliste */}
               {isAllView && isUnavailable && (
                 <div className="mt-1 flex items-center justify-center">
                   <button
                     onClick={() => openPeopleModal(ymd, unavailableCleaners)}
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-transparent hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/60"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md border-2 border-white bg-transparent hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/60"
                     aria-label="Nicht verfügbare Cleaner anzeigen"
                     title="Nicht verfügbare Cleaner"
                   >
