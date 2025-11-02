@@ -9,7 +9,6 @@ import {
   Building2,
   MapPin,
   Calendar as CalendarIcon,
-  Brush,
   User as UserIcon,
   Mail,
   Phone,
@@ -269,28 +268,18 @@ export function Calendar() {
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
               {!isUnavailable && <div className="truncate text-center">Verfügbar</div>}
 
-              {/* ALLE Ansicht */}
+              {/* ALLE Ansicht: Icon statt Namensliste */}
               {isAllView && isUnavailable && (
-                <>
-                  <div className="mt-1 max-h-16 overflow-y-auto pr-1 hidden sm:block">
-                    <ul className="space-y-1">
-                      {unavailableNames.map((n, i) => (
-                        <li key={i} className="whitespace-nowrap text-[11px] text-white/90">
-                          <span className="text-white/60">Cleaner:</span>{' '}
-                          <span className="font-medium">{n}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="mt-1 flex items-center justify-center sm:hidden">
-                    <button
-                      onClick={() => openPeopleModal(ymd, unavailableCleaners)}
-                      className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-white text-black border border-white/60 hover:bg-white/90 transition-colors"
-                    >
-                      <Brush className="w-4 h-4" />
-                    </button>
-                  </div>
-                </>
+                <div className="mt-1 flex items-center justify-center">
+                  <button
+                    onClick={() => openPeopleModal(ymd, unavailableCleaners)}
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-transparent hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/60"
+                    aria-label="Nicht verfügbare Cleaner anzeigen"
+                    title="Nicht verfügbare Cleaner"
+                  >
+                    <UserIcon className="w-5 h-5 text-white" />
+                  </button>
+                </div>
               )}
 
               {/* EINZEL Ansicht */}
