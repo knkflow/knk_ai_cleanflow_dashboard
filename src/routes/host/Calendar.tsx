@@ -258,11 +258,11 @@ export function Calendar() {
 
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
-          <div className="flex items-center gap-2 sm:gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
   <UserIcon className="w-6 h-6 text-white/80" />
-  <div className="text-base sm:text-lg font-semibold text-white underline underline-offset-4 decoration-white">
+  <span className="text-base sm:text-lg font-semibold text-white underline underline-offset-4 decoration-white">
     {label}
-  </div>
+  </span>
 </div>
 
 
