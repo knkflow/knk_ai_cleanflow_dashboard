@@ -259,11 +259,13 @@ export function Calendar() {
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
           {/* Datum oben links */}
-          <div className="text-xs mb-1 flex items-center gap-2">
-            <span className={day.isToday ? 'font-bold text-white' : 'text-white/70'}>
-              {day.date.getDate()}
-            </span>
-          </div>
+          <div className="inline-flex items-center gap-2 sm:gap-3 pb-0.5 border-b border-white">
+  <UserIcon className="w-6 h-6 text-white" />
+  <span className="text-base sm:text-lg font-semibold text-white">
+    {label}
+  </span>
+</div>
+
 
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
