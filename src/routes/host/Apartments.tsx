@@ -9,6 +9,7 @@ import {
   MapPin,
   User as User_Icon,
   Info,
+  ChevronsUpDown,
 } from 'lucide-react';
 import {
   getApartments,
@@ -27,8 +28,16 @@ interface ContextType {
 export function Apartments() {
   const { user } = useOutletContext<ContextType>();
   const [apartments, setApartments] = useState<ApartmentWithCleaner[]>([]);
+  const [filteredApartments, setFilteredApartments] = useState<ApartmentWithCleaner[]>([]);
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    name: '',
+    address: '',
+    listing_id: '',
+  });
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,11 +64,29 @@ export function Apartments() {
         getCleaners(user.id),
       ]);
       setApartments(apartmentsData);
+      setFilteredApartments(apartmentsData);
       setCleaners(cleanersData);
     } finally {
       setLoading(false);
     }
   }
+
+  /** Filtering logic */
+  useEffect(() => {
+    const filtered = apartments.filter((a) => {
+      const nameMatch = filters.name
+        ? a.name?.toLowerCase().includes(filters.name.toLowerCase())
+        : true;
+      const addressMatch = filters.address
+        ? a.address?.toLowerCase().includes(filters.address.toLowerCase())
+        : true;
+      const listingMatch = filters.listing_id
+        ? a.listing_id?.toLowerCase().includes(filters.listing_id.toLowerCase())
+        : true;
+      return nameMatch && addressMatch && listingMatch;
+    });
+    setFilteredApartments(filtered);
+  }, [filters, apartments]);
 
   function openCreateModal() {
     setEditingId(null);
@@ -123,6 +150,10 @@ export function Apartments() {
     return <div className="text-white px-4 sm:px-6 md:px-8">Loading...</div>;
   }
 
+  /** Autocomplete-Dropdown Hilfsfunktion */
+  const unique = (key: keyof ApartmentWithCleaner) =>
+    Array.from(new Set(apartments.map((a) => a[key]).filter(Boolean))) as string[];
+
   return (
     <div className="px-4 sm:px-6 md:px-8">
       {/* Header */}
@@ -137,9 +168,46 @@ export function Apartments() {
         </button>
       </div>
 
+      {/* Filterleiste */}
+      <div className="bg-[#111111] border border-white/10 rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3">
+        {['name', 'address', 'listing_id'].map((key) => (
+          <div key={key} className="relative flex-1">
+            <input
+              type="text"
+              placeholder={
+                key === 'name'
+                  ? 'Name des Apartments'
+                  : key === 'address'
+                  ? 'Adresse'
+                  : 'Listing-ID'
+              }
+              value={filters[key as keyof typeof filters]}
+              onChange={(e) =>
+                setFilters({ ...filters, [key]: e.target.value })
+              }
+              list={`${key}-list`}
+              className="w-full px-3 py-2 bg-[#1a1a1a] text-white rounded-md border border-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+            />
+            <datalist id={`${key}-list`}>
+              {unique(key as keyof ApartmentWithCleaner).map((val) => (
+                <option key={val} value={val} />
+              ))}
+            </datalist>
+            <ChevronsUpDown className="absolute right-3 top-2.5 w-4 h-4 text-white/40" />
+          </div>
+        ))}
+
+        <button
+          onClick={() => setFilters({ name: '', address: '', listing_id: '' })}
+          className="px-4 py-2 bg-[#2b2b2b] hover:bg-[#3a3a3a] text-white rounded-md border border-white/20 transition-colors"
+        >
+          Zurücksetzen
+        </button>
+      </div>
+
       {/* Apartment Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        {apartments.map((apartment) => (
+        {filteredApartments.map((apartment) => (
           <div
             key={apartment.listing_id}
             className="bg-[#1a1a1a] border border-white/10 p-4 sm:p-5 rounded-2xl transition-all duration-500 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.2)]"
@@ -153,7 +221,9 @@ export function Apartments() {
 
                 <p className="text-white/70 text-xs sm:text-sm mb-2 flex items-center gap-2">
                   <KeyRound className="w-4 h-4 text-white/60 shrink-0" />
-                  <span className="truncate">Listing ID: {apartment.listing_id}</span>
+                  <span className="truncate">
+                    Listing ID: {apartment.listing_id}
+                  </span>
                 </p>
 
                 {apartment.address && (
@@ -195,14 +265,14 @@ export function Apartments() {
           </div>
         ))}
 
-        {apartments.length === 0 && (
+        {filteredApartments.length === 0 && (
           <div className="col-span-full text-center py-10 sm:py-12 text-white/60 text-sm sm:text-base">
-            Noch keine Apartments. Füge dein erstes Apartment hinzu, um zu starten.
+            Keine Apartments gefunden.
           </div>
         )}
       </div>
 
-      {/* Modal für Apartment Hinzufügen / Bearbeiten */}
+      {/* --- Modal für Apartment Hinzufügen / Bearbeiten --- */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -304,7 +374,7 @@ export function Apartments() {
         </form>
       </Modal>
 
-      {/* Delete Modal */}
+      {/* --- Delete Modal --- */}
       {apartmentToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
