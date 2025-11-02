@@ -54,7 +54,7 @@ export function Landing() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* ===== HEADER aus 2. Code beibehalten ===== */}
-   <header className="sticky top-0 z-40 border-b border-white/10 bg-[#000000] backdrop-blur-none supports-[backdrop-filter]:backdrop-blur-0 text-      
+         <header className="sticky top-0 z-40 border-b border-white/10 bg-[#000000] backdrop-blur-none supports-[backdrop-filter]:backdrop-blur-0 text-  white">
 
         <div className="container mx-auto px-6 lg:px-8 py-4 grid grid-cols-3 items-center">
           {/* Links – Name */}
