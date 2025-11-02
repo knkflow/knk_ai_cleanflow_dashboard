@@ -179,28 +179,13 @@ export function Cleaners() {
           <div
             key={cleaner.id}
             className="
-              relative group overflow-hidden
-              bg-white/5 border border-white/10 p-6 rounded-2xl
-              transition-all duration-300
-              shadow-[0_0_0_0_rgba(255,255,255,0)]
-              hover:scale-[1.005] focus-within:scale-[1.005]
-              hover:border-white/50 focus-within:border-white/50
-              hover:shadow-[0_0_25px_4px_rgba(255,255,255,0.25)]
-              focus-within:shadow-[0_0_25px_4px_rgba(255,255,255,0.25)]
-              hover:bg-white/[0.05]
+              bg-white/5 border border-white/10 p-4 sm:p-5 rounded-2xl
+              transition-all duration-500
+              hover:border-2 hover:border-white
+              hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]
             "
           >
-            {/* dezenter innerer Glanz */}
-            <div
-              aria-hidden
-              className="
-                pointer-events-none absolute inset-0 rounded-2xl
-                opacity-0 group-hover:opacity-100 group-focus-within:opacity-100
-                transition-opacity duration-300
-                ring-1 ring-white/20
-                shadow-[inset_0_0_16px_3px_rgba(255,255,255,0.05)]
-              "
-            />
+
 
             <div className="mb-3 flex items-center gap-2">
               <h3 className="text-lg font-semibold text-white">{cleaner.name}</h3>
