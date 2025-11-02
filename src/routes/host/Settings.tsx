@@ -1,5 +1,5 @@
 // src/pages/Settings/Settings.tsx
-import { useState, ChangeEvent } from 'react';
+import { useState } from 'react';
 import {
   Settings as SettingsIcon,
   User,
@@ -7,7 +7,6 @@ import {
   FileText,
   MoreHorizontal,
 } from 'lucide-react';
-import { Input } from '../../components/forms/Input'; // nutzt eure bestehende Input-Komponente
 
 type SectionKey = 'general' | 'profile' | 'apis' | 'invoices' | 'other';
 
@@ -21,20 +20,6 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ElementType }[] = 
 
 export function Settings() {
   const [active, setActive] = useState<SectionKey>('general');
-
-  // Dummy Input-Werte nur für die ersten drei Bereiche
-  const [values, setValues] = useState<Record<SectionKey, string>>({
-    general: '',
-    profile: '',
-    apis: '',
-    invoices: '',
-    other: '',
-  });
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setValues((prev) => ({ ...prev, [active]: val }));
-  };
 
   const currentSection = SECTIONS.find((s) => s.key === active);
 
@@ -82,23 +67,9 @@ export function Settings() {
                 {currentSection?.label}
               </h3>
               <p className="text-white/60 text-sm">
-                {['general', 'profile', 'apis'].includes(active)
-                  ? 'Dummy-Beispiel – hier kommt später der echte Inhalt.'
-                  : 'Diese Funktionalität ist noch in Arbeit.'}
+                Diese Funktion ist für Gastaccounts nicht verfügbar.
               </p>
             </div>
-
-            {/* Nur die ersten 3 Tabs haben Eingabefelder */}
-            {['general', 'profile', 'apis'].includes(active) && (
-              <div className="max-w-lg">
-                <Input
-                  label="Beispiel-Textfeld"
-                  placeholder="Gib hier etwas ein…"
-                  value={values[active]}
-                  onChange={handleChange}
-                />
-              </div>
-            )}
           </section>
         </div>
       </div>
