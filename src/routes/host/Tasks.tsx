@@ -471,20 +471,21 @@ export function Tasks() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEditModal(task)}
-                    className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-full hover:bg-white/10 transition-colors"
                     title="Edit"
                   >
                     <Edit className="w-5 h-5 text-white" />
                   </button>
-
+                
                   <button
                     onClick={() => openDeleteModal(task)}
-                    className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+                    className="p-2 rounded-full hover:bg-red-500/20 transition-colors"
                     title="Delete"
                   >
                     <Trash2 className="w-5 h-5 text-red-500" />
                   </button>
                 </div>
+
               </div>
             </div>
           );
