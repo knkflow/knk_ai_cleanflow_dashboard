@@ -16,35 +16,25 @@ import {
   X as CloseIcon,
 } from 'lucide-react';
 
-interface ContextType {
-  user: User;
-}
+interface ContextType { user: User; }
 
 /* ---------------- Helpers ---------------- */
-
 const pad2 = (n: number) => n.toString().padStart(2, '0');
-function ymdFromUTC(y: number, m1: number, d: number): string {
-  return `${y}-${pad2(m1)}-${pad2(d)}`;
-}
-
-function isValidYMD(y: number, m1: number, d: number): boolean {
+function ymdFromUTC(y: number, m1: number, d: number) { return `${y}-${pad2(m1)}-${pad2(d)}`; }
+function isValidYMD(y: number, m1: number, d: number) {
   if (!Number.isInteger(y) || !Number.isInteger(m1) || !Number.isInteger(d)) return false;
   if (m1 < 1 || m1 > 12 || d < 1 || d > 31) return false;
   const dt = new Date(Date.UTC(y, m1 - 1, d));
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m1 - 1 && dt.getUTCDate() === d;
 }
-
 function normalizeYMD(input: unknown): string {
   if (input == null) return '';
   if (input instanceof Date)
     return ymdFromUTC(input.getUTCFullYear(), input.getUTCMonth() + 1, input.getUTCDate());
   const s = String(input).trim();
   if (!s) return '';
-  if (s.includes('T')) {
-    const dt = new Date(s);
-    if (!isNaN(dt.getTime()))
-      return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
-  }
+  if (s.includes('T')) { const dt = new Date(s); if (!isNaN(dt.getTime()))
+    return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate()); }
   const m =
     s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/) ||
     s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/) ||
@@ -59,7 +49,6 @@ function normalizeYMD(input: unknown): string {
     return ymdFromUTC(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
   return '';
 }
-
 function availabilityToSet(av: unknown): Set<string> {
   const set = new Set<string>();
   const add = (x: unknown) => { const y = normalizeYMD(x); if (y) set.add(y); };
@@ -73,23 +62,15 @@ function availabilityToSet(av: unknown): Set<string> {
   walk(av);
   return set;
 }
-
-function dayToYMD(day: MonthDay): string {
-  return normalizeYMD((day as any).dateStr ?? day.date);
-}
-
+function dayToYMD(day: MonthDay) { return normalizeYMD((day as any).dateStr ?? day.date); }
 function getCleanerLabel(c: Cleaner): string {
-  const n = (c as any)?.name;
-  if (typeof n === 'string' && n.trim()) return n.trim();
-  const e = (c as any)?.email;
-  if (typeof e === 'string' && e.trim()) return e.trim();
-  const p = (c as any)?.phone;
-  if (typeof p === 'string' && p.trim()) return p.trim();
+  const n = (c as any)?.name; if (typeof n === 'string' && n.trim()) return n.trim();
+  const e = (c as any)?.email; if (typeof e === 'string' && e.trim()) return e.trim();
+  const p = (c as any)?.phone; if (typeof p === 'string' && p.trim()) return p.trim();
   return '[Unbenannt]';
 }
 
 /* ---------------- Component ---------------- */
-
 type AssignmentDetail = { name: string; address?: string | null; date: string };
 type DetailIndex = Map<string, Map<string, AssignmentDetail[]>>;
 
@@ -119,7 +100,6 @@ export function Calendar() {
   const initialLoadDone = useRef(false);
   const THROTTLE_MS = 500;
 
-  /* ---- CLEANERS LADEN ---- */
   const loadCleaners = useCallback(async (opts?: { silent?: boolean }) => {
     const nowTs = Date.now();
     if (inFlightRef.current || nowTs - lastFetchTsRef.current < THROTTLE_MS) return;
@@ -146,14 +126,12 @@ export function Calendar() {
     if (path.toLowerCase().includes('calendar')) void loadCleaners({ silent: true });
   }, [location.pathname, loadCleaners]);
 
-  /* ---- INDEX: Abwesenheiten ---- */
   const unavailableIndex = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const c of cleaners) m.set(c.id, availabilityToSet((c as any).availability));
     return m;
   }, [cleaners]);
 
-  /* ---- TASKS LADEN ---- */
   const loadAssignments = useCallback(async () => {
     try {
       const startYMD = ymdFromUTC(year, month + 1, 1);
@@ -181,7 +159,10 @@ export function Calendar() {
   useEffect(() => { void loadAssignments(); }, [loadAssignments]);
 
   const monthStart = useMemo(() => ymdFromUTC(year, month + 1, 1), [year, month]);
-  const monthEnd = useMemo(() => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()), [year, month]);
+  const monthEnd = useMemo(
+    () => ymdFromUTC(year, month + 1, new Date(Date.UTC(year, month + 1, 0)).getUTCDate()),
+    [year, month]
+  );
 
   const isInVisibleMonth = useCallback(
     (ymd: string) => ymd >= monthStart && ymd <= monthEnd,
@@ -209,24 +190,19 @@ export function Calendar() {
     return c ? getCleanerLabel(c) : '';
   }, [cleaners, selectedCleanerId]);
 
-  const getUnavailableNames = useCallback(
-    (ymd: string): string[] => {
-      if (isAllView) return monthUnavailableAll.get(ymd) ?? [];
-      const set = unavailableIndex.get(selectedCleanerId!);
-      return set?.has(ymd) ? [selectedCleanerLabel] : [];
-    },
-    [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]
-  );
+  const getUnavailableNames = useCallback((ymd: string): string[] => {
+    if (isAllView) return monthUnavailableAll.get(ymd) ?? [];
+    const set = unavailableIndex.get(selectedCleanerId!);
+    return set?.has(ymd) ? [selectedCleanerLabel] : [];
+  }, [isAllView, monthUnavailableAll, selectedCleanerId, unavailableIndex, selectedCleanerLabel]);
 
   const getUnavailableCleaners = useCallback(
-    (ymd: string): Cleaner[] =>
-      cleaners.filter((c) => unavailableIndex.get(c.id)?.has(ymd)),
+    (ymd: string): Cleaner[] => cleaners.filter((c) => unavailableIndex.get(c.id)?.has(ymd)),
     [cleaners, unavailableIndex]
   );
 
   const getAssignedDetailsForSelected = useCallback(
-    (ymd: string): AssignmentDetail[] =>
-      detailsIndex.get(selectedCleanerId ?? '')?.get(ymd) ?? [],
+    (ymd: string): AssignmentDetail[] => detailsIndex.get(selectedCleanerId ?? '')?.get(ymd) ?? [],
     [detailsIndex, selectedCleanerId]
   );
 
@@ -238,10 +214,7 @@ export function Calendar() {
     setPeopleModalDate(ymd); setPeopleList(people); setPeopleModalOpen(true);
   }, []);
 
-  const closeModals = useCallback(() => {
-    setModalOpen(false);
-    setPeopleModalOpen(false);
-  }, []);
+  const closeModals = useCallback(() => { setModalOpen(false); setPeopleModalOpen(false); }, []);
 
   /* ---- renderDay ---- */
   const renderDay = useCallback(
@@ -259,13 +232,11 @@ export function Calendar() {
       return (
         <div className={`h-full ${day.isCurrentMonth ? '' : 'opacity-40'} select-none`}>
           {/* Datum oben links */}
-          <div className="inline-flex items-center gap-2 sm:gap-3 pb-0.5 border-b border-white">
-  <UserIcon className="w-6 h-6 text-white" />
-  <span className="text-base sm:text-lg font-semibold text-white">
-    {label}
-  </span>
-</div>
-
+          <div className="text-xs mb-1 flex items-center gap-2">
+            <span className={day.isToday ? 'font-bold text-white' : 'text-white/70'}>
+              {day.date.getDate()}
+            </span>
+          </div>
 
           {day.isCurrentMonth && (
             <div className={`relative text-xs p-1.5 rounded-md border ${boxClass}`}>
@@ -299,20 +270,13 @@ export function Calendar() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center mt-2">
-                    {/* mobile */}
                     <span
                       className="sm:hidden inline-flex items-center justify-center h-7 w-7 rounded-full
                                  bg-red-900/40 border border-red-700/60
                                  shadow-[0_0_16px_rgba(185,28,28,0.55)] ring-1 ring-red-800/50"
                     >
-                      <X
-                        className="w-5 h-5 text-red-400"
-                        strokeWidth={2.75}
-                        title="Keine geplanten Einsätze"
-                        aria-label="Keine geplanten Einsätze"
-                      />
+                      <X className="w-5 h-5 text-red-400" strokeWidth={2.75} title="Keine geplanten Einsätze" aria-label="Keine geplanten Einsätze" />
                     </span>
-                    {/* desktop/tablet */}
                     <span className="hidden sm:inline text-red-300 font-medium tracking-wide">
                       -Keine Geplanten Einsätze-
                     </span>
@@ -390,14 +354,9 @@ export function Calendar() {
         </div>
       )}
 
-      {/* Kalender mit Glow */}
+      {/* Kalender */}
       <div className="rounded-2xl border border-white/20 bg-black p-3 sm:p-4 ring-1 ring-white/10 shadow-[0_0_28px_rgba(255,255,255,0.08)]">
-        <MonthCalendar
-          year={year}
-          month={month}
-          onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
-          renderDay={renderDay}
-        />
+        <MonthCalendar year={year} month={month} onMonthChange={(y, m) => { setYear(y); setMonth(m); }} renderDay={renderDay} />
       </div>
 
       {/* ===== MODALS ===== */}
@@ -405,61 +364,37 @@ export function Calendar() {
       {/* Modal: Geplante Einsätze */}
       {modalOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="assignments-title"
-            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
-                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
-          >
+          <div role="dialog" aria-modal="true" aria-labelledby="assignments-title"
+            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 id="assignments-title" className="text-lg sm:text-xl font-semibold">
-                  Geplante Einsätze
-                </h3>
+                <h3 id="assignments-title" className="text-lg sm:text-xl font-semibold">Geplante Einsätze</h3>
                 <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
-                  <CalendarIcon className="w-4 h-4" />
-                  {modalDate}
+                  <CalendarIcon className="w-4 h-4" />{modalDate}
                 </p>
               </div>
-              <button
-                aria-label="Schließen"
-                onClick={closeModals}
-                className="p-2 rounded-md hover:bg-white/10 transition-colors"
-              >
+              <button aria-label="Schließen" onClick={closeModals} className="p-2 rounded-md hover:bg-white/10 transition-colors">
                 <CloseIcon className="w-5 h-5 text-white/80" />
               </button>
             </div>
-
             <div className="mt-4 space-y-3">
               {modalItems.map((it, idx) => (
-                <div
-                  key={`${it.name}-${idx}`}
-                  className="rounded-xl border border-white/10 bg-white/5 p-3"
-                >
+                <div key={`${it.name}-${idx}`} className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-white/70" />
                     <div className="font-medium">{it.name}</div>
                   </div>
                   {it.address && (
                     <div className="mt-1 flex items-center gap-2 text-sm text-white/70">
-                      <MapPin className="w-4 h-4" />
-                      <span>{it.address}</span>
+                      <MapPin className="w-4 h-4" /><span>{it.address}</span>
                     </div>
                   )}
                 </div>
               ))}
-
-              {modalItems.length === 0 && (
-                <div className="text-white/70 text-sm">Keine Einsätze gefunden.</div>
-              )}
+              {modalItems.length === 0 && <div className="text-white/70 text-sm">Keine Einsätze gefunden.</div>}
             </div>
-
             <div className="mt-6 flex justify-end">
-              <button
-                onClick={closeModals}
-                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
-              >
+              <button onClick={closeModals} className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto">
                 Schließen
               </button>
             </div>
@@ -470,28 +405,16 @@ export function Calendar() {
       {/* Modal: Nicht verfügbare Cleaner */}
       {peopleModalOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="people-title"
-            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl
-                       max-h-[90vh] overflow-y-auto p-4 sm:p-6"
-          >
+          <div role="dialog" aria-modal="true" aria-labelledby="people-title"
+            className="w-full max-w-lg mx-4 bg-neutral-900 text-white border border-white/15 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 id="people-title" className="text-lg sm:text-xl font-semibold">
-                  Nicht verfügbare Cleaner
-                </h3>
+                <h3 id="people-title" className="text-lg sm:text-xl font-semibold">Nicht verfügbare Cleaner</h3>
                 <p className="text-white/60 text-sm mt-0.5 flex items-center gap-2">
-                  <CalendarIcon className="w-4 h-4" />
-                  {peopleModalDate}
+                  <CalendarIcon className="w-4 h-4" />{peopleModalDate}
                 </p>
               </div>
-              <button
-                aria-label="Schließen"
-                onClick={closeModals}
-                className="p-2 rounded-md hover:bg-white/10 transition-colors"
-              >
+              <button aria-label="Schließen" onClick={closeModals} className="p-2 rounded-md hover:bg-white/10 transition-colors">
                 <CloseIcon className="w-5 h-5 text-white/80" />
               </button>
             </div>
@@ -500,46 +423,33 @@ export function Calendar() {
               {peopleList.map((c) => {
                 const label = getCleanerLabel(c);
                 return (
-                  <div
-                    key={c.id}
-                    className="rounded-xl border border-white/10 bg-white/5 p-3"
-                  >
-                    {/* Icon + Name: größer, fetter, weiß unterstrichen */}
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <UserIcon className="w-6 h-6 text-white/80" />
-                      <span className="text-base sm:text-lg font-semibold text-white underline underline-offset-4 decoration-white">
-                        {label}
-                      </span>
+                  <div key={c.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    {/* Icon + Name gemeinsam weiß unterstrichen */}
+                    <div className="inline-flex items-center gap-2 sm:gap-3 pb-0.5 border-b border-white">
+                      <UserIcon className="w-6 h-6 text-white" />
+                      <span className="text-base sm:text-lg font-semibold text-white">{label}</span>
                     </div>
 
-                    <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-white/70">
+                    <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-white/70">
                       {c.email && (
                         <span className="inline-flex items-center gap-1.5">
-                          <Mail className="w-4 h-4" />
-                          {c.email}
+                          <Mail className="w-4 h-4" />{c.email}
                         </span>
                       )}
                       {c.phone && (
                         <span className="inline-flex items-center gap-1.5">
-                          <Phone className="w-4 h-4" />
-                          {c.phone}
+                          <Phone className="w-4 h-4" />{c.phone}
                         </span>
                       )}
                     </div>
                   </div>
                 );
               })}
-
-              {peopleList.length === 0 && (
-                <div className="text-white/70 text-sm">Keine Einträge.</div>
-              )}
+              {peopleList.length === 0 && <div className="text-white/70 text-sm">Keine Einträge.</div>}
             </div>
 
             <div className="mt-6 flex justify-end">
-              <button
-                onClick={closeModals}
-                className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto"
-              >
+              <button onClick={closeModals} className="px-5 py-2 min-h-[44px] bg-white text-black font-semibold rounded-md hover:bg-white/90 transition-colors w-full sm:w-auto">
                 Schließen
               </button>
             </div>
