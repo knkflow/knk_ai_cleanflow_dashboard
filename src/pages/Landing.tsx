@@ -2,9 +2,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  // Header
   User, Search, Mail,
-  // Inhalte
   ArrowRight, MessageSquare, ClipboardCheck,
   CalendarDays, ShieldCheck, CheckCircle2, Star,
 } from "lucide-react";
@@ -12,25 +10,20 @@ import {
 export function Landing() {
   const navigate = useNavigate();
 
-  // Refs für Scroll
   const heroRef = useRef<HTMLDivElement | null>(null);
   const featuresRef = useRef<HTMLDivElement | null>(null);
   const storyRef = useRef<HTMLDivElement | null>(null);
 
-  // State
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Auto-Slider (Hero Galerie)
   const slides = ["/Photo2.png", "/Photo3.jpeg", "/Photo5.jpeg"];
   const [activeSlide, setActiveSlide] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => {
-      setActiveSlide((i) => (i + 1) % slides.length);
-    }, 3800);
+    const id = setInterval(() => setActiveSlide(i => (i + 1) % slides.length), 3800);
     return () => clearInterval(id);
   }, []);
 
@@ -44,43 +37,35 @@ export function Landing() {
     e.preventDefault();
     const to = "knk.flow@web.de";
     const subject = `Kontaktanfrage von ${contactName || "CleanFlow Website"}`;
-    const bodyLines = [
+    const body = [
       contactName ? `Name: ${contactName}` : "",
       contactEmail ? `E-Mail: ${contactEmail}` : "",
-      "",
-      "Nachricht:",
-      contactMessage || "",
-    ].filter(Boolean);
-    const body = bodyLines.join("\n");
-    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
+      "", "Nachricht:", contactMessage || ""
+    ].filter(Boolean).join("\n");
+    window.location.href =
+      `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setIsContactOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-[#000] text-white">
-      {/* ===== HEADER (schwarz) ===== */}
+      {/* HEADER */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#000000]">
         <div className="container mx-auto px-6 lg:px-8 py-4 grid grid-cols-3 items-center">
-          {/* Links – Name */}
           <span className="text-sm md:text-base tracking-widest uppercase font-semibold text-white">
             CleanFlow
           </span>
 
-          {/* Mitte – Logo */}
           <div className="justify-self-center">
             <img
               src="/logo.png"
               alt="CleanFlow"
               className="h-10 md:h-14 w-auto select-none rounded-full border-2 border-white/70
-                         shadow-[0_0_10px_rgba(255,255,255,0.25)] transition-all duration-500 ease-out
+                         shadow-[0_0_10px_rgba(255,255,255,0.25)] transition-all duration-500
                          hover:shadow-[0_0_25px_rgba(255,255,255,0.55)] hover:border-white"
             />
           </div>
 
-          {/* Rechts – Navigation (Desktop) */}
           <nav className="hidden md:flex justify-end items-center gap-6 lg:gap-8">
             <button
               onClick={() => scrollTo(featuresRef)}
@@ -96,17 +81,16 @@ export function Landing() {
             </button>
             <button
               onClick={() => navigate("/login")}
-              className="px-5 py-2 text-sm font-semibold bg-white text-black hover:bg-white/90 rounded-full"
+              className="px-5 py-2 text-sm font-semibold bg-emerald-500 text-black hover:bg-emerald-600 rounded-full"
             >
               Anmelden
             </button>
           </nav>
 
-          {/* Mobile Toggle */}
           <div className="md:hidden justify-self-end">
             <button
               aria-label="Navigation öffnen"
-              onClick={() => setMobileOpen((v) => !v)}
+              onClick={() => setMobileOpen(v => !v)}
               className="inline-flex items-center justify-center gap-2 px-3 h-10 rounded-full
                          border border-white/20 text-white/80 bg-white/5 hover:text-white hover:border-white/60 hover:bg-white/10"
             >
@@ -117,7 +101,6 @@ export function Landing() {
           </div>
         </div>
 
-        {/* Mobile Dropdown */}
         {mobileOpen && (
           <div className="md:hidden border-t border-white/10 bg-black/95">
             <div className="container mx-auto px-6 lg:px-8 py-3 flex flex-col gap-2">
@@ -125,20 +108,19 @@ export function Landing() {
               <button onClick={() => { setMobileOpen(false); scrollTo(featuresRef); }} className="py-2 text-left text-white/80 hover:text-white">Lösungen</button>
               <button onClick={() => { setMobileOpen(false); scrollTo(storyRef); }} className="py-2 text-left text-white/80 hover:text-white">Über uns</button>
               <button onClick={() => { setMobileOpen(false); openContact(); }} className="py-2 text-left text-white/80 hover:text-white">Kontakt</button>
-              <button onClick={() => { setMobileOpen(false); navigate("/login"); }} className="mt-1 px-5 py-2 bg-white text-black rounded-full">Anmelden</button>
+              <button onClick={() => { setMobileOpen(false); navigate("/login"); }} className="mt-1 px-5 py-2 bg-emerald-500 text-black hover:bg-emerald-600 rounded-full">Anmelden</button>
             </div>
           </div>
         )}
       </header>
 
-      {/* ===== MAIN ===== */}
+      {/* MAIN */}
       <main>
-        {/* HERO – Dark mit Energy-Glow + Auto-Slider im Hintergrund */}
+        {/* HERO mit grünem Akzent */}
         <section ref={heroRef} className="relative overflow-hidden">
-          {/* Energy-Glows */}
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-40 -left-32 h-[32rem] w-[32rem] rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -bottom-40 -right-32 h-[32rem] w-[32rem] rounded-full bg-white/5 blur-3xl" />
+            <div className="absolute -top-40 -left-32 h-[32rem] w-[32rem] rounded-full bg-emerald-500/15 blur-3xl" />
+            <div className="absolute -bottom-40 -right-32 h-[32rem] w-[32rem] rounded-full bg-emerald-400/10 blur-3xl" />
           </div>
 
           {/* Slider-Hintergrund */}
@@ -151,37 +133,38 @@ export function Landing() {
                 className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${i === activeSlide ? 'opacity-100' : 'opacity-0'}`}
               />
             ))}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#000]/40 via-[#000]/40 to-[#000]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 via-[#000]/50 to-[#000]" />
           </div>
 
           <div className="relative container mx-auto px-6 lg:px-10 py-20 md:py-32 text-center">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/20 bg-white/5">
-              <span className="text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/80">
+            {/* grünes Intro-Pill */}
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-emerald-400/40 bg-emerald-500/10">
+              <span className="text-[11px] md:text-xs tracking-[0.35em] uppercase text-emerald-300">
                 Kurzzeitvermietung · Reinigungsteams · Hausverwaltungen
               </span>
             </div>
 
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
-              <span className="text-white">Ihre Reinigungen.</span>{' '}
-              <span className="bg-clip-text text-transparent bg-[conic-gradient(at_top_left,_white,_#d4d4d4,_white)]">
+              <span className="text-white">Ihre Reinigungen.</span>{" "}
+              <span className="bg-clip-text text-transparent bg-[conic-gradient(at_top_left,_#34d399,_#a7f3d0,_#34d399)]">
                 Einfach. Koordiniert. Kraftvoll.
               </span>
             </h1>
 
-            <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
+            <p className="mt-6 text-lg md:text-xl text-white/75 max-w-3xl mx-auto">
               Verwalten Sie Apartments, koordinieren Sie Teams und planen Sie Einsätze mit Präzision. CleanFlow setzt auf Klarheit, Tempo und Qualität.
             </p>
 
             <div className="mt-9 flex items-center justify-center gap-4">
               <button
                 onClick={() => navigate('/login')}
-                className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 rounded-full"
+                className="px-8 py-3 text-sm md:text-base font-semibold bg-emerald-500 text-black hover:bg-emerald-600 rounded-full"
               >
                 Jetzt starten
               </button>
               <button
                 onClick={() => scrollTo(featuresRef)}
-                className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 rounded-full"
+                className="px-8 py-3 text-sm md:text-base font-semibold border border-emerald-400/40 text-emerald-300 hover:border-emerald-400/70 rounded-full"
               >
                 Mehr erfahren
               </button>
@@ -189,14 +172,14 @@ export function Landing() {
           </div>
         </section>
 
-        {/* FEATURES – energiegeladene Kacheln */}
+        {/* FEATURES */}
         <section ref={featuresRef} className="py-20 md:py-24 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
                 Funktionen, die antreiben
               </h2>
-              <div className="w-24 h-px bg-gradient-to-r from-white/40 via-white to-white/40 mx-auto mt-6 mb-6" />
+              <div className="w-24 h-px bg-gradient-to-r from-emerald-300/50 via-emerald-400 to-emerald-300/50 mx-auto mt-6 mb-6" />
               <p className="text-white/70 max-w-3xl mx-auto">
                 Alles, was Sie für professionelles Reinigungsmanagement brauchen – schnell, robust, transparent.
               </p>
@@ -204,16 +187,16 @@ export function Landing() {
 
             <div className="mt-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {[
-                { icon: <MessageSquare className="w-5 h-5" />, title: "WhatsApp-Benachrichtigungen", text: "Automatisch & manuell. Nachweisbar, nachvollziehbar – direkt in den Chat der Teams." },
-                { icon: <ClipboardCheck className="w-5 h-5" />, title: "Reinigungseinträge & Checklisten", text: "Aufträge erstellen, zuweisen, dokumentieren. Fotodoku & Abnahme inklusive." },
-                { icon: <CalendarDays className="w-5 h-5" />, title: "Kalender & Abwesenheiten", text: "Urlaub & Krankheit im Blick. Konflikte früh erkennen und planen." },
-                { icon: <ShieldCheck className="w-5 h-5" />, title: "Sicherheit & DSGVO", text: "EU-Server, Verschlüsselung, Rollen & Rechte. Vertrauen ist Standard." },
+                { icon: <MessageSquare className="w-5 h-5 text-emerald-400" />, title: "WhatsApp-Benachrichtigungen", text: "Automatisch & manuell. Nachweisbar, nachvollziehbar – direkt im Chat der Teams." },
+                { icon: <ClipboardCheck className="w-5 h-5 text-emerald-400" />, title: "Reinigungseinträge & Checklisten", text: "Aufträge erstellen, zuweisen, dokumentieren. Fotodoku & Abnahme inklusive." },
+                { icon: <CalendarDays className="w-5 h-5 text-emerald-400" />, title: "Kalender & Abwesenheiten", text: "Urlaub & Krankheit im Blick. Konflikte früh erkennen und planen." },
+                { icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />, title: "Sicherheit & DSGVO", text: "EU-Server, Verschlüsselung, Rollen & Rechte. Vertrauen ist Standard." },
               ].map((f) => (
                 <div
                   key={f.title}
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 hover:border-white/25 transition-colors"
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 hover:border-emerald-400/40 transition-colors"
                 >
-                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-white/70 mb-4">
+                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-emerald-400 mb-4">
                     {f.icon}
                     <span>Highlight</span>
                   </div>
@@ -232,13 +215,13 @@ export function Landing() {
               <img
                 src="/Photo2.png"
                 alt="Team bei der Einsatzplanung"
-                className="w-full rounded-2xl border border-white/10"
+                className="w-full rounded-2xl border border-emerald-400/30"
               />
-              <div className="absolute -inset-4 -z-10 rounded-3xl bg-white/5 blur-2xl" aria-hidden />
+              <div className="absolute -inset-4 -z-10 rounded-3xl bg-emerald-500/15 blur-2xl" aria-hidden />
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/60">Unsere Mission</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-emerald-300/80">Unsere Mission</p>
               <h3 className="mt-2 text-2xl md:text-4xl font-extrabold tracking-tight">
                 Ruhe in der Planung. Qualität im Ergebnis.
               </h3>
@@ -255,7 +238,7 @@ export function Landing() {
                   "Rollen & Rechte für Teams, Subunternehmer, Eigentümer",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-white" />
+                    <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-emerald-400" />
                     <span className="text-white/85 leading-relaxed text-base">{item}</span>
                   </li>
                 ))}
@@ -264,13 +247,13 @@ export function Landing() {
               <div className="mt-8 flex items-center gap-3">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-semibold hover:bg-white/90"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500 text-black font-semibold hover:bg-emerald-600"
                 >
                   Jetzt starten <ArrowRight className="w-4 h-4" />
                 </Link>
                 <button
                   onClick={openContact}
-                  className="px-6 py-3 rounded-full border border-white/20 text-white hover:border-white/40"
+                  className="px-6 py-3 rounded-full border border-emerald-400/40 text-emerald-300 hover:border-emerald-400/70"
                 >
                   Kontakt aufnehmen
                 </button>
@@ -291,11 +274,12 @@ export function Landing() {
                   Kunden berichten von deutlicher Zeitersparnis, zuverlässigen Übergaben und transparenter Qualität.
                 </p>
 
+                {/* GRÜNE KÄSTCHEN + GRÜNE SCHRIFT */}
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                   {["EU-Server", "SLA 99,9 %", "Rollenbasierte Zugriffe", "Audit-Logs"].map((label) => (
                     <span
                       key={label}
-                      className="inline-flex items-center rounded-xl bg-white/10 text-white border border-white/15 px-4 py-2 text-sm font-medium"
+                      className="inline-flex items-center rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 px-4 py-2 text-sm font-medium"
                     >
                       {label}
                     </span>
@@ -312,7 +296,7 @@ export function Landing() {
                   <blockquote key={t.name} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
                     <div className="flex items-center gap-1 mb-3" aria-hidden>
                       {Array.from({ length: 5 }).map((_, idx) => (
-                        <Star key={idx} className="w-4 h-4 text-white" fill="currentColor" />
+                        <Star key={idx} className="w-4 h-4 text-amber-400" fill="currentColor" />
                       ))}
                     </div>
                     <p className="text-white/90">“{t.quote}”</p>
@@ -338,13 +322,13 @@ export function Landing() {
             <div className="mt-9 flex items-center justify-center gap-4">
               <button
                 onClick={() => navigate('/login')}
-                className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 rounded-full"
+                className="px-8 py-3 text-sm md:text-base font-semibold bg-emerald-500 text-black hover:bg-emerald-600 rounded-full"
               >
                 Jetzt starten
               </button>
               <button
                 onClick={openContact}
-                className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 rounded-full"
+                className="px-8 py-3 text-sm md:text-base font-semibold border border-emerald-400/40 text-emerald-300 hover:border-emerald-400/70 rounded-full"
               >
                 Kontaktieren Sie uns
               </button>
@@ -410,7 +394,7 @@ export function Landing() {
                     type="text"
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30"
+                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                     placeholder="Max Mustermann"
                   />
                 </div>
@@ -420,7 +404,7 @@ export function Landing() {
                     type="email"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30"
+                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                     placeholder="max@example.com"
                   />
                 </div>
@@ -430,7 +414,7 @@ export function Landing() {
                     value={contactMessage}
                     onChange={(e) => setContactMessage(e.target.value)}
                     rows={5}
-                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30"
+                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
                     placeholder="Worum geht es?"
                     required
                   />
@@ -446,7 +430,7 @@ export function Landing() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-md bg-white text-black font-semibold hover:bg-white/90 transition"
+                    className="px-5 py-2 rounded-md bg-emerald-500 text-black font-semibold hover:bg-emerald-600 transition"
                   >
                     Nachricht senden
                   </button>
