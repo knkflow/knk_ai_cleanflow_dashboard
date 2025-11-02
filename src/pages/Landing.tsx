@@ -13,84 +13,103 @@ import {
 } from "lucide-react";
 
 /**
- * Blau-grüne Hintergrundglows in einer Komponente.
- * - Mobile: ausgeblendet (hidden md:block)
- * - Je nach "variant" leichte Änderungen in Tönen/Intensität/Position
- * - Töne bleiben in der gleichen Familie (Emerald + Babyblau), variieren aber subtil
+ * Mehrfach-Glow System:
+ * - Ein Blob = { pos, size, gradient, blur, opacity }
+ * - Varianten nutzen Emerald/Babyblau in hell + dunkel gemischt
+ * - Dezent (Mobile off), auf Desktop weich verteilt
  */
-const BGGlows: React.FC<{ variant?: "hero" | "features" | "story" | "pricing" | "footer"; className?: string }> = ({
-  variant = "hero",
-  className = "",
-}) => {
-  // Gradient-Stopps pro Variante – Emerald (grün) & Babyblau in unterschiedlichen Opazitäten
-  const variants = {
-    hero: {
-      a: "radial-gradient(closest-side, rgba(56,189,248,0.20), transparent 70%)",   // baby blue (sky-400)
-      b: "radial-gradient(closest-side, rgba(16,185,129,0.18), transparent 70%)",   // emerald-500
-      aPos: "-top-40 -left-32",
-      bPos: "-bottom-44 -right-36",
-      aSize: "h-[30rem] w-[30rem]",
-      bSize: "h-[32rem] w-[32rem]",
-      opacity: "opacity-90",
-    },
-    features: {
-      a: "radial-gradient(closest-side, rgba(56,189,248,0.16), transparent 70%)",   // etwas heller
-      b: "radial-gradient(closest-side, rgba(5,150,105,0.14), transparent 70%)",    // emerald-600 dünner
-      aPos: "-top-28 -right-24",
-      bPos: "-bottom-28 -left-24",
-      aSize: "h-[24rem] w-[24rem]",
-      bSize: "h-[26rem] w-[26rem]",
-      opacity: "opacity-80",
-    },
-    story: {
-      a: "radial-gradient(closest-side, rgba(125,211,252,0.14), transparent 70%)",  // baby blue (sky-300)
-      b: "radial-gradient(closest-side, rgba(52,211,153,0.12), transparent 70%)",   // emerald-400
-      aPos: "-top-24 -left-20",
-      bPos: "-bottom-28 -right-24",
-      aSize: "h-[22rem] w-[22rem]",
-      bSize: "h-[24rem] w-[24rem]",
-      opacity: "opacity-70",
-    },
-    pricing: {
-      a: "radial-gradient(closest-side, rgba(56,189,248,0.15), transparent 70%)",
-      b: "radial-gradient(closest-side, rgba(16,185,129,0.15), transparent 70%)",
-      aPos: "-top-36 -right-28",
-      bPos: "-bottom-36 -left-28",
-      aSize: "h-[26rem] w-[26rem]",
-      bSize: "h-[28rem] w-[28rem]",
-      opacity: "opacity-80",
-    },
-    footer: {
-      a: "radial-gradient(closest-side, rgba(125,211,252,0.12), transparent 70%)",
-      b: "radial-gradient(closest-side, rgba(110,231,183,0.10), transparent 70%)",  // emerald-300
-      aPos: "-top-10 -left-10",
-      bPos: "-bottom-20 -right-16",
-      aSize: "h-[18rem] w-[18rem]",
-      bSize: "h-[20rem] w-[20rem]",
-      opacity: "opacity-60",
-    },
-  }[variant];
-
-  return (
-    <div
-      aria-hidden
-      className={[
-        "pointer-events-none absolute inset-0 hidden md:block",
-        variants.opacity,
-        className,
-      ].join(" ")}
-    >
-      <div
-        className={`absolute ${variants.aPos} ${variants.aSize} rounded-full blur-3xl`}
-        style={{ background: variants.a }}
-      />
-      <div
-        className={`absolute ${variants.bPos} ${variants.bSize} rounded-full blur-3xl`}
-        style={{ background: variants.b }}
-      />
-    </div>
-  );
+type Blob = {
+  pos: string;       // Tailwind position classes (e.g., "top-[-8rem] left-[-6rem]")
+  size: string;      // Tailwind size (e.g., "h-[22rem] w-[22rem]")
+  gradient: string;  // CSS radial-gradient string
+  blur?: string;     // Tailwind blur (default blur-3xl)
+  opacity?: string;  // Tailwind opacity (e.g., "opacity-80")
 };
+
+const SectionGlows: React.FC<{
+  blobs: Blob[];
+  className?: string;
+}> = ({ blobs, className = "" }) => (
+  <div
+    aria-hidden
+    className={[
+      "pointer-events-none absolute inset-0 hidden md:block",
+      className,
+    ].join(" ")}
+  >
+    {blobs.map((b, i) => (
+      <div
+        key={i}
+        className={[
+          "absolute rounded-full",
+          b.pos,
+          b.size,
+          b.blur || "blur-3xl",
+          b.opacity || "",
+        ].join(" ")}
+        style={{ background: b.gradient }}
+      />
+    ))}
+  </div>
+);
+
+/** Farbpaletten (Babyblau + Emerald + dunklere Töne) */
+const skySoft   = (a:number)=>`radial-gradient(closest-side, rgba(56,189,248,${a}), transparent 70%)`;   // sky-400
+const skyLight  = (a:number)=>`radial-gradient(closest-side, rgba(125,211,252,${a}), transparent 70%)`;  // sky-300
+const skyDeep   = (a:number)=>`radial-gradient(closest-side, rgba(2,132,199,${a}), transparent 70%)`;     // sky-600
+const emSoft    = (a:number)=>`radial-gradient(closest-side, rgba(16,185,129,${a}), transparent 70%)`;   // emerald-500
+const emLight   = (a:number)=>`radial-gradient(closest-side, rgba(110,231,183,${a}), transparent 70%)`;  // emerald-300
+const emDeep    = (a:number)=>`radial-gradient(closest-side, rgba(5,150,105,${a}), transparent 70%)`;    // emerald-600
+
+/** Vordefinierte Glow-Varianten je Sektion */
+const glowVariants: Record<
+  "hero" | "features" | "story" | "pricing" | "footer",
+  Blob[]
+> = {
+  hero: [
+    { pos: "top-[-12rem] left-[-10rem]", size: "h-[32rem] w-[32rem]", gradient: skySoft(0.22), blur: "blur-3xl", opacity: "opacity-90" },
+    { pos: "bottom-[-14rem] right-[-12rem]", size: "h-[34rem] w-[34rem]", gradient: emSoft(0.20), blur: "blur-3xl", opacity: "opacity-90" },
+    // dunklere Akzente
+    { pos: "top-[20%] right-[-8rem]", size: "h-[18rem] w-[18rem]", gradient: skyDeep(0.12), blur: "blur-2xl", opacity: "opacity-80" },
+    { pos: "bottom-[25%] left-[-6rem]", size: "h-[16rem] w-[16rem]", gradient: emDeep(0.10), blur: "blur-2xl", opacity: "opacity-80" },
+  ],
+  features: [
+    { pos: "top-[-8rem] right-[-6rem]", size: "h-[24rem] w-[24rem]", gradient: skyLight(0.16), opacity: "opacity-80" },
+    { pos: "bottom-[-8rem] left-[-6rem]", size: "h-[26rem] w-[26rem]", gradient: emLight(0.14), opacity: "opacity-80" },
+    { pos: "top-[40%] left-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: skyDeep(0.10), blur: "blur-2xl" },
+    { pos: "bottom-[35%] right-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: emDeep(0.10), blur: "blur-2xl" },
+  ],
+  story: [
+    { pos: "top-[-6rem] left-[-6rem]", size: "h-[22rem] w-[22rem]", gradient: skyLight(0.14), opacity: "opacity-70" },
+    { pos: "bottom-[-8rem] right-[-6rem]", size: "h-[24rem] w-[24rem]", gradient: emLight(0.12), opacity: "opacity-70" },
+    { pos: "top-[55%] right-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: skyDeep(0.10), blur: "blur-2xl" },
+    { pos: "bottom-[45%] left-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: emDeep(0.10), blur: "blur-2xl" },
+  ],
+  pricing: [
+    { pos: "top-[-9rem] right-[-7rem]", size: "h-[26rem] w-[26rem]", gradient: skySoft(0.16), opacity: "opacity-80" },
+    { pos: "bottom-[-9rem] left-[-7rem]", size: "h-[28rem] w-[28rem]", gradient: emSoft(0.16), opacity: "opacity-80" },
+    { pos: "top-[35%] left-[-5rem]", size: "h-[16rem] w-[16rem]", gradient: skyDeep(0.10), blur: "blur-2xl" },
+    { pos: "bottom-[35%] right-[-5rem]", size: "h-[16rem] w-[16rem]", gradient: emDeep(0.10), blur: "blur-2xl" },
+  ],
+  footer: [
+    { pos: "top-[-3rem] left-[-3rem]", size: "h-[18rem] w-[18rem]", gradient: skyLight(0.12), opacity: "opacity-60" },
+    { pos: "bottom-[-5rem] right-[-4rem]", size: "h-[20rem] w-[20rem]", gradient: emLight(0.10), opacity: "opacity-60" },
+    { pos: "top-[40%] right-[-4rem]", size: "h-[12rem] w-[12rem]", gradient: skyDeep(0.10), blur: "blur-xl" },
+    { pos: "bottom-[40%] left-[-4rem]", size: "h-[12rem] w-[12rem]", gradient: emDeep(0.10), blur: "blur-xl" },
+  ],
+};
+
+/** Kleine Eck-Akzente für Cards/Grids (Babyblau/Emerald Mini-Spots) */
+const CornerAccent: React.FC<{ color?: "sky" | "emerald" }> = ({ color = "sky" }) => (
+  <span
+    aria-hidden
+    className="absolute -z-0 -top-2 -right-2 h-8 w-8 rounded-full blur-lg opacity-70"
+    style={{
+      background:
+        color === "sky" ? skySoft(0.35) : emSoft(0.35),
+    }}
+  />
+);
 
 export function Landing() {
   const heroRef = useRef<HTMLDivElement | null>(null);
@@ -169,6 +188,9 @@ export function Landing() {
             <Link
               to="/login"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-medium"
+              style={{ boxShadow: "0 0 0 0 rgba(16,185,129,0)", transition: "box-shadow .2s ease" }}
+              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 10px 30px rgba(16,185,129,0.25)")}
+              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 0 0 rgba(16,185,129,0)")}
             >
               <LogIn className="w-4 h-4" />
               Anmelden
@@ -250,7 +272,7 @@ export function Landing() {
       <main>
         {/* HERO */}
         <section ref={heroRef} className="relative overflow-hidden">
-          <BGGlows variant="hero" />
+          <SectionGlows blobs={glowVariants.hero} />
 
           <div className="container mx-auto px-6 lg:px-10 py-16 md:py-32 text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 bg-white">
@@ -272,6 +294,9 @@ export function Landing() {
               <Link
                 to="/login"
                 className="group inline-flex items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-emerald-500 text-white font-semibold hover:bg-emerald-600"
+                style={{ boxShadow: "0 0 0 0 rgba(56,189,248,0)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 12px 34px rgba(56,189,248,0.25)")}
+                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 0 0 rgba(56,189,248,0)")}
               >
                 Jetzt starten
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
@@ -284,11 +309,17 @@ export function Landing() {
               </button>
             </div>
 
-            <div className="mt-10 md:mt-14 mx-auto max-w-5xl rounded-2xl md:rounded-3xl overflow-hidden border border-gray-200 bg-white">
+            <div className="mt-10 md:mt-14 mx-auto max-w-5xl rounded-2xl md:rounded-3xl overflow-hidden border border-gray-200 bg-white relative">
+              {/* feiner Unter-Glow */}
+              <span
+                aria-hidden
+                className="absolute -bottom-6 left-1/2 -translate-x-1/2 h-16 w-3/4 rounded-full blur-2xl opacity-70"
+                style={{ background: skySoft(0.25) }}
+              />
               <img
                 src="/Photo1.png"
                 alt="Dashboard Vorschau"
-                className="w-full h-auto object-cover"
+                className="w-full h-auto object-cover relative z-[1]"
               />
             </div>
           </div>
@@ -296,14 +327,15 @@ export function Landing() {
 
         {/* FEATURES */}
         <section ref={featuresRef} className="relative py-20 md:py-24 border-t border-gray-200">
-          <BGGlows variant="features" />
+          <SectionGlows blobs={glowVariants.features} />
 
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
-            <div className="text-center">
+            <div className="text-center relative">
+              {/* schlanke Gradient-Linie (emerald → babyblau) */}
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
                 Funktionen, die überzeugen
               </h2>
-              <div className="w-24 h-px bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-300 mx-auto mt-6 mb-6 opacity-80" />
+              <div className="w-28 h-[2px] bg-gradient-to-r from-emerald-300 via-sky-300 to-emerald-300 mx-auto mt-6 mb-6 opacity-90 rounded-full" />
               <p className="text-gray-600 max-w-3xl mx-auto">
                 Klar strukturiert, zentral dokumentiert – damit Qualität und Ruhe im Alltag spürbar werden.
               </p>
@@ -331,11 +363,13 @@ export function Landing() {
                   title: "Sicherheit & DSGVO",
                   text: "EU-Server, verschlüsselte Daten und rollenbasierte Zugriffe. Vertrauen ist Standard.",
                 },
-              ].map((f) => (
+              ].map((f, idx) => (
                 <div
                   key={f.title}
-                  className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-sm transition-shadow"
+                  className="relative rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-sm transition-shadow"
                 >
+                  {/* Eck-Akzent je nach Karte alternierend */}
+                  <CornerAccent color={idx % 2 === 0 ? "sky" : "emerald"} />
                   <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-emerald-600 mb-4">
                     {f.icon}
                     <span>Highlight</span>
@@ -350,14 +384,20 @@ export function Landing() {
 
         {/* MISSION / STORY */}
         <section ref={storyRef} className="relative py-20 md:py-24 bg-gray-50">
-          <BGGlows variant="story" />
+          <SectionGlows blobs={glowVariants.story} />
 
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div>
+            <div className="relative">
+              {/* weicher Bild-Glow */}
+              <span
+                aria-hidden
+                className="absolute -z-0 -top-4 -left-4 h-24 w-24 rounded-full blur-2xl opacity-80"
+                style={{ background: emLight(0.35) }}
+              />
               <img
                 src="/Photo2.png"
                 alt="Team bei der Einsatzplanung"
-                className="w-full rounded-2xl md:rounded-3xl border border-gray-200"
+                className="relative z-[1] w-full rounded-2xl md:rounded-3xl border border-gray-200"
               />
             </div>
 
@@ -399,7 +439,15 @@ export function Landing() {
         </section>
 
         {/* TRUST / TESTIMONIALS */}
-        <section className="py-20 md:py-24">
+        <section className="relative py-20 md:py-24">
+          {/* kleine Hintergrund-Nebelschwaden */}
+          <SectionGlows
+            blobs={[
+              { pos: "top-[-6rem] left-[-6rem]", size: "h-[18rem] w-[18rem]", gradient: skyLight(0.12) },
+              { pos: "bottom-[-6rem] right-[-6rem]", size: "h-[18rem] w-[18rem]", gradient: emLight(0.12) },
+            ]}
+          />
+
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="grid md:grid-cols-2 gap-10 items-start">
               <div>
@@ -442,11 +490,17 @@ export function Landing() {
                     name: "Aylin S.",
                     role: "Reinigungsleiterin",
                   },
-                ].map((t) => (
+                ].map((t, i) => (
                   <blockquote
                     key={t.name}
-                    className="rounded-2xl border border-gray-200 bg-white p-6"
+                    className="relative rounded-2xl border border-gray-200 bg-white p-6"
                   >
+                    {/* zarter Karten-Schein */}
+                    <span
+                      aria-hidden
+                      className="absolute -z-0 -bottom-3 left-1/2 -translate-x-1/2 h-10 w-3/4 rounded-full blur-xl opacity-60"
+                      style={{ background: (i % 2 === 0) ? skySoft(0.25) : emSoft(0.22) }}
+                    />
                     <div className="flex items-center gap-1 mb-3" aria-hidden>
                       {Array.from({ length: 5 }).map((_, idx) => (
                         <Star
@@ -456,8 +510,8 @@ export function Landing() {
                         />
                       ))}
                     </div>
-                    <p className="text-gray-900">“{t.quote}”</p>
-                    <footer className="mt-3 text-sm text-gray-600">
+                    <p className="text-gray-900 relative z-[1]">“{t.quote}”</p>
+                    <footer className="mt-3 text-sm text-gray-600 relative z-[1]">
                       {t.name} · {t.role}
                     </footer>
                   </blockquote>
@@ -469,7 +523,7 @@ export function Landing() {
 
         {/* PRICING / CTA */}
         <section ref={pricingRef} className="relative py-20 md:py-24 border-t border-emerald-100/70">
-          <BGGlows variant="pricing" />
+          <SectionGlows blobs={glowVariants.pricing} />
 
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center max-w-2xl mx-auto">
@@ -504,7 +558,7 @@ export function Landing() {
                   highlight: false,
                   features: [">50 Objekte", "RBAC & SSO", "API-Zugriff", "Onboarding & SLA"],
                 },
-              ].map((p) => (
+              ].map((p, idx) => (
                 <div
                   key={p.name}
                   className={[
@@ -514,6 +568,13 @@ export function Landing() {
                       : "ring-1 ring-emerald-100 hover:ring-emerald-200",
                   ].join(" ")}
                 >
+                  {/* kleiner Spot oben links pro Karte */}
+                  <span
+                    aria-hidden
+                    className="absolute -z-0 -top-2 -left-2 h-10 w-10 rounded-full blur-xl opacity-60"
+                    style={{ background: idx === 1 ? skySoft(0.28) : emLight(0.28) }}
+                  />
+
                   <div className="flex items-center justify-between">
                     <h4 className="text-xl font-semibold">{p.name}</h4>
                     {p.highlight && (
@@ -528,11 +589,11 @@ export function Landing() {
                     <span className="text-gray-500 mb-1">{p.period}</span>
                   </div>
 
-                  {/* Zarte grüne Trennlinie unter dem Preis für klare Abgrenzung zum weißen Hintergrund */}
+                  {/* Zarte grüne Trennlinie */}
                   <div className="mt-4 h-px bg-emerald-100" />
 
                   <ul className="mt-4 space-y-3 text-gray-700">
-                    {p.features.map((f, i) => (
+                    {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2">
                         <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                         <span>{f}</span>
@@ -540,7 +601,7 @@ export function Landing() {
                     ))}
                   </ul>
 
-                  {/* Zarte Trennlinie vor Button */}
+                  {/* Trennlinie vor Button */}
                   <div className="mt-6 h-px bg-emerald-100/80" />
 
                   <div className="mt-6">
@@ -548,6 +609,9 @@ export function Landing() {
                       <button
                         onClick={openContact}
                         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-emerald-200 hover:bg-emerald-50/40"
+                        style={{ boxShadow: "0 0 0 0 rgba(5,150,105,0)", transition: "box-shadow .2s ease" }}
+                        onMouseEnter={(e)=> (e.currentTarget.style.boxShadow="0 12px 34px rgba(5,150,105,0.20)")}
+                        onMouseLeave={(e)=> (e.currentTarget.style.boxShadow="0 0 0 0 rgba(5,150,105,0)")}
                       >
                         Angebot anfragen <ArrowRight className="w-4 h-4" />
                       </button>
@@ -555,6 +619,9 @@ export function Landing() {
                       <Link
                         to="/login"
                         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-semibold"
+                        style={{ boxShadow: "0 0 0 0 rgba(2,132,199,0)" }}
+                        onMouseEnter={(e)=> (e.currentTarget.style.boxShadow="0 12px 34px rgba(2,132,199,0.22)")}
+                        onMouseLeave={(e)=> (e.currentTarget.style.boxShadow="0 0 0 0 rgba(2,132,199,0)")}
                       >
                         Jetzt starten <ArrowRight className="w-4 h-4" />
                       </Link>
@@ -575,7 +642,7 @@ export function Landing() {
 
       {/* FOOTER */}
       <footer className="relative border-t border-gray-200">
-        <BGGlows variant="footer" />
+        <SectionGlows blobs={glowVariants.footer} />
 
         <div className="container mx-auto px-6 lg:px-10 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm">
