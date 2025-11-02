@@ -97,8 +97,8 @@ export function Landing() {
             <button
               onClick={() => navigate("/login")}
               className="px-5 py-2 text-sm font-semibold rounded-full
-                         bg-lime-500 hover:bg-lime-600 text-black transition-colors
-                         focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" // UPDATED
+                         bg-[#1e4b13] hover:bg-[#2a6a1b] text-white transition-colors
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3aa420]"
             >
               Anmelden
             </button>
@@ -130,8 +130,8 @@ export function Landing() {
               <button
                 onClick={() => { setMobileOpen(false); navigate("/login"); }}
                 className="mt-1 px-5 py-2 rounded-full
-                           bg-lime-500 hover:bg-lime-600 text-black font-semibold transition-colors
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" // UPDATED
+                           bg-[#1e4b13] hover:bg-[#2a6a1b] text-white font-semibold transition-colors
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3aa420]"
               >
                 Anmelden
               </button>
@@ -185,8 +185,8 @@ export function Landing() {
               <button
                 onClick={() => navigate('/login')}
                 className="px-8 py-3 text-sm md:text-base font-semibold rounded-full
-                           bg-lime-500 hover:bg-lime-600 text-black transition-colors
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" // UPDATED
+                           bg-[#1e4b13] hover:bg-[#2a6a1b] text-white transition-colors
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3aa420]"
               >
                 Jetzt starten
               </button>
@@ -266,7 +266,7 @@ export function Landing() {
                   "Rollen & Rechte für Teams, Subunternehmer, Eigentümer",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-lime-500" /> {/* UPDATED */}
+                    <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-[#1e4b13]" />
                     <span className="text-white/85 leading-relaxed text-base">{item}</span>
                   </li>
                 ))}
@@ -276,8 +276,8 @@ export function Landing() {
                 <Link
                   to="/login"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-full
-                             bg-lime-500 hover:bg-lime-600 text-black font-semibold transition-colors
-                             focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" // UPDATED
+                             bg-[#1e4b13] hover:bg-[#2a6a1b] text-white font-semibold transition-colors
+                             focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3aa420]"
                 >
                   Jetzt starten <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -325,7 +325,7 @@ export function Landing() {
                   <blockquote key={t.name} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
                     <div className="flex items-center gap-1 mb-3" aria-hidden>
                       {Array.from({ length: 5 }).map((_, idx) => (
-                        <Star key={idx} className="w-4 h-4 text-yellow-400" fill="currentColor" /> // UPDATED
+                        <Star key={idx} className="w-4 h-4 text-yellow-400" fill="currentColor" />
                       ))}
                     </div>
                     <p className="text-white/90">“{t.quote}”</p>
@@ -352,8 +352,8 @@ export function Landing() {
               <button
                 onClick={() => navigate('/login')}
                 className="px-8 py-3 text-sm md:text-base font-semibold rounded-full
-                           bg-lime-500 hover:bg-lime-600 text-black transition-colors
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" // UPDATED
+                           bg-[#1e4b13] hover:bg-[#2a6a1b] text-white transition-colors
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3aa420]"
               >
                 Jetzt starten
               </button>
