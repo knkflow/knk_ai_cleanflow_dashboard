@@ -12,6 +12,86 @@ import {
   Star,
 } from "lucide-react";
 
+/**
+ * Blau-grüne Hintergrundglows in einer Komponente.
+ * - Mobile: ausgeblendet (hidden md:block)
+ * - Je nach "variant" leichte Änderungen in Tönen/Intensität/Position
+ * - Töne bleiben in der gleichen Familie (Emerald + Babyblau), variieren aber subtil
+ */
+const BGGlows: React.FC<{ variant?: "hero" | "features" | "story" | "pricing" | "footer"; className?: string }> = ({
+  variant = "hero",
+  className = "",
+}) => {
+  // Gradient-Stopps pro Variante – Emerald (grün) & Babyblau in unterschiedlichen Opazitäten
+  const variants = {
+    hero: {
+      a: "radial-gradient(closest-side, rgba(56,189,248,0.20), transparent 70%)",   // baby blue (sky-400)
+      b: "radial-gradient(closest-side, rgba(16,185,129,0.18), transparent 70%)",   // emerald-500
+      aPos: "-top-40 -left-32",
+      bPos: "-bottom-44 -right-36",
+      aSize: "h-[30rem] w-[30rem]",
+      bSize: "h-[32rem] w-[32rem]",
+      opacity: "opacity-90",
+    },
+    features: {
+      a: "radial-gradient(closest-side, rgba(56,189,248,0.16), transparent 70%)",   // etwas heller
+      b: "radial-gradient(closest-side, rgba(5,150,105,0.14), transparent 70%)",    // emerald-600 dünner
+      aPos: "-top-28 -right-24",
+      bPos: "-bottom-28 -left-24",
+      aSize: "h-[24rem] w-[24rem]",
+      bSize: "h-[26rem] w-[26rem]",
+      opacity: "opacity-80",
+    },
+    story: {
+      a: "radial-gradient(closest-side, rgba(125,211,252,0.14), transparent 70%)",  // baby blue (sky-300)
+      b: "radial-gradient(closest-side, rgba(52,211,153,0.12), transparent 70%)",   // emerald-400
+      aPos: "-top-24 -left-20",
+      bPos: "-bottom-28 -right-24",
+      aSize: "h-[22rem] w-[22rem]",
+      bSize: "h-[24rem] w-[24rem]",
+      opacity: "opacity-70",
+    },
+    pricing: {
+      a: "radial-gradient(closest-side, rgba(56,189,248,0.15), transparent 70%)",
+      b: "radial-gradient(closest-side, rgba(16,185,129,0.15), transparent 70%)",
+      aPos: "-top-36 -right-28",
+      bPos: "-bottom-36 -left-28",
+      aSize: "h-[26rem] w-[26rem]",
+      bSize: "h-[28rem] w-[28rem]",
+      opacity: "opacity-80",
+    },
+    footer: {
+      a: "radial-gradient(closest-side, rgba(125,211,252,0.12), transparent 70%)",
+      b: "radial-gradient(closest-side, rgba(110,231,183,0.10), transparent 70%)",  // emerald-300
+      aPos: "-top-10 -left-10",
+      bPos: "-bottom-20 -right-16",
+      aSize: "h-[18rem] w-[18rem]",
+      bSize: "h-[20rem] w-[20rem]",
+      opacity: "opacity-60",
+    },
+  }[variant];
+
+  return (
+    <div
+      aria-hidden
+      className={[
+        "pointer-events-none absolute inset-0 hidden md:block",
+        variants.opacity,
+        className,
+      ].join(" ")}
+    >
+      <div
+        className={`absolute ${variants.aPos} ${variants.aSize} rounded-full blur-3xl`}
+        style={{ background: variants.a }}
+      />
+      <div
+        className={`absolute ${variants.bPos} ${variants.bSize} rounded-full blur-3xl`}
+        style={{ background: variants.b }}
+      />
+    </div>
+  );
+};
+
 export function Landing() {
   const heroRef = useRef<HTMLDivElement | null>(null);
   const featuresRef = useRef<HTMLDivElement | null>(null);
@@ -170,14 +250,7 @@ export function Landing() {
       <main>
         {/* HERO */}
         <section ref={heroRef} className="relative overflow-hidden">
-          {/* NOTE: Grüne Blobs auf Mobile ausblenden, auf Desktop unverändert */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 hidden md:block"
-          >
-            <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-emerald-200 blur-3xl" />
-            <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-emerald-100 blur-3xl" />
-          </div>
+          <BGGlows variant="hero" />
 
           <div className="container mx-auto px-6 lg:px-10 py-16 md:py-32 text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 bg-white">
@@ -222,7 +295,9 @@ export function Landing() {
         </section>
 
         {/* FEATURES */}
-        <section ref={featuresRef} className="py-20 md:py-24 border-t border-gray-200">
+        <section ref={featuresRef} className="relative py-20 md:py-24 border-t border-gray-200">
+          <BGGlows variant="features" />
+
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
@@ -259,7 +334,7 @@ export function Landing() {
               ].map((f) => (
                 <div
                   key={f.title}
-                  className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-sm"
+                  className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-sm transition-shadow"
                 >
                   <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-emerald-600 mb-4">
                     {f.icon}
@@ -274,7 +349,9 @@ export function Landing() {
         </section>
 
         {/* MISSION / STORY */}
-        <section ref={storyRef} className="py-20 md:py-24 bg-gray-50">
+        <section ref={storyRef} className="relative py-20 md:py-24 bg-gray-50">
+          <BGGlows variant="story" />
+
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
               <img
@@ -391,7 +468,9 @@ export function Landing() {
         </section>
 
         {/* PRICING / CTA */}
-        <section ref={pricingRef} className="py-20 md:py-24 border-t border-gray-200">
+        <section ref={pricingRef} className="relative py-20 md:py-24 border-t border-emerald-100/70">
+          <BGGlows variant="pricing" />
+
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center max-w-2xl mx-auto">
               <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -409,43 +488,30 @@ export function Landing() {
                   price: "€19",
                   period: "/Monat",
                   highlight: false,
-                  features: [
-                    "Bis 10 Objekte",
-                    "WhatsApp-Benachrichtigungen",
-                    "Grundlegende Reports",
-                    "E-Mail Support",
-                  ],
+                  features: ["Bis 10 Objekte", "WhatsApp-Benachrichtigungen", "Grundlegende Reports", "E-Mail Support"],
                 },
                 {
                   name: "Pro",
                   price: "€49",
                   period: "/Monat",
                   highlight: true,
-                  features: [
-                    "Bis 50 Objekte",
-                    "Kalender & Abwesenheiten",
-                    "Checklisten & Fotodoku",
-                    "Priorisierter Support",
-                  ],
+                  features: ["Bis 50 Objekte", "Kalender & Abwesenheiten", "Checklisten & Fotodoku", "Priorisierter Support"],
                 },
                 {
                   name: "Enterprise",
                   price: "Individuell",
                   period: "",
                   highlight: false,
-                  features: [
-                    ">50 Objekte",
-                    "RBAC & SSO",
-                    "API-Zugriff",
-                    "Onboarding & SLA",
-                  ],
+                  features: [">50 Objekte", "RBAC & SSO", "API-Zugriff", "Onboarding & SLA"],
                 },
               ].map((p) => (
                 <div
                   key={p.name}
                   className={[
-                    "rounded-3xl border p-6 flex flex-col",
-                    p.highlight ? "border-emerald-400/50 bg-emerald-50" : "border-gray-200 bg-white",
+                    "relative rounded-3xl p-6 flex flex-col bg-white transition-shadow",
+                    p.highlight
+                      ? "ring-1 ring-emerald-300 bg-emerald-50/60 shadow-[0_1px_0_0_rgba(16,185,129,0.10)]"
+                      : "ring-1 ring-emerald-100 hover:ring-emerald-200",
                   ].join(" ")}
                 >
                   <div className="flex items-center justify-between">
@@ -456,23 +522,32 @@ export function Landing() {
                       </span>
                     )}
                   </div>
+
                   <div className="mt-4 flex items-end gap-1">
                     <span className="text-4xl font-extrabold">{p.price}</span>
                     <span className="text-gray-500 mb-1">{p.period}</span>
                   </div>
-                  <ul className="mt-6 space-y-3 text-gray-700">
-                    {p.features.map((f) => (
+
+                  {/* Zarte grüne Trennlinie unter dem Preis für klare Abgrenzung zum weißen Hintergrund */}
+                  <div className="mt-4 h-px bg-emerald-100" />
+
+                  <ul className="mt-4 space-y-3 text-gray-700">
+                    {p.features.map((f, i) => (
                       <li key={f} className="flex items-start gap-2">
                         <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                         <span>{f}</span>
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-8">
+
+                  {/* Zarte Trennlinie vor Button */}
+                  <div className="mt-6 h-px bg-emerald-100/80" />
+
+                  <div className="mt-6">
                     {p.name === "Enterprise" ? (
                       <button
                         onClick={openContact}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-gray-200 hover:bg-gray-50"
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-emerald-200 hover:bg-emerald-50/40"
                       >
                         Angebot anfragen <ArrowRight className="w-4 h-4" />
                       </button>
@@ -499,7 +574,9 @@ export function Landing() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-200">
+      <footer className="relative border-t border-gray-200">
+        <BGGlows variant="footer" />
+
         <div className="container mx-auto px-6 lg:px-10 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm">
             © {new Date().getFullYear()} CleanFlow. Alle Rechte vorbehalten.
