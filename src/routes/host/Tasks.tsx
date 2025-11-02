@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useState, useMemo, FormEvent } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
   Plus,
@@ -34,6 +34,7 @@ export function Tasks() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<CleaningTaskWithDetails | null>(null);
 
+  // Live-Filter States
   const [quickFilters, setQuickFilters] = useState<string[]>([]);
   const [apartmentQuery, setApartmentQuery] = useState('');
   const [cleanerQuery, setCleanerQuery] = useState('');
@@ -229,22 +230,29 @@ export function Tasks() {
     return checks.some(Boolean);
   }
 
-  const filteredTasks = tasks.filter((t) => {
-    if (!isInQuickRanges(t.date)) return false;
-    if (apartmentQuery.trim()) {
-      const q = apartmentQuery.toLowerCase();
-      const name = (t.apartment?.name || '').toLowerCase();
-      const addr = (t.apartment?.address || '').toLowerCase();
-      if (!name.includes(q) && !addr.includes(q)) return false;
-    }
-    if (cleanerQuery.trim()) {
-      const cq = cleanerQuery.toLowerCase();
-      const cn = (getCleanerById(t.cleaner_id)?.name || '').toLowerCase();
-      if (!cn.includes(cq)) return false;
-    }
-    if (withDeadlineOnly && !t.deadline) return false;
-    return true;
-  });
+  // Live-Filterung per useMemo (Apartmentname/Adresse & Cleaner-Name & QuickFilter & Deadline)
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      if (!isInQuickRanges(t.date)) return false;
+
+      if (apartmentQuery.trim()) {
+        const q = apartmentQuery.toLowerCase();
+        const name = (t.apartment?.name || '').toLowerCase();
+        const addr = (t.apartment?.address || '').toLowerCase();
+        if (!name.includes(q) && !addr.includes(q)) return false;
+      }
+
+      if (cleanerQuery.trim()) {
+        const cq = cleanerQuery.toLowerCase();
+        const cn = (getCleanerById(t.cleaner_id)?.name || '').toLowerCase();
+        if (!cn.includes(cq)) return false;
+      }
+
+      if (withDeadlineOnly && !t.deadline) return false;
+
+      return true;
+    });
+  }, [tasks, apartmentQuery, cleanerQuery, withDeadlineOnly, quickFilters]);
 
   function toggleQuickFilter(id: 'TODAY' | 'TOMORROW' | 'THIS_WEEK' | 'ALL') {
     setQuickFilters((prev) => {
