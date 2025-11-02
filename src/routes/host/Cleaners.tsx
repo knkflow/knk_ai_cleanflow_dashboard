@@ -39,7 +39,7 @@ export function Cleaners() {
     hourly_rate: '',
   });
 
-  // Neu: Mobile-Info-Toggle für den Einladungs-Hinweis
+  // Mobile-Info-Toggle
   const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
 
   useEffect(() => {
@@ -51,31 +51,20 @@ export function Cleaners() {
     setLoading(true);
     try {
       if (user.role === 'Cleaner') {
-        // Cleaner sieht nur sich selbst (über auth.users.id)
         const me = await getCleanerByUserId(user.auth_id);
         setCleaners(me ? [me] : []);
         if (!me) {
-          setErrorModal({
-            open: true,
-            message: 'Kein persönlicher Cleaner-Datensatz gefunden.',
-          });
+          setErrorModal({ open: true, message: 'Kein persönlicher Cleaner-Datensatz gefunden.' });
         }
       } else {
-        // Host sieht alle seine Cleaner
         const data = await getCleaners(user.id);
         setCleaners(data);
         if (data.length === 0) {
-          setErrorModal({
-            open: true,
-            message: 'Sie haben noch keine Cleaner erstellt.',
-          });
+          setErrorModal({ open: true, message: 'Sie haben noch keine Cleaner erstellt.' });
         }
       }
     } catch (e: any) {
-      setErrorModal({
-        open: true,
-        message: e?.message ?? 'Fehler beim Laden der Cleaner',
-      });
+      setErrorModal({ open: true, message: e?.message ?? 'Fehler beim Laden der Cleaner' });
     } finally {
       setLoading(false);
     }
@@ -117,7 +106,6 @@ export function Cleaners() {
         send_magic_link: true,
       };
 
-      // Duplikatprüfung nur bei Neuanlage
       if (!editingId) {
         const nameKey = normalize(payload.name);
         const emailKey = normalize(payload.email ?? '');
@@ -148,11 +136,7 @@ export function Cleaners() {
           const res = await createCleanerAndInvite(payload);
           const msg = String((res as any)?.message ?? '').toLowerCase();
           const err = String((res as any)?.error ?? '').toLowerCase();
-          if (
-            msg.includes('already exists') ||
-            err.includes('already exists') ||
-            err.includes('duplicate')
-          ) {
+          if (msg.includes('already exists') || err.includes('already exists') || err.includes('duplicate')) {
             setErrorModal({
               open: true,
               message: `Cleaner "${payload.name}" / "${payload.email}" existiert bereits.`,
@@ -174,10 +158,7 @@ export function Cleaners() {
       setIsModalOpen(false);
       await loadData();
     } catch (err: any) {
-      setErrorModal({
-        open: true,
-        message: err?.message ?? 'Unbekannter Fehler beim Speichern',
-      });
+      setErrorModal({ open: true, message: err?.message ?? 'Unbekannter Fehler beim Speichern' });
     } finally {
       setSubmitting(false);
     }
@@ -195,10 +176,7 @@ export function Cleaners() {
       setIsConfirmOpen(false);
       await loadData();
     } catch (error: any) {
-      setErrorModal({
-        open: true,
-        message: error?.message ?? 'Löschen fehlgeschlagen',
-      });
+      setErrorModal({ open: true, message: error?.message ?? 'Löschen fehlgeschlagen' });
     }
   }
 
@@ -231,10 +209,9 @@ export function Cleaners() {
         )}
       </div>
 
-      {/* Info: mobil = Button + Collapsible, ab md = klassischer Kasten */}
+      {/* Info */}
       {canCreate && (
         <>
-          {/* Mobile: blauer Button, bei Klick blauer Kasten mit Inhalt */}
           <div className="md:hidden mb-6">
             <button
               type="button"
@@ -255,16 +232,13 @@ export function Cleaners() {
                 <ol className="list-decimal list-inside space-y-1">
                   <li>Füge eine Reinigungskraft mit E-Mail oder Telefonnummer hinzu.</li>
                   <li>Sie erhält automatisch einen Einladungslink.</li>
-                  <li>
-                    Die Rolle wird automatisch auf <b>Cleaner</b> gesetzt.
-                  </li>
+                  <li>Die Rolle wird automatisch auf <b>Cleaner</b> gesetzt.</li>
                   <li>Nach dem ersten Login kann ein Passwort festgelegt werden.</li>
                 </ol>
               </div>
             )}
           </div>
 
-          {/* Desktop/Tablet: klassischer Infokasten */}
           <div className="hidden md:block mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Lightbulb className="w-5 h-5 text-blue-400" />
@@ -273,86 +247,87 @@ export function Cleaners() {
             <ol className="list-decimal list-inside space-y-1">
               <li>Füge eine Reinigungskraft mit E-Mail oder Telefonnummer hinzu.</li>
               <li>Sie erhält automatisch einen Einladungslink.</li>
-              <li>
-                Die Rolle wird automatisch auf <b>Cleaner</b> gesetzt.
-              </li>
+              <li>Die Rolle wird automatisch auf <b>Cleaner</b> gesetzt.</li>
               <li>Nach dem ersten Login kann ein Passwort festgelegt werden.</li>
             </ol>
           </div>
         </>
       )}
 
-      {/* Cleaner Cards */}
-      <div className="grid gap-4">
+      {/* Cleaner Cards -> jetzt wie Apartments im Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {cleaners.map((cleaner) => (
           <div
             key={cleaner.id}
-            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-500 hover:border-2 hover:border-white hover:shadow-[0_0_15px_2px_rgba(255,255,255,0.45)]"
+            className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all duration-300 hover:border-white/25 hover:shadow-[0_0_12px_rgba(255,255,255,0.25)]"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold text-white">{cleaner.name}</h3>
-                  {cleaner.user_id ? (
-                    <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-md">
-                      REGISTERED
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-md">
-                      PENDING
-                    </span>
-                  )}
-                </div>
-
-                {cleaner.email && (
-                  <p className="text-white/70 text-sm mb-1 flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-white/60" />
-                    {cleaner.email}
-                  </p>
+            {/* Kopfbereich */}
+            <div className="mb-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-white">{cleaner.name}</h3>
+                {cleaner.user_id ? (
+                  <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[11px] font-medium rounded-md">
+                    REGISTERED
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-[11px] font-medium rounded-md">
+                    PENDING
+                  </span>
                 )}
-                {cleaner.phone && (
-                  <p className="text-white/60 text-sm mb-1 flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-white/50" />
-                    {cleaner.phone}
-                  </p>
-                )}
-                {typeof cleaner.hourly_rate === 'number' && (
-                  <p className="text-white/50 text-sm flex items-center gap-2">
-                    <Euro className="w-4 h-4 text-white/40" />
-                    Rate: €{Number(cleaner.hourly_rate).toFixed(2)}/hour
-                  </p>
-                )}
-
-                <p className="text-white/40 text-xs mt-2">
-                  Unavailable days: {getAvailCount(cleaner)}
-                </p>
               </div>
+            </div>
 
-              <div className="flex gap-2">
+            {/* Details */}
+            <div className="space-y-1">
+              {cleaner.email && (
+                <p className="text-white/70 text-sm flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-white/60" />
+                  {cleaner.email}
+                </p>
+              )}
+              {cleaner.phone && (
+                <p className="text-white/60 text-sm flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-white/50" />
+                  {cleaner.phone}
+                </p>
+              )}
+              {typeof cleaner.hourly_rate === 'number' && (
+                <p className="text-white/50 text-sm flex items-center gap-2">
+                  <Euro className="w-4 h-4 text-white/40" />
+                  Rate: €{Number(cleaner.hourly_rate).toFixed(2)}/hour
+                </p>
+              )}
+              <p className="text-white/40 text-xs pt-1">
+                Unavailable days: {Array.isArray((cleaner as any).availability) ? (cleaner as any).availability.length : 0}
+              </p>
+            </div>
+
+            {/* Aktionen unten rechts */}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => openEditModal(cleaner)}
+                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                aria-label="Bearbeiten"
+              >
+                <Edit className="w-5 h-5 text-white" />
+              </button>
+              {canCreate && (
                 <button
                   type="button"
-                  onClick={() => openEditModal(cleaner)}
-                  className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                  onClick={() => handleDelete(cleaner)}
+                  className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
+                  aria-label="Löschen"
                 >
-                  <Edit className="w-5 h-5 text-white" />
+                  <Trash2 className="w-5 h-5 text-red-500" />
                 </button>
-
-                {canCreate && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(cleaner)}
-                    className="p-2 rounded-md hover:bg-red-500/20 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5 text-red-500" />
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
         ))}
 
         {cleaners.length === 0 && (
-          <div className="text-center py-12 text-white/50">
+          <div className="col-span-full text-center py-12 text-white/50">
             Sie haben noch keine Cleaner erstellt.
           </div>
         )}
@@ -417,7 +392,7 @@ export function Cleaners() {
         </Modal>
       )}
 
-      {/* Delete Confirm Popup */}
+      {/* Delete Confirm */}
       {isConfirmOpen && selectedCleaner && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
@@ -447,7 +422,7 @@ export function Cleaners() {
         </div>
       )}
 
-      {/* Error / Hinweis Popup */}
+      {/* Error Modal */}
       {errorModal.open && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
