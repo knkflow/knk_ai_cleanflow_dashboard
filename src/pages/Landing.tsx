@@ -1,31 +1,39 @@
 // src/routes/Landing.tsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  // für Header (2. Code)
+  // Header
   User, Search, Mail,
-  // für Inhalte (1. Code)
-  Users, LogIn, ArrowRight, MessageSquare, ClipboardCheck,
+  // Inhalte
+  ArrowRight, MessageSquare, ClipboardCheck,
   CalendarDays, ShieldCheck, CheckCircle2, Star,
 } from "lucide-react";
 
 export function Landing() {
   const navigate = useNavigate();
 
-  // Refs (aus 1. Code)
+  // Refs für Scroll
   const heroRef = useRef<HTMLDivElement | null>(null);
   const featuresRef = useRef<HTMLDivElement | null>(null);
   const storyRef = useRef<HTMLDivElement | null>(null);
-  const pricingRef = useRef<HTMLDivElement | null>(null);
 
-  // States (gemeinsam)
+  // State
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Helpers
+  // Auto-Slider (Hero Galerie)
+  const slides = ["/Photo2.png", "/Photo3.jpeg", "/Photo5.jpeg"];
+  const [activeSlide, setActiveSlide] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setActiveSlide((i) => (i + 1) % slides.length);
+    }, 3800);
+    return () => clearInterval(id);
+  }, []);
+
   const scrollTo = (ref: React.RefObject<HTMLDivElement>) =>
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -52,16 +60,14 @@ export function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      {/* ===== HEADER aus 2. Code beibehalten ===== */}
-         <header className="sticky top-0 z-40 border-b border-white/10 bg-[#000000] backdrop-blur-none supports-[backdrop-filter]:backdrop-blur-0 text-  white">
-
+    <div className="min-h-screen bg-[#000] text-white">
+      {/* ===== HEADER (schwarz) ===== */}
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#000000]">
         <div className="container mx-auto px-6 lg:px-8 py-4 grid grid-cols-3 items-center">
           {/* Links – Name */}
           <span className="text-sm md:text-base tracking-widest uppercase font-semibold text-white">
-  CleanFlow
-</span>
-
+            CleanFlow
+          </span>
 
           {/* Mitte – Logo */}
           <div className="justify-self-center">
@@ -90,23 +96,19 @@ export function Landing() {
             </button>
             <button
               onClick={() => navigate("/login")}
-              className="px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors rounded-full"
+              className="px-5 py-2 text-sm font-semibold bg-white text-black hover:bg-white/90 rounded-full"
             >
               Anmelden
             </button>
           </nav>
 
-          {/* Rechts – Mobile Toggle */}
+          {/* Mobile Toggle */}
           <div className="md:hidden justify-self-end">
             <button
               aria-label="Navigation öffnen"
               onClick={() => setMobileOpen((v) => !v)}
-              className="relative inline-flex items-center justify-center gap-2 px-3 w-auto h-10 rounded-full
-                         border border-white/20 text-white/80 bg-black/30
-                         transition-all duration-300 ease-out
-                         hover:text-white hover:border-white/60 hover:bg-black/40
-                         focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-black
-                         shadow-none hover:shadow-[0_0_18px_rgba(255,255,255,0.35)]"
+              className="inline-flex items-center justify-center gap-2 px-3 h-10 rounded-full
+                         border border-white/20 text-white/80 bg-white/5 hover:text-white hover:border-white/60 hover:bg-white/10"
             >
               <User className="w-4 h-4" />
               <Search className="w-4 h-4" />
@@ -117,173 +119,167 @@ export function Landing() {
 
         {/* Mobile Dropdown */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-white/10 bg-black/90 backdrop-blur">
+          <div className="md:hidden border-t border-white/10 bg-black/95">
             <div className="container mx-auto px-6 lg:px-8 py-3 flex flex-col gap-2">
-              <button
-                onClick={() => { setMobileOpen(false); scrollTo(heroRef); }}
-                className="text-sm py-2 text-left text-white/80 hover:text-white transition-colors"
-              >
-                Start
-              </button>
-              <button
-                onClick={() => { setMobileOpen(false); scrollTo(featuresRef); }}
-                className="text-sm py-2 text-left text-white/80 hover:text-white transition-colors"
-              >
-                Lösungen
-              </button>
-              <button
-                onClick={() => { setMobileOpen(false); scrollTo(storyRef); }}
-                className="text-sm py-2 text-left text-white/80 hover:text-white transition-colors"
-              >
-                Über uns
-              </button>
-              <button
-                onClick={() => { setMobileOpen(false); scrollTo(pricingRef); }}
-                className="text-sm py-2 text-left text-white/80 hover:text-white transition-colors"
-              >
-                Preise
-              </button>
-              <button
-                onClick={() => { setMobileOpen(false); openContact(); }}
-                className="text-sm py-2 text-left text-white/80 hover:text-white transition-colors"
-              >
-                Kontakt
-              </button>
-              <button
-                onClick={() => { setMobileOpen(false); navigate("/login"); }}
-                className="mt-1 px-5 py-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-colors rounded-full w-full"
-              >
-                Anmelden
-              </button>
+              <button onClick={() => { setMobileOpen(false); scrollTo(heroRef); }} className="py-2 text-left text-white/80 hover:text-white">Start</button>
+              <button onClick={() => { setMobileOpen(false); scrollTo(featuresRef); }} className="py-2 text-left text-white/80 hover:text-white">Lösungen</button>
+              <button onClick={() => { setMobileOpen(false); scrollTo(storyRef); }} className="py-2 text-left text-white/80 hover:text-white">Über uns</button>
+              <button onClick={() => { setMobileOpen(false); openContact(); }} className="py-2 text-left text-white/80 hover:text-white">Kontakt</button>
+              <button onClick={() => { setMobileOpen(false); navigate("/login"); }} className="mt-1 px-5 py-2 bg-white text-black rounded-full">Anmelden</button>
             </div>
           </div>
         )}
       </header>
 
-      {/* ===== MAIN – kompletter Inhalt aus 1. Code ===== */}
+      {/* ===== MAIN ===== */}
       <main>
-        {/* HERO */}
+        {/* HERO – Dark mit Energy-Glow + Auto-Slider im Hintergrund */}
         <section ref={heroRef} className="relative overflow-hidden">
-          <div aria-hidden className="pointer-events-none absolute inset-0 hidden md:block">
-            <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-emerald-200 blur-3xl" />
-            <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-emerald-100 blur-3xl" />
+          {/* Energy-Glows */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-40 -left-32 h-[32rem] w-[32rem] rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -bottom-40 -right-32 h-[32rem] w-[32rem] rounded-full bg-white/5 blur-3xl" />
           </div>
 
-          <div className="container mx-auto px-6 lg:px-10 py-16 md:py-32 text-center">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 bg-white">
-              <span className="text-[11px] md:text-xs tracking-[0.35em] uppercase text-gray-600">
+          {/* Slider-Hintergrund */}
+          <div className="absolute inset-0 opacity-[0.22]">
+            {slides.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${i === activeSlide ? 'opacity-100' : 'opacity-0'}`}
+              />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#000]/40 via-[#000]/40 to-[#000]" />
+          </div>
+
+          <div className="relative container mx-auto px-6 lg:px-10 py-20 md:py-32 text-center">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/20 bg-white/5">
+              <span className="text-[11px] md:text-xs tracking-[0.35em] uppercase text-white/80">
                 Kurzzeitvermietung · Reinigungsteams · Hausverwaltungen
               </span>
             </div>
 
-            <h1 className="mt-6 text-3xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
-              Ihre Reinigungen. Einfach organisiert – klar, effizient, zuverlässig.
+            <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+              <span className="text-white">Ihre Reinigungen.</span>{' '}
+              <span className="bg-clip-text text-transparent bg-[conic-gradient(at_top_left,_white,_#d4d4d4,_white)]">
+                Einfach. Koordiniert. Kraftvoll.
+              </span>
             </h1>
 
-            <p className="mt-6 text-base md:text-xl text-gray-600 max-w-3xl mx-auto">
-              Digitale Verwaltung aller Reinigungen, automatische und manuelle WhatsApp-Benachrichtigungen an Teams,
-              zentrale Auftragsverwaltung mit Dokumentation und ein Kalender, der Abwesenheiten und Planung im Blick behält.
+            <p className="mt-6 text-lg md:text-xl text-white/70 max-w-3xl mx-auto">
+              Verwalten Sie Apartments, koordinieren Sie Teams und planen Sie Einsätze mit Präzision. CleanFlow setzt auf Klarheit, Tempo und Qualität.
             </p>
 
-            <div className="mt-8 md:mt-10 flex items-center justify-center gap-3 md:gap-4">
-              <Link
-                to="/login"
-                className="group inline-flex items-center gap-2 px-6 md:px-7 py-3 rounded-full bg-emerald-500 text-white font-semibold hover:bg-emerald-600"
+            <div className="mt-9 flex items-center justify-center gap-4">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 rounded-full"
               >
                 Jetzt starten
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              </button>
               <button
                 onClick={() => scrollTo(featuresRef)}
-                className="px-6 md:px-7 py-3 rounded-full border border-gray-200 text-gray-900 hover:bg-gray-50"
+                className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 rounded-full"
               >
                 Mehr erfahren
               </button>
             </div>
-
-            {/* Photo1 direkt unter Headline */}
-            <div className="mt-10 md:mt-14 mx-auto max-w-5xl rounded-2xl md:rounded-3xl overflow-hidden border border-gray-200 bg-white">
-              <img
-                src="/Photo1.png"
-                alt="Dashboard Vorschau"
-                className="w-full h-auto object-cover"
-              />
-            </div>
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section ref={featuresRef} className="py-20 md:py-24 border-t border-gray-200">
+        {/* FEATURES – energiegeladene Kacheln */}
+        <section ref={featuresRef} className="py-20 md:py-24 border-t border-white/10">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-                Funktionen, die überzeugen
+                Funktionen, die antreiben
               </h2>
-              <div className="w-24 h-px bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-300 mx-auto mt-6 mb-6 opacity-80" />
-              <p className="text-gray-600 max-w-3xl mx-auto">
-                Klar strukturiert, zentral dokumentiert – damit Qualität und Ruhe im Alltag spürbar werden.
+              <div className="w-24 h-px bg-gradient-to-r from-white/40 via-white to-white/40 mx-auto mt-6 mb-6" />
+              <p className="text-white/70 max-w-3xl mx-auto">
+                Alles, was Sie für professionelles Reinigungsmanagement brauchen – schnell, robust, transparent.
               </p>
             </div>
 
-            <div className="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {[
-                { icon: <MessageSquare className="w-5 h-5" />, title: "WhatsApp-Benachrichtigungen", text: "Automatisch und manuell: Aufträge, Updates und Bestätigungen direkt an Reinigungskräfte – nachweisbar und nachvollziehbar." },
-                { icon: <ClipboardCheck className="w-5 h-5" />, title: "Reinigungseinträge & Checklisten", text: "Aufträge anlegen, zuweisen und dokumentieren. Fotodoku, Checklisten und Abnahme – transparent und revisionssicher." },
-                { icon: <CalendarDays className="w-5 h-5" />, title: "Kalender & Abwesenheiten", text: "Urlaub und Krankheit im Blick. Konflikte früh erkennen und Planung verlässlich halten." },
-                { icon: <ShieldCheck className="w-5 h-5" />, title: "Sicherheit & DSGVO", text: "EU-Server, verschlüsselte Daten und rollenbasierte Zugriffe. Vertrauen ist Standard." },
+                { icon: <MessageSquare className="w-5 h-5" />, title: "WhatsApp-Benachrichtigungen", text: "Automatisch & manuell. Nachweisbar, nachvollziehbar – direkt in den Chat der Teams." },
+                { icon: <ClipboardCheck className="w-5 h-5" />, title: "Reinigungseinträge & Checklisten", text: "Aufträge erstellen, zuweisen, dokumentieren. Fotodoku & Abnahme inklusive." },
+                { icon: <CalendarDays className="w-5 h-5" />, title: "Kalender & Abwesenheiten", text: "Urlaub & Krankheit im Blick. Konflikte früh erkennen und planen." },
+                { icon: <ShieldCheck className="w-5 h-5" />, title: "Sicherheit & DSGVO", text: "EU-Server, Verschlüsselung, Rollen & Rechte. Vertrauen ist Standard." },
               ].map((f) => (
-                <div key={f.title} className="rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-sm">
-                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-emerald-600 mb-4">
+                <div
+                  key={f.title}
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 hover:border-white/25 transition-colors"
+                >
+                  <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-white/70 mb-4">
                     {f.icon}
                     <span>Highlight</span>
                   </div>
-                  <h3 className="text-xl font-semibold">{f.title}</h3>
-                  <p className="mt-3 text-gray-600 leading-relaxed">{f.text}</p>
+                  <h3 className="text-xl font-semibold text-white">{f.title}</h3>
+                  <p className="mt-3 text-white/70 leading-relaxed">{f.text}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* STORY */}
-        <section ref={storyRef} className="py-20 md:py-24 bg-gray-50">
-          <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div>
+        {/* STORY / ÜBER UNS */}
+        <section ref={storyRef} className="py-20 md:py-24 bg-[#0b0b0b] border-t border-white/10">
+          <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-10 items-center">
+            <div className="relative">
               <img
                 src="/Photo2.png"
                 alt="Team bei der Einsatzplanung"
-                className="w-full rounded-2xl md:rounded-3xl border border-gray-200"
+                className="w-full rounded-2xl border border-white/10"
               />
+              <div className="absolute -inset-4 -z-10 rounded-3xl bg-white/5 blur-2xl" aria-hidden />
             </div>
 
             <div>
-              <p className="text-sm uppercase tracking-widest text-gray-500">Unsere Mission</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-white/60">Unsere Mission</p>
               <h3 className="mt-2 text-2xl md:text-4xl font-extrabold tracking-tight">
-                Wir bringen Ruhe & Qualität in die Reinigung
+                Ruhe in der Planung. Qualität im Ergebnis.
               </h3>
-              <p className="mt-4 text-gray-700 leading-relaxed">
+              <p className="mt-4 text-white/80 leading-relaxed">
                 CleanFlow bündelt Planung, Kommunikation und Qualitätssicherung in einer Oberfläche.
-                So wenig Klicks wie möglich, so viel Transparenz wie nötig – für verlässliche Abläufe und saubere Ergebnisse.
+                Möglichst wenige Klicks, maximale Transparenz – für verlässliche Abläufe und saubere Ergebnisse.
               </p>
 
               <ul className="mt-6 space-y-3">
                 {[
-                  "Aufträge automatisch verteilen – fair und nachvollziehbar",
-                  "Zentrale Reinigungsverwaltung mit Fotodoku und Checklisten",
-                  "Kalender & Abwesenheiten im Blick – Konflikte früh erkennen",
-                  "Rollen & Rechte für Teams, Subunternehmer und Eigentümer",
+                  "Aufträge automatisch verteilen – fair & nachvollziehbar",
+                  "Zentrale Verwaltung mit Fotodoku und Checklisten",
+                  "Kalender & Abwesenheiten – Konflikte früh erkennen",
+                  "Rollen & Rechte für Teams, Subunternehmer, Eigentümer",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-emerald-600" />
-                    <span className="text-gray-800 leading-relaxed text-base">{item}</span>
+                    <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-white" />
+                    <span className="text-white/85 leading-relaxed text-base">{item}</span>
                   </li>
                 ))}
               </ul>
+
+              <div className="mt-8 flex items-center gap-3">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-semibold hover:bg-white/90"
+                >
+                  Jetzt starten <ArrowRight className="w-4 h-4" />
+                </Link>
+                <button
+                  onClick={openContact}
+                  className="px-6 py-3 rounded-full border border-white/20 text-white hover:border-white/40"
+                >
+                  Kontakt aufnehmen
+                </button>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* TRUST */}
+        {/* TRUST / TESTIMONIALS */}
         <section className="py-20 md:py-24">
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="grid md:grid-cols-2 gap-10 items-start">
@@ -291,16 +287,15 @@ export function Landing() {
                 <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
                   Vertrauen entsteht durch Ergebnis
                 </h3>
-                <p className="mt-4 text-gray-600 max-w-xl">
-                  Weniger Koordination, mehr Verlässlichkeit: Unsere Kunden berichten von deutlicher Zeitersparnis,
-                  zuverlässigen Übergaben und transparenter Qualität.
+                <p className="mt-4 text-white/70 max-w-xl">
+                  Kunden berichten von deutlicher Zeitersparnis, zuverlässigen Übergaben und transparenter Qualität.
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                   {["EU-Server", "SLA 99,9 %", "Rollenbasierte Zugriffe", "Audit-Logs"].map((label) => (
                     <span
                       key={label}
-                      className="inline-flex items-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-4 py-2 text-sm font-medium"
+                      className="inline-flex items-center rounded-xl bg-white/10 text-white border border-white/15 px-4 py-2 text-sm font-medium"
                     >
                       {label}
                     </span>
@@ -314,14 +309,14 @@ export function Landing() {
                   { quote: "Transparente Aufträge und klare Zuständigkeiten. Unser Team arbeitet ruhiger und fehlerfrei.", name: "Tobias K.", role: "Hausverwaltung" },
                   { quote: "Fotodoku und Checklisten erhöhen die Qualität – Beschwerden sind praktisch verschwunden.", name: "Aylin S.", role: "Reinigungsleiterin" },
                 ].map((t) => (
-                  <blockquote key={t.name} className="rounded-2xl border border-gray-200 bg-white p-6">
+                  <blockquote key={t.name} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
                     <div className="flex items-center gap-1 mb-3" aria-hidden>
                       {Array.from({ length: 5 }).map((_, idx) => (
-                        <Star key={idx} className="w-4 h-4 text-emerald-500" fill="currentColor" />
+                        <Star key={idx} className="w-4 h-4 text-white" fill="currentColor" />
                       ))}
                     </div>
-                    <p className="text-gray-900">“{t.quote}”</p>
-                    <footer className="mt-3 text-sm text-gray-600">
+                    <p className="text-white/90">“{t.quote}”</p>
+                    <footer className="mt-3 text-sm text-white/70">
                       {t.name} · {t.role}
                     </footer>
                   </blockquote>
@@ -331,81 +326,51 @@ export function Landing() {
           </div>
         </section>
 
-        {/* PRICING */}
-        <section ref={pricingRef} className="py-20 md:py-24 border-t border-gray-200">
-          <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
-            <div className="text-center max-w-2xl mx-auto">
-              <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-                Einfaches, faires Preismodell
-              </h3>
-              <p className="mt-3 text-gray-600">
-                Skalierbar vom Solo-Host bis zur großen Verwaltung – mit Klarheit bei den Funktionen.
-              </p>
-            </div>
-
-            <div className="mt-10 md:mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { name: "Starter", price: "€19", period: "/Monat", highlight: false, features: ["Bis 10 Objekte", "WhatsApp-Benachrichtigungen", "Grundlegende Reports", "E-Mail Support"] },
-                { name: "Pro", price: "€49", period: "/Monat", highlight: true, features: ["Bis 50 Objekte", "Kalender & Abwesenheiten", "Checklisten & Fotodoku", "Priorisierter Support"] },
-                { name: "Enterprise", price: "Individuell", period: "", highlight: false, features: [">50 Objekte", "RBAC & SSO", "API-Zugriff", "Onboarding & SLA"] },
-              ].map((p) => (
-                <div key={p.name} className={["rounded-3xl border p-6 flex flex-col", p.highlight ? "border-emerald-400/50 bg-emerald-50" : "border-gray-200 bg-white"].join(" ")}>
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xl font-semibold">{p.name}</h4>
-                    {p.highlight && <span className="text-xs px-2 py-1 rounded-full bg-emerald-500 text-white">Empfohlen</span>}
-                  </div>
-                  <div className="mt-4 flex items-end gap-1">
-                    <span className="text-4xl font-extrabold">{p.price}</span>
-                    <span className="text-gray-500 mb-1">{p.period}</span>
-                  </div>
-                  <ul className="mt-6 space-y-3 text-gray-700">
-                    {p.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-8">
-                    {p.name === "Enterprise" ? (
-                      <button onClick={openContact} className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-gray-200 hover:bg-gray-50">
-                        Angebot anfragen <ArrowRight className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <Link to="/login" className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 font-semibold">
-                        Jetzt starten <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-12 text-center">
-              <p className="text-gray-500 text-sm">14 Tage kostenlos testen. Keine Kreditkarte erforderlich.</p>
+        {/* CTA */}
+        <section className="py-24 border-t border-white/10">
+          <div className="container mx-auto px-6 lg:px-10 max-w-3xl text-center">
+            <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+              Bereit, Ihr Reinigungsmanagement auf Turbomodus zu stellen?
+            </h3>
+            <p className="mt-4 text-white/70">
+              Schließen Sie sich Gastgebern an, die CleanFlow für klare Abläufe und saubere Ergebnisse nutzen.
+            </p>
+            <div className="mt-9 flex items-center justify-center gap-4">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-8 py-3 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 rounded-full"
+              >
+                Jetzt starten
+              </button>
+              <button
+                onClick={openContact}
+                className="px-8 py-3 text-sm md:text-base font-semibold border border-white/20 text-white hover:border-white/40 rounded-full"
+              >
+                Kontaktieren Sie uns
+              </button>
             </div>
           </div>
         </section>
       </main>
 
-      {/* FOOTER (aus 1. Code) */}
+      {/* FOOTER */}
       <footer className="bg-black text-white">
         <div className="container mx-auto px-6 lg:px-10 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/90 text-sm md:text-base font-medium">
+          <p className="text-white/80 text-sm md:text-base font-medium">
             © {new Date().getFullYear()} CleanFlow. Alle Rechte vorbehalten.
           </p>
           <div className="flex items-center gap-6 text-sm md:text-base font-semibold">
-            <a href="#datenschutz" className="text-white/85 hover:text-white">Datenschutz</a>
-            <a href="#impressum" className="text-white/85 hover:text-white">Impressum</a>
-            <a href="#agb" className="text-white/85 hover:text-white">AGB</a>
+            <a href="#datenschutz" className="text-white/80 hover:text-white">Datenschutz</a>
+            <a href="#impressum" className="text-white/80 hover:text-white">Impressum</a>
+            <a href="#agb" className="text-white/80 hover:text-white">AGB</a>
           </div>
         </div>
       </footer>
 
-      {/* KONTAKT-MODAL (aus 1. Code) */}
+      {/* KONTAKT-MODAL */}
       {isContactOpen && (
         <div aria-modal="true" role="dialog" className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeContact} />
+          <div className="absolute inset-0 bg-black/70" onClick={closeContact} />
           <div className="relative w-full max-w-2xl rounded-2xl bg-black text-white shadow-2xl border border-white/10">
             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
               <h4 className="text-xl font-semibold">Kontakt</h4>
@@ -445,7 +410,7 @@ export function Landing() {
                     type="text"
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
+                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30"
                     placeholder="Max Mustermann"
                   />
                 </div>
@@ -455,7 +420,7 @@ export function Landing() {
                     type="email"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
+                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30"
                     placeholder="max@example.com"
                   />
                 </div>
@@ -465,7 +430,7 @@ export function Landing() {
                     value={contactMessage}
                     onChange={(e) => setContactMessage(e.target.value)}
                     rows={5}
-                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
+                    className="w-full px-3 py-2 rounded-md bg-white/5 text-white placeholder-white/40 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30"
                     placeholder="Worum geht es?"
                     required
                   />
