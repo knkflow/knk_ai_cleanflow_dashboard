@@ -30,12 +30,14 @@ export function Cleaners() {
     open: false,
     message: '',
   });
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     hourly_rate: '',
   });
+
   const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
 
   useEffect(() => {
@@ -78,10 +80,6 @@ export function Cleaners() {
       hourly_rate: cleaner.hourly_rate?.toString() || '',
     });
     setIsModalOpen(true);
-  }
-
-  function normalize(s: string) {
-    return (s || '').trim().toLowerCase();
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -159,25 +157,23 @@ export function Cleaners() {
         )}
       </div>
 
-      {/* Info */}
+      {/* Info-Box */}
       {canCreate && (
-        <>
-          <div className="hidden md:block mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Lightbulb className="w-5 h-5 text-blue-400" />
-              <p className="font-medium">So funktioniert die Einladung:</p>
-            </div>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Füge eine Reinigungskraft mit E-Mail oder Telefonnummer hinzu.</li>
-              <li>Sie erhält automatisch einen Einladungslink.</li>
-              <li>Die Rolle wird automatisch auf <b>Cleaner</b> gesetzt.</li>
-              <li>Nach dem ersten Login kann ein Passwort festgelegt werden.</li>
-            </ol>
+        <div className="hidden md:block mb-6 bg-blue-500/10 border border-blue-500/30 p-4 text-blue-400 text-sm rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="w-5 h-5 text-blue-400" />
+            <p className="font-medium">So funktioniert die Einladung:</p>
           </div>
-        </>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Füge eine Reinigungskraft mit E-Mail oder Telefonnummer hinzu.</li>
+            <li>Sie erhält automatisch einen Einladungslink.</li>
+            <li>Die Rolle wird automatisch auf <b>Cleaner</b> gesetzt.</li>
+            <li>Nach dem ersten Login kann ein Passwort festgelegt werden.</li>
+          </ol>
+        </div>
       )}
 
-      {/* Cleaner Cards */}
+      {/* Cleaner Cards (jetzt mit gleichem Hover-Glow wie Apartments) */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {cleaners.map((cleaner) => (
           <div
@@ -194,11 +190,7 @@ export function Cleaners() {
               hover:bg-white/[0.06]
             "
           >
-            {/* Für grünen Glow → ersetze obige beiden shadow-Zeilen durch:
-                hover:shadow-[0_0_42px_8px_rgba(30,75,19,0.45)]
-                focus-within:shadow-[0_0_42px_8px_rgba(30,75,19,0.45)] */}
-
-            {/* Optional: subtiler innerer Glanz */}
+            {/* optionaler innerer Glanz */}
             <div
               aria-hidden
               className="
@@ -278,66 +270,7 @@ export function Cleaners() {
         )}
       </div>
 
-      {/* Create/Edit Modal */}
-      {canCreate && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title={editingId ? 'Edit Cleaner' : 'Add Cleaner'}
-        >
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              placeholder="Full name"
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="email@example.com"
-            />
-            <Input
-              label="Phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+49 123 456789"
-            />
-            <Input
-              label="Hourly Rate (€)"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.hourly_rate}
-              onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-              placeholder="15.00"
-            />
-            <div className="flex gap-3 pt-4">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex-1 px-4 py-2 bg-white text-black hover:bg-white/90 disabled:opacity-60 transition-colors font-medium rounded-md"
-              >
-                {submitting ? 'Saving…' : editingId ? 'Update' : 'Create'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                disabled={submitting}
-                className="flex-1 px-4 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-60 transition-colors rounded-md"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      {/* Confirm Delete */}
+      {/* Delete Confirm */}
       {isConfirmOpen && selectedCleaner && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-neutral-900 text-white border border-white/20 rounded-xl p-6 w-full max-w-md shadow-2xl">
