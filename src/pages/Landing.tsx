@@ -173,7 +173,7 @@ export function Landing() {
             <h1 className="mt-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               <span className="text-white">Ihre Reinigungen.</span>{' '}
               <span className="bg-clip-text text-transparent bg-[conic-gradient(at_top_left,_white,_#d4d4d4,_white)]">
-                Einfach. Koordiniert. Kraftvoll.
+                Einfach. Koordiniert. Effizient.
               </span>
             </h1>
 
