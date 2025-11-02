@@ -58,9 +58,10 @@ export function Landing() {
 
         <div className="container mx-auto px-6 lg:px-8 py-4 grid grid-cols-3 items-center">
           {/* Links – Name */}
-          <span className="text-sm md:text-base tracking-widest uppercase font-semibold">
-            CleanFlow
-          </span>
+          <span className="text-sm md:text-base tracking-widest uppercase font-semibold text-white">
+  CleanFlow
+</span>
+
 
           {/* Mitte – Logo */}
           <div className="justify-self-center">
