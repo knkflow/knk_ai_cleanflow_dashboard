@@ -61,54 +61,73 @@ const emSoft    = (a:number)=>`radial-gradient(closest-side, rgba(16,185,129,${a
 const emLight   = (a:number)=>`radial-gradient(closest-side, rgba(110,231,183,${a}), transparent 70%)`;  // emerald-300
 const emDeep    = (a:number)=>`radial-gradient(closest-side, rgba(5,150,105,${a}), transparent 70%)`;    // emerald-600
 
+/** Globale Seiten-Ecken (oben/ unten, links/ rechts) – sehr dezent */
+const PageCornerGlows: React.FC = () => (
+  <div aria-hidden className="pointer-events-none fixed inset-0 hidden md:block">
+    <span className="absolute -top-10 -left-10 h-40 w-40 rounded-full blur-3xl opacity-60" style={{ background: skyLight(0.12) }} />
+    <span className="absolute -top-14 -right-12 h-44 w-44 rounded-full blur-3xl opacity-60" style={{ background: emLight(0.10) }} />
+    <span className="absolute -bottom-14 -left-12 h-44 w-44 rounded-full blur-3xl opacity-60" style={{ background: skyDeep(0.08) }} />
+    <span className="absolute -bottom-16 -right-12 h-48 w-48 rounded-full blur-3xl opacity-60" style={{ background: emDeep(0.08) }} />
+  </div>
+);
+
 /** Vordefinierte Glow-Varianten je Sektion */
 const glowVariants: Record<
   "hero" | "features" | "story" | "pricing" | "footer",
   Blob[]
 > = {
   hero: [
-    { pos: "top-[-12rem] left-[-10rem]", size: "h-[32rem] w-[32rem]", gradient: skySoft(0.22), blur: "blur-3xl", opacity: "opacity-90" },
-    { pos: "bottom-[-14rem] right-[-12rem]", size: "h-[34rem] w-[34rem]", gradient: emSoft(0.20), blur: "blur-3xl", opacity: "opacity-90" },
+    { pos: "top-[-12rem] left-[-10rem]",  size: "h-[32rem] w-[32rem]", gradient: skySoft(0.22), blur: "blur-3xl", opacity: "opacity-90" },
+    { pos: "bottom-[-14rem] right-[-12rem]", size: "h-[34rem] w-[34rem]", gradient: emSoft(0.20),  blur: "blur-3xl", opacity: "opacity-90" },
     // dunklere Akzente
     { pos: "top-[20%] right-[-8rem]", size: "h-[18rem] w-[18rem]", gradient: skyDeep(0.12), blur: "blur-2xl", opacity: "opacity-80" },
-    { pos: "bottom-[25%] left-[-6rem]", size: "h-[16rem] w-[16rem]", gradient: emDeep(0.10), blur: "blur-2xl", opacity: "opacity-80" },
+    { pos: "bottom-[25%] left-[-6rem]", size: "h-[16rem] w-[16rem]", gradient: emDeep(0.10),  blur: "blur-2xl", opacity: "opacity-80" },
   ],
   features: [
-    { pos: "top-[-8rem] right-[-6rem]", size: "h-[24rem] w-[24rem]", gradient: skyLight(0.16), opacity: "opacity-80" },
-    { pos: "bottom-[-8rem] left-[-6rem]", size: "h-[26rem] w-[26rem]", gradient: emLight(0.14), opacity: "opacity-80" },
-    { pos: "top-[40%] left-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: skyDeep(0.10), blur: "blur-2xl" },
-    { pos: "bottom-[35%] right-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: emDeep(0.10), blur: "blur-2xl" },
+    { pos: "top-[-8rem] right-[-6rem]",  size: "h-[24rem] w-[24rem]", gradient: skyLight(0.16), opacity: "opacity-80" },
+    { pos: "bottom-[-8rem] left-[-6rem]", size: "h-[26rem] w-[26rem]", gradient: emLight(0.14),  opacity: "opacity-80" },
+    { pos: "top-[40%] left-[-5rem]",     size: "h-[14rem] w-[14rem]", gradient: skyDeep(0.10),  blur: "blur-2xl" },
+    { pos: "bottom-[35%] right-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: emDeep(0.10),   blur: "blur-2xl" },
   ],
   story: [
-    { pos: "top-[-6rem] left-[-6rem]", size: "h-[22rem] w-[22rem]", gradient: skyLight(0.14), opacity: "opacity-70" },
+    { pos: "top-[-6rem] left-[-6rem]",   size: "h-[22rem] w-[22rem]", gradient: skyLight(0.14), opacity: "opacity-70" },
     { pos: "bottom-[-8rem] right-[-6rem]", size: "h-[24rem] w-[24rem]", gradient: emLight(0.12), opacity: "opacity-70" },
-    { pos: "top-[55%] right-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: skyDeep(0.10), blur: "blur-2xl" },
-    { pos: "bottom-[45%] left-[-5rem]", size: "h-[14rem] w-[14rem]", gradient: emDeep(0.10), blur: "blur-2xl" },
+    { pos: "top-[55%] right-[-5rem]",    size: "h-[14rem] w-[14rem]", gradient: skyDeep(0.10),  blur: "blur-2xl" },
+    { pos: "bottom-[45%] left-[-5rem]",  size: "h-[14rem] w-[14rem]", gradient: emDeep(0.10),   blur: "blur-2xl" },
   ],
   pricing: [
-    { pos: "top-[-9rem] right-[-7rem]", size: "h-[26rem] w-[26rem]", gradient: skySoft(0.16), opacity: "opacity-80" },
-    { pos: "bottom-[-9rem] left-[-7rem]", size: "h-[28rem] w-[28rem]", gradient: emSoft(0.16), opacity: "opacity-80" },
-    { pos: "top-[35%] left-[-5rem]", size: "h-[16rem] w-[16rem]", gradient: skyDeep(0.10), blur: "blur-2xl" },
-    { pos: "bottom-[35%] right-[-5rem]", size: "h-[16rem] w-[16rem]", gradient: emDeep(0.10), blur: "blur-2xl" },
+    { pos: "top-[-9rem] right-[-7rem]",  size: "h-[26rem] w-[26rem]", gradient: skySoft(0.16),  opacity: "opacity-80" },
+    { pos: "bottom-[-9rem] left-[-7rem]", size: "h-[28rem] w-[28rem]", gradient: emSoft(0.16),   opacity: "opacity-80" },
+    { pos: "top-[35%] left-[-5rem]",     size: "h-[16rem] w-[16rem]", gradient: skyDeep(0.10),  blur: "blur-2xl" },
+    { pos: "bottom-[35%] right-[-5rem]", size: "h-[16rem] w-[16rem]", gradient: emDeep(0.10),   blur: "blur-2xl" },
   ],
   footer: [
-    { pos: "top-[-3rem] left-[-3rem]", size: "h-[18rem] w-[18rem]", gradient: skyLight(0.12), opacity: "opacity-60" },
+    { pos: "top-[-3rem] left-[-3rem]",   size: "h-[18rem] w-[18rem]", gradient: skyLight(0.12), opacity: "opacity-60" },
     { pos: "bottom-[-5rem] right-[-4rem]", size: "h-[20rem] w-[20rem]", gradient: emLight(0.10), opacity: "opacity-60" },
-    { pos: "top-[40%] right-[-4rem]", size: "h-[12rem] w-[12rem]", gradient: skyDeep(0.10), blur: "blur-xl" },
-    { pos: "bottom-[40%] left-[-4rem]", size: "h-[12rem] w-[12rem]", gradient: emDeep(0.10), blur: "blur-xl" },
+    { pos: "top-[40%] right-[-4rem]",    size: "h-[12rem] w-[12rem]", gradient: skyDeep(0.10),  blur: "blur-xl" },
+    { pos: "bottom-[40%] left-[-4rem]",  size: "h-[12rem] w-[12rem]", gradient: emDeep(0.10),   blur: "blur-xl" },
   ],
 };
 
 /** Kleine Eck-Akzente für Cards/Grids (Babyblau/Emerald Mini-Spots) */
-const CornerAccent: React.FC<{ color?: "sky" | "emerald" }> = ({ color = "sky" }) => (
+const CornerAccent: React.FC<{ color?: "sky" | "emerald"; className?: string }> = ({ color = "sky", className = "" }) => (
   <span
     aria-hidden
-    className="absolute -z-0 -top-2 -right-2 h-8 w-8 rounded-full blur-lg opacity-70"
-    style={{
-      background:
-        color === "sky" ? skySoft(0.35) : emSoft(0.35),
-    }}
+    className={["absolute -z-0 h-8 w-8 rounded-full blur-lg opacity-70", className].join(" ")}
+    style={{ background: color === "sky" ? skySoft(0.35) : emSoft(0.35) }}
   />
+);
+
+/** Abschnitts-Rahmenlinien (zarte Gradient-Divider oben/unten) */
+const SectionDividers: React.FC<{ top?: boolean; bottom?: boolean }> = ({ top = true, bottom = true }) => (
+  <>
+    {top && (
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-100 to-transparent" />
+    )}
+    {bottom && (
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-100 to-transparent" />
+    )}
+  </>
 );
 
 export function Landing() {
@@ -148,7 +167,10 @@ export function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-white text-gray-900 relative">
+      {/* Globale dezente Seiten-Ecken */}
+      <PageCornerGlows />
+
       {/* HEADER */}
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur">
         <div className="container mx-auto px-6 lg:px-10 py-4 flex items-center justify-between">
@@ -274,6 +296,10 @@ export function Landing() {
         <section ref={heroRef} className="relative overflow-hidden">
           <SectionGlows blobs={glowVariants.hero} />
 
+          {/* Corner Glows der Sektion */}
+          <CornerAccent color="sky" className="-top-3 -left-3" />
+          <CornerAccent color="emerald" className="-bottom-3 -right-3 h-10 w-10" />
+
           <div className="container mx-auto px-6 lg:px-10 py-16 md:py-32 text-center">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 bg-white">
               <span className="text-[11px] md:text-xs tracking-[0.35em] uppercase text-gray-600">
@@ -329,6 +355,10 @@ export function Landing() {
         <section ref={featuresRef} className="relative py-20 md:py-24 border-t border-gray-200">
           <SectionGlows blobs={glowVariants.features} />
 
+          {/* Corner Glows */}
+          <CornerAccent color="emerald" className="-top-3 -right-3" />
+          <CornerAccent color="sky" className="-bottom-3 -left-3 h-10 w-10" />
+
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center relative">
               {/* schlanke Gradient-Linie (emerald → babyblau) */}
@@ -343,33 +373,17 @@ export function Landing() {
 
             <div className="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {[
-                {
-                  icon: <MessageSquare className="w-5 h-5" />,
-                  title: "WhatsApp-Benachrichtigungen",
-                  text: "Automatisch und manuell: Aufträge, Updates und Bestätigungen direkt an Reinigungskräfte – nachweisbar und nachvollziehbar.",
-                },
-                {
-                  icon: <ClipboardCheck className="w-5 h-5" />,
-                  title: "Reinigungseinträge & Checklisten",
-                  text: "Aufträge anlegen, zuweisen und dokumentieren. Fotodoku, Checklisten und Abnahme – transparent und revisionssicher.",
-                },
-                {
-                  icon: <CalendarDays className="w-5 h-5" />,
-                  title: "Kalender & Abwesenheiten",
-                  text: "Urlaub und Krankheit im Blick. Konflikte früh erkennen und Planung verlässlich halten.",
-                },
-                {
-                  icon: <ShieldCheck className="w-5 h-5" />,
-                  title: "Sicherheit & DSGVO",
-                  text: "EU-Server, verschlüsselte Daten und rollenbasierte Zugriffe. Vertrauen ist Standard.",
-                },
+                { icon: <MessageSquare className="w-5 h-5" />, title: "WhatsApp-Benachrichtigungen", text: "Automatisch und manuell: Aufträge, Updates und Bestätigungen direkt an Reinigungskräfte – nachweisbar und nachvollziehbar." },
+                { icon: <ClipboardCheck className="w-5 h-5" />, title: "Reinigungseinträge & Checklisten", text: "Aufträge anlegen, zuweisen und dokumentieren. Fotodoku, Checklisten und Abnahme – transparent und revisionssicher." },
+                { icon: <CalendarDays className="w-5 h-5" />, title: "Kalender & Abwesenheiten", text: "Urlaub und Krankheit im Blick. Konflikte früh erkennen und Planung verlässlich halten." },
+                { icon: <ShieldCheck className="w-5 h-5" />, title: "Sicherheit & DSGVO", text: "EU-Server, verschlüsselte Daten und rollenbasierte Zugriffe. Vertrauen ist Standard." },
               ].map((f, idx) => (
                 <div
                   key={f.title}
                   className="relative rounded-2xl border border-gray-200 bg-white p-6 hover:shadow-sm transition-shadow"
                 >
                   {/* Eck-Akzent je nach Karte alternierend */}
-                  <CornerAccent color={idx % 2 === 0 ? "sky" : "emerald"} />
+                  <CornerAccent color={idx % 2 === 0 ? "sky" : "emerald"} className="-top-2 -right-2" />
                   <div className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-emerald-600 mb-4">
                     {f.icon}
                     <span>Highlight</span>
@@ -385,6 +399,9 @@ export function Landing() {
         {/* MISSION / STORY */}
         <section ref={storyRef} className="relative py-20 md:py-24 bg-gray-50">
           <SectionGlows blobs={glowVariants.story} />
+          {/* Corner Glows */}
+          <CornerAccent color="sky" className="-top-3 -left-3" />
+          <CornerAccent color="emerald" className="-bottom-3 -right-3 h-10 w-10" />
 
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="relative">
@@ -443,10 +460,13 @@ export function Landing() {
           {/* kleine Hintergrund-Nebelschwaden */}
           <SectionGlows
             blobs={[
-              { pos: "top-[-6rem] left-[-6rem]", size: "h-[18rem] w-[18rem]", gradient: skyLight(0.12) },
+              { pos: "top-[-6rem] left-[-6rem]",  size: "h-[18rem] w-[18rem]", gradient: skyLight(0.12) },
               { pos: "bottom-[-6rem] right-[-6rem]", size: "h-[18rem] w-[18rem]", gradient: emLight(0.12) },
             ]}
           />
+          {/* Corner Glows */}
+          <CornerAccent color="emerald" className="-top-3 -right-3" />
+          <CornerAccent color="sky" className="-bottom-3 -left-3 h-10 w-10" />
 
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="grid md:grid-cols-2 gap-10 items-start">
@@ -472,24 +492,9 @@ export function Landing() {
 
               <div className="grid gap-6">
                 {[
-                  {
-                    quote:
-                      "Seit CleanFlow sparen wir jede Woche Stunden – Planung und Rückmeldungen laufen zuverlässig.",
-                    name: "Lena M.",
-                    role: "Host, 24 Apartments",
-                  },
-                  {
-                    quote:
-                      "Transparente Aufträge und klare Zuständigkeiten. Unser Team arbeitet ruhiger und fehlerfrei.",
-                    name: "Tobias K.",
-                    role: "Hausverwaltung",
-                  },
-                  {
-                    quote:
-                      "Fotodoku und Checklisten erhöhen die Qualität – Beschwerden sind praktisch verschwunden.",
-                    name: "Aylin S.",
-                    role: "Reinigungsleiterin",
-                  },
+                  { quote:"Seit CleanFlow sparen wir jede Woche Stunden – Planung und Rückmeldungen laufen zuverlässig.", name:"Lena M.", role:"Host, 24 Apartments" },
+                  { quote:"Transparente Aufträge und klare Zuständigkeiten. Unser Team arbeitet ruhiger und fehlerfrei.", name:"Tobias K.", role:"Hausverwaltung" },
+                  { quote:"Fotodoku und Checklisten erhöhen die Qualität – Beschwerden sind praktisch verschwunden.", name:"Aylin S.", role:"Reinigungsleiterin" },
                 ].map((t, i) => (
                   <blockquote
                     key={t.name}
@@ -503,11 +508,7 @@ export function Landing() {
                     />
                     <div className="flex items-center gap-1 mb-3" aria-hidden>
                       {Array.from({ length: 5 }).map((_, idx) => (
-                        <Star
-                          key={idx}
-                          className="w-4 h-4 text-emerald-500"
-                          fill="currentColor"
-                        />
+                        <Star key={idx} className="w-4 h-4 text-emerald-500" fill="currentColor" />
                       ))}
                     </div>
                     <p className="text-gray-900 relative z-[1]">“{t.quote}”</p>
@@ -524,6 +525,11 @@ export function Landing() {
         {/* PRICING / CTA */}
         <section ref={pricingRef} className="relative py-20 md:py-24 border-t border-emerald-100/70">
           <SectionGlows blobs={glowVariants.pricing} />
+          {/* Corner Glows */}
+          <CornerAccent color="sky" className="-top-3 -left-3" />
+          <CornerAccent color="emerald" className="-bottom-3 -right-3 h-10 w-10" />
+          {/* Zarte Dividers für die ganze Sektion */}
+          <SectionDividers top bottom />
 
           <div className="container mx-auto px-6 lg:px-10 max-w-6xl">
             <div className="text-center max-w-2xl mx-auto">
@@ -537,27 +543,9 @@ export function Landing() {
 
             <div className="mt-10 md:mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                {
-                  name: "Starter",
-                  price: "€19",
-                  period: "/Monat",
-                  highlight: false,
-                  features: ["Bis 10 Objekte", "WhatsApp-Benachrichtigungen", "Grundlegende Reports", "E-Mail Support"],
-                },
-                {
-                  name: "Pro",
-                  price: "€49",
-                  period: "/Monat",
-                  highlight: true,
-                  features: ["Bis 50 Objekte", "Kalender & Abwesenheiten", "Checklisten & Fotodoku", "Priorisierter Support"],
-                },
-                {
-                  name: "Enterprise",
-                  price: "Individuell",
-                  period: "",
-                  highlight: false,
-                  features: [">50 Objekte", "RBAC & SSO", "API-Zugriff", "Onboarding & SLA"],
-                },
+                { name:"Starter",    price:"€19", period:"/Monat", highlight:false, features:["Bis 10 Objekte","WhatsApp-Benachrichtigungen","Grundlegende Reports","E-Mail Support"] },
+                { name:"Pro",        price:"€49", period:"/Monat", highlight:true,  features:["Bis 50 Objekte","Kalender & Abwesenheiten","Checklisten & Fotodoku","Priorisierter Support"] },
+                { name:"Enterprise", price:"Individuell", period:"", highlight:false, features:[">50 Objekte","RBAC & SSO","API-Zugriff","Onboarding & SLA"] },
               ].map((p, idx) => (
                 <div
                   key={p.name}
@@ -568,19 +556,22 @@ export function Landing() {
                       : "ring-1 ring-emerald-100 hover:ring-emerald-200",
                   ].join(" ")}
                 >
-                  {/* kleiner Spot oben links pro Karte */}
+                  {/* kleine Spots je Karte */}
                   <span
                     aria-hidden
                     className="absolute -z-0 -top-2 -left-2 h-10 w-10 rounded-full blur-xl opacity-60"
                     style={{ background: idx === 1 ? skySoft(0.28) : emLight(0.28) }}
                   />
+                  <span
+                    aria-hidden
+                    className="absolute -z-0 -bottom-2 -right-2 h-8 w-8 rounded-full blur-lg opacity-60"
+                    style={{ background: idx === 1 ? emSoft(0.22) : skySoft(0.22) }}
+                  />
 
                   <div className="flex items-center justify-between">
                     <h4 className="text-xl font-semibold">{p.name}</h4>
                     {p.highlight && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-emerald-500 text-white">
-                        Empfohlen
-                      </span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-emerald-500 text-white">Empfohlen</span>
                     )}
                   </div>
 
@@ -589,7 +580,7 @@ export function Landing() {
                     <span className="text-gray-500 mb-1">{p.period}</span>
                   </div>
 
-                  {/* Zarte grüne Trennlinie */}
+                  {/* Zarte grüne Trennlinie unter dem Preis (klare Abgrenzung) */}
                   <div className="mt-4 h-px bg-emerald-100" />
 
                   <ul className="mt-4 space-y-3 text-gray-700">
@@ -601,7 +592,7 @@ export function Landing() {
                     ))}
                   </ul>
 
-                  {/* Trennlinie vor Button */}
+                  {/* Zarte Linie vor dem CTA */}
                   <div className="mt-6 h-px bg-emerald-100/80" />
 
                   <div className="mt-6">
@@ -641,8 +632,11 @@ export function Landing() {
       </main>
 
       {/* FOOTER */}
-      <footer className="relative border-t border-gray-200">
+      <footer className="relative border-top border-gray-200">
         <SectionGlows blobs={glowVariants.footer} />
+        {/* Corner Glows */}
+        <CornerAccent color="emerald" className="-top-3 -right-3" />
+        <CornerAccent color="sky" className="-bottom-3 -left-3 h-10 w-10" />
 
         <div className="container mx-auto px-6 lg:px-10 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm">
